@@ -97,17 +97,17 @@ step('建立車流、行人與店面');
 const exclude=new Set([357399,265936,266115,266138]);(function collect(o){if(Array.isArray(o))o.forEach(collect);else if(o&&typeof o==='object')for(const [k,v] of Object.entries(o)){if(k==='officialVolumeCandidates'&&Array.isArray(v))v.forEach(id=>exclude.add(+id));else collect(v);}})(firstBatch);
 const life=createStreetLife(scene,{features:streets.features,buildings:district.buildings,ground,colliders,fixtures,exclude,spawn});
 const sky=createSky();scene.add(sky);
-const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',keys:new Set(),stick:[0,0],run:false,walkT:0};
+const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',paused:false,keys:new Set(),stick:[0,0],run:false,walkT:0};
 function placeTruck(){const f=[-Math.sin(spawn.heading),-Math.cos(spawn.heading)],r=[Math.cos(spawn.heading),-Math.sin(spawn.heading)];truck.x=spawn.x+f[0]*14+r[0]*1.5;truck.z=spawn.z+f[1]*14+r[1]*1.5;truck.heading=spawn.heading;truck.v=0;}
 function resetAll(){state.mode='walk';state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();player.visible=true;syncUi();}
 placeTruck();
 
 // 輸入
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();state.keys.add(k);if(k==='e')toggleVehicle();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if(k==='h')$('info').hidden=!$('info').hidden;if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();if(k==='escape'||k==='p'){setPaused(!state.paused);e.preventDefault();return;}if(k==='h'){setPaused(true,'controls');return;}if(state.paused)return;state.keys.add(k);if(k==='e')toggleVehicle();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
 addEventListener('keyup',e=>state.keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>state.keys.clear());
 let drag=null;
 canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&e.clientX<innerWidth*.45)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;state.yaw-=(e.clientX-drag.x)*.006;state.pitch=Math.min(1.25,Math.max(.05,state.pitch+(e.clientY-drag.y)*.004));drag.x=e.clientX;drag.y=e.clientY;state.camHold=1.5;});
+canvas.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const k=settings.sens;state.yaw-=(e.clientX-drag.x)*.006*k;state.pitch=Math.min(1.25,Math.max(.05,state.pitch+(e.clientY-drag.y)*.004*k*(settings.invertY?-1:1)));drag.x=e.clientX;drag.y=e.clientY;state.camHold=1.5;});
 canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
 canvas.addEventListener('wheel',e=>{state.dist=Math.min(40,Math.max(3,state.dist*(1+Math.sign(e.deltaY)*.1)));e.preventDefault();},{passive:false});
 {const stick=$('stick'),knob=stick.querySelector('i');let id=null;
@@ -117,7 +117,6 @@ canvas.addEventListener('wheel',e=>{state.dist=Math.min(40,Math.max(3,state.dist
  $('tRun').addEventListener('pointerdown',()=>{state.run=!state.run;$('tRun').classList.toggle('on',state.run);});$('tEnter').addEventListener('click',()=>toggleVehicle());
 }
 $('enter').onclick=()=>toggleVehicle();$('siren').onclick=()=>toggleSiren();$('night').onclick=()=>cycleTime();$('reset').onclick=()=>resetAll();
-$('help').onclick=()=>$('info').hidden=!$('info').hidden;$('closeInfo').onclick=()=>$('info').hidden=true;
 
 function nearTruck(){return Math.hypot(state.x-truck.x,state.z-truck.z)<6;}
 function toggleVehicle(){
@@ -126,7 +125,7 @@ function toggleVehicle(){
  syncUi();
 }
 function toggleSiren(){if(state.mode!=='drive')return;truck.siren=!truck.siren;syncUi();}
-function cycleTime(){const order=Object.keys(TIME_PRESETS);applyTime(order[(order.indexOf(state.time)+1)%order.length]);}
+function cycleTime(){const order=Object.keys(TIME_PRESETS);applyTime(order[(order.indexOf(state.time)+1)%order.length]);quality.apply();syncTime();}
 function applyTime(name){
  state.time=name;const p=TIME_PRESETS[name],az=p.az*Math.PI/180,el=p.el*Math.PI/180;
  sunDir.set(Math.sin(az)*Math.cos(el),Math.sin(el),-Math.cos(az)*Math.cos(el));
@@ -191,8 +190,13 @@ function updateDrive(dt){
  truck.rig?.update(truck.v*dt,truck.steer);
  state.x=truck.x;state.z=truck.z;$('kmh').textContent=Math.round(Math.abs(truck.v)*3.6);$('prompt').hidden=true;
 }
-function frame(){
- clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();
+let lastFrame=0;
+function frame(now){
+ requestAnimationFrame(frame);
+ // 30 FPS 省電：未到間隔就跳過這一幀；暫停時停止模擬與繪製。
+ if(settings.fps===30&&now-lastFrame<1000/30-2)return;lastFrame=now;
+ if(state.paused){clock.update();return;}
+ clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();quality.sample(dt);
  state.mode==='walk'?updateWalk(dt):updateDrive(dt);
  life.update(dt,t,state.mode==='drive'?truckCircles():[[state.x,state.z,.5],...truckCircles()]);
  // 消防車貼地，依前後輪地面高差俯仰。
@@ -207,12 +211,41 @@ function frame(){
  camera.position.set(cx,Math.max(ty+Math.sin(state.pitch)*d,ground.at(cx,cz)+.6),cz);camera.lookAt(tx,ty,tz);sky.position.copy(camera.position);
  sun.position.set(tx+sunDir.x*250,ground.at(tx,tz)+sunDir.y*250,tz+sunDir.z*250);sun.target.position.set(tx,ground.at(tx,tz),tz);
  streetTimer-=dt;if(streetTimer<0){streetTimer=.4;$('street').textContent=nearestStreet(streets.features,state.x,state.z)??'信義區（無道路名稱）';}
- drawMinimap();renderer.render(scene,camera);requestAnimationFrame(frame);
+ drawMinimap();renderer.render(scene,camera);
 }
-function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const s=innerWidth<=640?140:220;mini.width=mini.height=s*Math.min(devicePixelRatio,2);}
-addEventListener('resize',resize);resize();applyTime('afternoon');
-for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);if(box)box.onchange=()=>{life.groups[group].visible=box.checked;};}
+function resize(){renderer.setPixelRatio(quality.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const s=innerWidth<=640?140:220;mini.width=mini.height=s*Math.min(devicePixelRatio,2);}
+// ---------- 設定與暫停選單 ----------
+// 設定只存在本機瀏覽器（localStorage）；無法存取時仍以預設值運作。
+const SETTINGS_KEY='xinyiStreetSettings',DEFAULTS={quality:'auto',fps:60,showFps:false,sens:1,invertY:false,life:{traffic:true,people:true,shops:true,markings:true,trees:true}};
+const settings=(()=>{try{const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');return {...DEFAULTS,...v,life:{...DEFAULTS.life,...v.life}};}catch{return structuredClone(DEFAULTS);}})();
+const saveSettings=()=>{try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch{}};
+// 畫質：解析度倍率、陰影、NPC 密度、可視距離。自動模式依裝置起始，實測平均幀率過低時逐級降低。
+const QUALITY={low:{label:'低',pr:.75,shadow:0,density:.35,far:.7},medium:{label:'中',pr:1.25,shadow:1024,density:.7,far:.85},high:{label:'高',pr:2,shadow:2048,density:1,far:1}};
+const quality={level:'medium',auto:matchMedia('(pointer:coarse)').matches||Math.min(screen.width,screen.height)<700?'low':'medium',frames:0,time:0,
+ resolved(){return settings.quality==='auto'?this.auto:settings.quality;},
+ pixelRatio(){return Math.min(devicePixelRatio,QUALITY[this.resolved()].pr);},
+ apply(){const q=QUALITY[this.level=this.resolved()];renderer.setPixelRatio(this.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);
+  sun.castShadow=q.shadow>0;if(q.shadow&&sun.shadow.mapSize.x!==q.shadow){sun.shadow.mapSize.set(q.shadow,q.shadow);sun.shadow.map?.dispose();sun.shadow.map=null;}
+  life.setDensity(q.density);camera.far=2500*q.far;camera.updateProjectionMatrix();scene.fog.far=TIME_PRESETS[state.time].fogFar*q.far;
+  $('qualityDetail').textContent=`目前：${q.label}（解析度 ${Math.round(this.pixelRatio()*100)}%、陰影${q.shadow?q.shadow+' px':'關閉'}、車流行人 ${Math.round(q.density*100)}%）`+(settings.quality==='auto'?'，自動模式':'');},
+ sample(dt){this.frames++;this.time+=dt;if(this.time<4)return;const fps=this.frames/this.time;this.frames=0;this.time=0;$('fps').textContent=Math.round(fps)+' FPS · '+QUALITY[this.level].label;
+  const target=settings.fps===30?24:40;if(settings.quality==='auto'&&fps<target&&this.auto!=='low'){this.auto=this.auto==='high'?'medium':'low';this.apply();}}};
+function setPaused(on,page){state.paused=on;$('menu').hidden=!on;state.keys.clear();state.stick=[0,0];if(on)showPage(page??'settings');}
+function showPage(page){for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.classList.toggle('active',b.dataset.page===page);for(const sec of document.querySelectorAll('.menu-body [data-page]'))sec.hidden=sec.dataset.page!==page;}
+for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.onclick=()=>showPage(b.dataset.page);
+$('resume').onclick=()=>setPaused(false);$('help').onclick=()=>setPaused(!state.paused);
+$('menu').addEventListener('pointerdown',e=>{if(e.target===$('menu'))setPaused(false);});
+function bindSeg(id,get,set){const seg=$(id),sync=()=>{for(const b of seg.children)b.classList.toggle('on',b.dataset.v===String(get()));};for(const b of seg.children)b.onclick=()=>{set(b.dataset.v);sync();saveSettings();};sync();return sync;}
+bindSeg('quality',()=>settings.quality,v=>{settings.quality=v;quality.apply();});
+bindSeg('fpsCap',()=>settings.fps,v=>{settings.fps=+v;});
+const syncTime=bindSeg('timeSeg',()=>state.time,v=>{applyTime(v);quality.apply();});
+$('showFps').checked=settings.showFps;$('fps').hidden=!settings.showFps;$('showFps').onchange=()=>{settings.showFps=$('showFps').checked;$('fps').hidden=!settings.showFps;saveSettings();};
+$('sens').value=settings.sens;$('sensValue').textContent=(+settings.sens).toFixed(1)+'×';$('sens').oninput=()=>{settings.sens=+$('sens').value;$('sensValue').textContent=settings.sens.toFixed(1)+'×';saveSettings();};
+$('invertY').checked=settings.invertY;$('invertY').onchange=()=>{settings.invertY=$('invertY').checked;saveSettings();};
+for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);box.checked=settings.life[group];life.groups[group].visible=box.checked;box.onchange=()=>{life.groups[group].visible=box.checked;settings.life[group]=box.checked;saveSettings();};}
+addEventListener('resize',resize);applyTime('afternoon');quality.apply();resize();
+addEventListener('blur',()=>{if(!state.paused)setPaused(true);});
 $('loading').hidden=true;
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={state,truck,colliders,ground,life,applyTime,tick(dt,n=1){for(let i=0;i<n;i++)state.mode==='walk'?updateWalk(dt):updateDrive(dt);}};
+window.__xinyiStreet={state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,tick(dt,n=1){for(let i=0;i<n;i++)state.mode==='walk'?updateWalk(dt):updateDrive(dt);}};
 requestAnimationFrame(frame);

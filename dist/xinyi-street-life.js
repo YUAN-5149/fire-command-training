@@ -168,7 +168,7 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
   for(const m of [paint,trim,lights]){m.castShadow=true;m.frustumCulled=false;traffic.add(m);}
   for(let i=0;i<n;i++){let lane=pickLane(),s=rand()*lane.length;for(let k=0;k<20&&Math.hypot(lanePose(lane,s).x-spawn.x,lanePose(lane,s).z-spawn.z)<30;k++){lane=pickLane();s=rand()*lane.length;}
    paint.setColorAt(i,new T.Color(kind==='taxi'?'#f2c21b':kind==='scooter'?['#c8ccd0','#1e2226','#b33a2c','#3a6fb0','#e8e4da'][i%5]:carColors[i%carColors.length]));
-   vehicles.push({kind,i,kit,meshes:{paint,trim,lights},lane,s,v:0,max:(lane.speed+rand()*3)*(kind==='scooter'?1.1:1),side:kind==='scooter'?Math.min(lane.width/4-.6,1.4):0,x:0,z:0,heading:0});}}
+   vehicles.push({kind,i,n,active:true,kit,meshes:{paint,trim,lights},lane,s,v:0,max:(lane.speed+rand()*3)*(kind==='scooter'?1.1:1),side:kind==='scooter'?Math.min(lane.width/4-.6,1.4):0,x:0,z:0,heading:0});}}
  scene.add(traffic);life.groups.traffic=traffic;life.vehicles=vehicles;
  // 行人
  const walkPaths=[];for(const f of features){if(!['sidewalk','walk'].includes(f.kind))continue;for(const path of f.paths){const lp=localPath(path,2);if(lp.length>=15)walkPaths.push({...lp,width:f.width||1.8});}}
@@ -183,12 +183,12 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
  function obstacleAhead(veh,others,player){
   const fx=-Math.sin(veh.heading),fz=-Math.cos(veh.heading),look=veh.kit.length/2+Math.max(5,veh.v*1.2);let gap=Infinity;
   const test=(x,z,r)=>{const dx=x-veh.x,dz=z-veh.z,ahead=dx*fx+dz*fz,lat=Math.abs(-dx*fz+dz*fx);if(ahead>0&&ahead<look+r&&lat<1.2+r)gap=Math.min(gap,ahead-r);};
-  for(const o of others)if(o!==veh&&Math.abs(o.x-veh.x)<30&&Math.abs(o.z-veh.z)<30)test(o.x,o.z,o.kit.radius);
+  for(const o of others)if(o.active&&o!==veh&&Math.abs(o.x-veh.x)<30&&Math.abs(o.z-veh.z)<30)test(o.x,o.z,o.kit.radius);
   for(const c of player)test(c[0],c[1],c[2]);
   return gap;
  }
  life.update=(dt,t,blockers)=>{
-  if(life.groups.traffic.visible)for(const veh of vehicles){
+  if(life.groups.traffic.visible)for(const veh of vehicles){if(!veh.active)continue;
    const gap=obstacleAhead(veh,vehicles,blockers),target=gap<veh.kit.length/2+1.5?0:gap<veh.kit.length/2+8?veh.max*.3:veh.max;
    veh.v+=Math.max(-8*dt,Math.min(3*dt,target-veh.v));veh.s+=veh.v*dt;
    while(veh.s>veh.lane.length){veh.s-=veh.lane.length;const next=veh.lane.next.length?veh.lane.next[Math.floor(rand()*veh.lane.next.length)]:veh.lane.back??pickLane();veh.lane=next;veh.max=(next.speed+rand()*3)*(veh.kind==='scooter'?1.1:1);}
@@ -197,14 +197,17 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
    tmp.position.set(veh.x,ground.at(veh.x,veh.z),veh.z);tmp.rotation.set(0,veh.heading,0);tmp.updateMatrix();for(const m of Object.values(veh.meshes))m.setMatrixAt(veh.i,tmp.matrix);
   }
   for(const m of traffic.children)m.instanceMatrix.needsUpdate=true;
-  if(life.groups.people.visible){peds.forEach((q,i)=>{q.s+=q.v*q.dir*dt;if(q.s>q.p.length||q.s<0){q.dir*=-1;q.s=Math.max(0,Math.min(q.p.length,q.s));}
+  if(life.groups.people.visible){peds.forEach((q,i)=>{if(i>=life.pedActive)return;q.s+=q.v*q.dir*dt;if(q.s>q.p.length||q.s<0){q.dir*=-1;q.s=Math.max(0,Math.min(q.p.length,q.s));}
    const a=q.p.along;let k=1;while(k<a.length-1&&a[k]<q.s)k++;const u=Math.max(0,Math.min(1,(q.s-a[k-1])/((a[k]-a[k-1])||1))),A=q.p.pts[k-1],B=q.p.pts[k],dx=(B[0]-A[0])*q.dir,dz=(B[1]-A[1])*q.dir,l=Math.hypot(dx,dz)||1;
    const x=A[0]+(B[0]-A[0])*u-dz/l*q.off,z=A[1]+(B[1]-A[1])*u+dx/l*q.off,y=ground.at(x,z),h=Math.atan2(-dx,-dz),swing=Math.sin(t*q.v*5+q.phase)*.5;
    tmp.position.set(x,y+Math.abs(Math.sin(t*q.v*5+q.phase))*.03,z);tmp.rotation.set(0,h,0);tmp.updateMatrix();torso.setMatrixAt(i,tmp.matrix);head.setMatrixAt(i,tmp.matrix);hair.setMatrixAt(i,tmp.matrix);
    legs.forEach((leg,j)=>{const side=j?.11:-.11;tmp.position.set(x+Math.cos(h)*side,y+.82,z-Math.sin(h)*side);tmp.rotation.set(j?-swing:swing,h,0,'YXZ');tmp.updateMatrix();leg.setMatrixAt(i,tmp.matrix);});});
    for(const m of people.children)m.instanceMatrix.needsUpdate=true;}
  };
- life.circles=()=>vehicles.map(v=>[v.x,v.z,v.kit.radius]);
+ life.circles=()=>life.groups.traffic.visible?vehicles.filter(v=>v.active).map(v=>[v.x,v.z,v.kit.radius]):[];
+ // 畫質密度：只繪製與模擬前 ratio 比例的車輛與行人。
+ life.pedActive=pedCount;
+ life.setDensity=ratio=>{for(const v of vehicles){const keep=Math.ceil(v.n*ratio);v.active=v.i<keep;for(const m of Object.values(v.meshes))m.count=keep;}life.pedActive=Math.ceil(pedCount*ratio);for(const m of people.children)m.count=life.pedActive;};
  life.setLights=level=>{lightMat.emissiveIntensity=.2+level*3;life.shopMats[0].emissiveIntensity=level*.16;life.shopMats[1].emissiveIntensity=level*.9;};
  return life;
 }
@@ -219,7 +222,8 @@ export function createSky(){
  const mat=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,uniforms:{top:{value:new T.Color()},horizon:{value:new T.Color()}},
   vertexShader:'varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
   fragmentShader:'uniform vec3 top;uniform vec3 horizon;varying vec3 vDir;void main(){float h=clamp(vDir.y,0.,1.);gl_FragColor=vec4(mix(horizon,top,pow(h,.55)),1.);\n#include <colorspace_fragment>\n}'});
- const sky=new T.Mesh(new T.SphereGeometry(2000,24,12),mat);sky.renderOrder=-1;return sky;
+ // 半徑小於最低畫質的可視距離（1750 m）；不寫深度，永遠畫在建物後方。
+ const sky=new T.Mesh(new T.SphereGeometry(900,24,12),mat);sky.renderOrder=-1;sky.frustumCulled=false;return sky;
 }
 // 窗戶夜間亮燈：以世界座標雜湊決定每扇窗亮或暗（約 45% 亮），只作用於玻璃材質。
 export function litWindows(material,{byColor=false}={}){
