@@ -2,7 +2,7 @@
 // 先升起再迴轉、對準後才伸梯、掃掠路徑逐步檢查），只把首頁街景的固定界限換成「信義真實立面避碰」。
 // 立面避碰為幾何示意（官方量體牆面＋淨距），非原廠作業範圍、承載或地盤認證。
 import * as T from 'three';
-import {project} from './xinyi-street-world.js?v=s11';
+import {project} from './xinyi-street-world.js?v=s12';
 import {createGrounding} from './aerial-grounding.js';
 import {createAerialMotion} from './aerial-motion.js';
 
