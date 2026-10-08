@@ -123,3 +123,13 @@ kbd{display:inline-block;min-width:24px;padding:1px 7px;margin:0 2px;border-radi
 .report-actions{display:flex;gap:8px;justify-content:flex-end}
 button.primary{background:#c8202b;border-color:#ff6b6b}
 @media (max-width:640px){#mission{left:8px;right:8px;width:auto;top:62px;font-size:12px;padding:8px 10px}#mission ol{display:none}}
+
+/* 任務選單 */
+#missionPick{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:16px}
+#missionPick[hidden]{display:none}
+#missionPick .report-card{max-width:440px;width:100%}
+#missionPick [data-type]{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;line-height:1.4}
+#missionPick [data-type] b{display:inline-block;width:1.6em;color:#ffd36b}
+#missionPick [data-type] small{display:block;opacity:.75;margin-left:1.6em;font-size:12px}
+#missionPick [data-type].focus{outline:2px solid #ffd36b;background:rgba(255,211,107,.12)}
+.fire-bar[hidden]{display:none}

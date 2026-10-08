@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s10">
+<link rel="stylesheet" href="xinyi-street.css?v=s11">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -28,17 +28,24 @@
 <div id="prompt" hidden></div>
 <aside id="mission" hidden>
  <div class="mission-head"><span class="badge">119</span><div><strong id="missionTitle">火警派遣</strong><small id="missionWhere">—</small></div><b id="missionClock">00:00</b></div>
- <div class="fire-bar"><span>火勢</span><i><b id="fireLevel"></b></i></div>
+ <div class="fire-bar" id="fireBar"><span>火勢</span><i><b id="fireLevel"></b></i></div>
  <ol id="missionSteps"></ol>
  <p id="missionHint"></p>
  <button id="missionAbort">取消任務</button>
 </aside>
 <div id="missionReport" hidden role="dialog" aria-label="任務紀錄"><div class="report-card"><h2>任務紀錄</h2><div id="reportBody"></div><p class="note">火勢、射程與水量為遊戲化示意，非火場物理預測；本紀錄只列時間與位置，不作戰術正確性評分，請由教官依單位標準講評。</p><div class="report-actions"><button id="reportAgain" class="primary">再派遣一次</button><button id="reportClose">關閉</button></div></div></div>
+<div id="missionPick" hidden role="dialog" aria-label="選擇任務"><div class="report-card"><h2>選擇任務</h2>
+ <button data-type="fire"><b>1</b> 建物火警<small>水箱車到場、順向停妥、佈設水線射水</small></button>
+ <button data-type="rescue"><b>2</b> 受困救援（雲梯車）<small>3–8 樓窗口受困；支腿展開落地後升梯接救</small></button>
+ <button data-type="joint"><b>3</b> 協同出勤<small>同一棟建物：一面起火、另一面受困；你駕駛一車，另一車自動出勤</small></button>
+ <button data-type="random"><b>4</b> 隨機派遣<small>三種任務隨機一種</small></button>
+ <p class="note">派遣地點取自官方量體臨路外牆；受困救援會先核對該面至少有一處雲梯可作業車位（示意，非原廠作業範圍或地盤認證）。</p>
+ <div class="report-actions"><button id="pickCancel">取消（Esc）</button></div></div></div>
 <div id="waypoint" hidden><span class="pin">◆</span> <span id="wpText"></span></div>
 <div id="bigmap" hidden>
  <canvas id="mapCanvas" aria-label="信義區全區地圖"></canvas>
  <div class="map-top"><div class="brand"><span class="badge">119</span><div><strong>信義區</strong><small id="mapStreet">全區地圖</small></div></div><button id="mapClose">✕ 關閉（M）</button></div>
- <div class="map-legend"><b>圖例</b><span><i class="me"></i>你的位置</span><span><i class="truck"></i>消防車</span><span><i class="poi"></i>重點建物（第一批清單）</span><span><i class="wp"></i>目標與導航路線</span></div>
+ <div class="map-legend"><b>圖例</b><span><i class="me"></i>你的位置</span><span><i class="truck"></i>水箱車</span><span><i class="truck" style="background:#ff8a2a"></i>雲梯車</span><span><i class="truck" style="background:#ff3b2f;border-radius:50%"></i>火點</span><span><i class="truck" style="background:#2f7bff;border-radius:50%"></i>受困者</span><span><i class="poi"></i>重點建物（第一批清單）</span><span><i class="wp"></i>目標與導航路線</span></div>
  <div class="map-tools"><button id="mapIn" aria-label="放大">＋</button><button id="mapOut" aria-label="縮小">－</button><button id="mapMe" aria-label="回到我的位置">◎</button><button id="mapTruckWp">消防車設為目標</button><button id="mapClear">清除目標</button></div>
  <div class="map-hint">點地圖設定目標 · 拖曳移動 · 滾輪／雙指縮放 · M 或 Esc 關閉。導航沿 OSM 路網示意，未含即時路況與轉向限制。</div>
 </div>
@@ -81,8 +88,13 @@
     <table class="keys"><tr><td>移動</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或方向鍵</td></tr><tr><td>跑步</td><td><kbd>Shift</kbd></td></tr><tr><td>上消防車</td><td><kbd>E</kbd>（靠近時）</td></tr><tr><td>視角</td><td>滑鼠拖曳；滾輪縮放</td></tr></table>
     <h2>駕駛消防車</h2>
     <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
+    <h2>雲梯車（在車旁步行時）</h2>
+    <table class="keys"><tr><td>支腿展開並落地／收回</td><td><kbd>O</kbd>（停妥後；腳座壓到建物或車輛時拒絕）</td></tr><tr><td>升梯／收梯</td><td><kbd>L</kbd>（支腿落地後才可升梯；先升起、再迴轉、對準後伸梯）</td></tr></table>
+    <p class="note">升梯目標：受困窗口 → 起火樓層外側 → 無任務時最近立面約 3 樓高（練習）。梯架與籃架全程與官方量體外牆保持淨距，超出作業範圍或路徑碰牆即拒絕，請調整停車位置。</p>
     <h2>共通</h2>
-    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>任務選單（火警／受困救援／協同出勤）</td><td><kbd>T</kbd>，再按 <kbd>1</kbd>–<kbd>4</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時依鏡頭方向瞄準；雲梯升起時在車旁按住，由籃架水砲射出）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <h2>手把（Xbox／PlayStation 標準配置）</h2>
+    <table class="keys"><tr><td>移動／轉向</td><td>左搖桿</td></tr><tr><td>視角</td><td>右搖桿；按下左／右搖桿拉遠／拉近</td></tr><tr><td>油門／倒車</td><td>RT ／ LT</td></tr><tr><td>上下車</td><td>A（✕）</td></tr><tr><td>跑步（步行）／煞車（駕駛）</td><td>按住 B（○）</td></tr><tr><td>水線</td><td>X（□）</td></tr><tr><td>警示燈</td><td>Y（△）</td></tr><tr><td>出水</td><td>按住 RB（R1）</td></tr><tr><td>雲梯支腿</td><td>LB（L1）</td></tr><tr><td>雲梯升梯／收梯</td><td>十字鍵 ↑</td></tr><tr><td>切換時段</td><td>十字鍵 ←</td></tr><tr><td>任務選單</td><td>十字鍵 →（↑↓ 選擇、A 確定、B 取消）</td></tr><tr><td>全區地圖</td><td>Back／View（Share）</td></tr><tr><td>暫停選單</td><td>Start／Menu（Options）</td></tr></table>
     <h2>手機觸控</h2>
     <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「地圖」開啟全區地圖（點地圖設定目標、雙指縮放）；「選單」開啟本頁。</p>
    </section>
@@ -99,7 +111,7 @@
 </div>
 <div id="fps" hidden>— FPS</div>
 <div id="stick" aria-hidden="true"><i></i></div>
-<div id="touchButtons"><button id="tSpray" hidden>出水</button><button id="tHose" hidden>水線</button><button id="tRun">跑</button><button id="tEnter">上／下車</button></div>
+<div id="touchButtons"><button id="tSpray" hidden>出水</button><button id="tHose" hidden>水線</button><button id="tJack" hidden>支腿</button><button id="tLadder" hidden>升梯</button><button id="tRun">跑</button><button id="tEnter">上／下車</button></div>
 <script>
 // 載入失敗時顯示原因，而不是一直停在「載入中」。版本號 ?v= 讓每次更新整套檔案一起重新下載，避免新舊檔案混用。
 (function(){var shown=false;function fail(msg){if(shown||document.getElementById('loading').hidden)return;shown=true;var e=document.getElementById('error');e.hidden=false;e.innerHTML='<b>街景載入失敗</b><span>'+String(msg).replace(/[<>&]/g,'')+'</span><span>請按 Ctrl+Shift+R（手機請關閉分頁後重新開啟）再試一次；若仍失敗，請截圖這個畫面。</span><button onclick="location.reload()">重新載入</button>';document.getElementById('loading').hidden=true;}
@@ -107,6 +119,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s10"></script>
+<script type="module" src="xinyi-street.js?v=s11"></script>
 </body>
 </html>
