@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s9">
+<link rel="stylesheet" href="xinyi-street.css?v=s10">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -17,6 +17,7 @@
   <button id="night" title="N">時段：下午</button>
   <button id="enter" title="E">上車</button>
   <button id="siren" title="Q" hidden>警示燈</button>
+  <button id="missionBtn" title="T" class="mission-btn">🔥 任務</button>
   <button id="mapBtn" title="M">地圖</button>
   <button id="reset" title="R">回出生點</button>
   <button id="help" title="Esc">選單</button>
@@ -25,6 +26,14 @@
 <canvas id="minimap" width="220" height="220" aria-label="小地圖"></canvas>
 <div id="speed" hidden><b id="kmh">0</b><small>km/h</small></div>
 <div id="prompt" hidden></div>
+<aside id="mission" hidden>
+ <div class="mission-head"><span class="badge">119</span><div><strong id="missionTitle">火警派遣</strong><small id="missionWhere">—</small></div><b id="missionClock">00:00</b></div>
+ <div class="fire-bar"><span>火勢</span><i><b id="fireLevel"></b></i></div>
+ <ol id="missionSteps"></ol>
+ <p id="missionHint"></p>
+ <button id="missionAbort">取消任務</button>
+</aside>
+<div id="missionReport" hidden role="dialog" aria-label="任務紀錄"><div class="report-card"><h2>任務紀錄</h2><div id="reportBody"></div><p class="note">火勢、射程與水量為遊戲化示意，非火場物理預測；本紀錄只列時間與位置，不作戰術正確性評分，請由教官依單位標準講評。</p><div class="report-actions"><button id="reportAgain" class="primary">再派遣一次</button><button id="reportClose">關閉</button></div></div></div>
 <div id="waypoint" hidden><span class="pin">◆</span> <span id="wpText"></span></div>
 <div id="bigmap" hidden>
  <canvas id="mapCanvas" aria-label="信義區全區地圖"></canvas>
@@ -73,7 +82,7 @@
     <h2>駕駛消防車</h2>
     <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
     <h2>共通</h2>
-    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
     <h2>手機觸控</h2>
     <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「地圖」開啟全區地圖（點地圖設定目標、雙指縮放）；「選單」開啟本頁。</p>
    </section>
@@ -90,7 +99,7 @@
 </div>
 <div id="fps" hidden>— FPS</div>
 <div id="stick" aria-hidden="true"><i></i></div>
-<div id="touchButtons"><button id="tRun">跑</button><button id="tEnter">上／下車</button></div>
+<div id="touchButtons"><button id="tSpray" hidden>出水</button><button id="tHose" hidden>水線</button><button id="tRun">跑</button><button id="tEnter">上／下車</button></div>
 <script>
 // 載入失敗時顯示原因，而不是一直停在「載入中」。版本號 ?v= 讓每次更新整套檔案一起重新下載，避免新舊檔案混用。
 (function(){var shown=false;function fail(msg){if(shown||document.getElementById('loading').hidden)return;shown=true;var e=document.getElementById('error');e.hidden=false;e.innerHTML='<b>街景載入失敗</b><span>'+String(msg).replace(/[<>&]/g,'')+'</span><span>請按 Ctrl+Shift+R（手機請關閉分頁後重新開啟）再試一次；若仍失敗，請截圖這個畫面。</span><button onclick="location.reload()">重新載入</button>';document.getElementById('loading').hidden=true;}
@@ -98,6 +107,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s9"></script>
+<script type="module" src="xinyi-street.js?v=s10"></script>
 </body>
 </html>
