@@ -29,7 +29,13 @@ npm run dev
 
 已製作相鄰三段外牆、輪廓比對線、雙黃線、停止線、箭頭、停等框及斜向網格核對樣板。精確標線尺寸、網格種類與完整邊界、建物身份與門口、騎樓兩段高差仍待驗證；樣板值不能視為實測資料。
 
-原部署仍使用 Sites；`.openai/hosting.json` 保留同一專案識別。GitHub Pages及自動部署尚未設定。
+原部署仍使用 Sites；`.openai/hosting.json` 保留同一專案識別。
+
+## GitHub Pages 自動部署
+
+`.github/workflows/pages.yml`：推送到 `main` 時先執行 JS 語法檢查與 GIS 回歸測試，通過後把 `dist/` 部署到 GitHub Pages；PR 及其他分支只跑檢查不部署，也可在 Actions 頁手動執行。
+
+首次需在 GitHub 儲存庫 Settings → Pages → Build and deployment → Source 選「GitHub Actions」。網址為 `https://yuan-5149.github.io/fire-command-training/`，GIS 頁為 `taipei-map.html?place=xinyi`。Pages 網站預設公開，與 Sites 的僅擁有者分享範圍不同。
 
 ## 驗證
 
