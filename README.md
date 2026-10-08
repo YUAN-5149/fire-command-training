@@ -46,6 +46,7 @@ node tests/geo-xinyi-detail.mjs
 node tests/xinyi-street.mjs
 node --no-warnings --experimental-loader ./tests/three-loader.mjs tests/wheel-rig.mjs
 node --no-warnings --experimental-loader ./tests/three-loader.mjs tests/xinyi-street-life.mjs
+node tests/xinyi-street-nav.mjs
 ```
 
 完整測試說明见 `tests/README.md`。API圖資及第三方地圖仍需網路連線。

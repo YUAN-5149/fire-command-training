@@ -17,6 +17,7 @@
   <button id="night" title="N">時段：下午</button>
   <button id="enter" title="E">上車</button>
   <button id="siren" title="Q" hidden>警示燈</button>
+  <button id="mapBtn" title="M">地圖</button>
   <button id="reset" title="R">回出生點</button>
   <button id="help" title="Esc">選單</button>
  </div>
@@ -24,12 +25,21 @@
 <canvas id="minimap" width="220" height="220" aria-label="小地圖"></canvas>
 <div id="speed" hidden><b id="kmh">0</b><small>km/h</small></div>
 <div id="prompt" hidden></div>
+<div id="waypoint" hidden><span class="pin">◆</span> <span id="wpText"></span></div>
+<div id="bigmap" hidden>
+ <canvas id="mapCanvas" aria-label="信義區全區地圖"></canvas>
+ <div class="map-top"><div class="brand"><span class="badge">119</span><div><strong>信義區</strong><small id="mapStreet">全區地圖</small></div></div><button id="mapClose">✕ 關閉（M）</button></div>
+ <div class="map-legend"><b>圖例</b><span><i class="me"></i>你的位置</span><span><i class="truck"></i>消防車</span><span><i class="poi"></i>重點建物（第一批清單）</span><span><i class="wp"></i>目標與導航路線</span></div>
+ <div class="map-tools"><button id="mapIn" aria-label="放大">＋</button><button id="mapOut" aria-label="縮小">－</button><button id="mapMe" aria-label="回到我的位置">◎</button><button id="mapTruckWp">消防車設為目標</button><button id="mapClear">清除目標</button></div>
+ <div class="map-hint">點地圖設定目標 · 拖曳移動 · 滾輪／雙指縮放 · M 或 Esc 關閉。導航沿 OSM 路網示意，未含即時路況與轉向限制。</div>
+</div>
 <div id="menu" hidden role="dialog" aria-label="暫停選單">
  <div class="menu-card">
   <nav class="menu-nav">
    <div class="menu-title"><span class="badge">119</span><div><strong>暫停</strong><small>PAUSED</small></div></div>
    <button id="resume" class="primary">▶ 繼續</button>
    <button data-page="settings" class="active">設定</button>
+   <button id="menuMap">地圖</button>
    <button data-page="controls">操作說明</button>
    <button data-page="sources">資料來源</button>
    <a href="index.html">回消防演練首頁</a>
@@ -42,6 +52,13 @@
     <div class="row"><span>畫面更新率<small>30 FPS 較省電</small></span><div class="seg" id="fpsCap"><button data-v="60">60 FPS</button><button data-v="30">30 省電</button></div></div>
     <div class="row"><span>顯示 FPS</span><label class="switch"><input type="checkbox" id="showFps"><i></i></label></div>
     <div class="row"><span>時段</span><div class="seg" id="timeSeg"><button data-v="afternoon">下午</button><button data-v="dusk">黃昏</button><button data-v="night">夜間</button></div></div>
+    <h2>音效</h2>
+    <div class="row"><span>靜音</span><label class="switch"><input type="checkbox" id="muted"><i></i></label></div>
+    <div class="row"><span>主音量 <b id="vol-masterValue"></b></span><input type="range" id="vol-master" min="0" max="1" step="0.05"></div>
+    <div class="row"><span>警笛 <b id="vol-sirenValue"></b></span><input type="range" id="vol-siren" min="0" max="1" step="0.05"></div>
+    <div class="row"><span>引擎 <b id="vol-engineValue"></b></span><input type="range" id="vol-engine" min="0" max="1" step="0.05"></div>
+    <div class="row"><span>環境音 <b id="vol-ambientValue"></b></span><input type="range" id="vol-ambient" min="0" max="1" step="0.05"></div>
+    <p class="note">音效全部即時合成；警笛為起伏長音示意，非特定機關警笛規格。第一次點擊或按鍵後才會出聲（瀏覽器規定）。</p>
     <h2>操作</h2>
     <div class="row"><span>視角靈敏度 <b id="sensValue">1.0×</b></span><input type="range" id="sens" min="0.4" max="2" step="0.1" value="1"></div>
     <div class="row"><span>反轉上下視角</span><label class="switch"><input type="checkbox" id="invertY"><i></i></label></div>
@@ -56,9 +73,9 @@
     <h2>駕駛消防車</h2>
     <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
     <h2>共通</h2>
-    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
     <h2>手機觸控</h2>
-    <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「選單」開啟本頁。</p>
+    <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「地圖」開啟全區地圖（點地圖設定目標、雙指縮放）；「選單」開啟本頁。</p>
    </section>
    <section data-page="sources" hidden>
  <h2>資料來源與限制</h2>
