@@ -3,17 +3,18 @@
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
-import {rigWheels} from './wheel-rig.js?v=s10';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s10';
-import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s10';
-import {createBigMap} from './xinyi-street-map.js?v=s10';
-import {createAudio} from './xinyi-street-audio.js?v=s10';
-import {RULES,pickFireSite,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s10';
+import {rigWheels} from './wheel-rig.js?v=s11';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s11';
+import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s11';
+import {createBigMap} from './xinyi-street-map.js?v=s11';
+import {createAudio} from './xinyi-street-audio.js?v=s11';
+import {RULES,pickFireSite,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s11';
+import {readPad,pickPad,rumble,BUTTONS} from './xinyi-street-gamepad.js?v=s11';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
-import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s10';
+import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s11';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
 const canvas=$('view');let renderer;
@@ -105,7 +106,7 @@ const audio=createAudio();
 // 導航：步行用全部路徑、駕駛只用車道並遵守單行道。重點建物取第一批信義建物清單（OSM 名稱；量體對應仍為候選）。
 const routeGraphs={walk:buildRouteGraph(streets.features),drive:buildRouteGraph(streets.features,{vehicle:true})};
 const pois=(firstBatch.sites??[]).filter(s=>s.name&&s.polygon?.length).map(s=>{const pts=s.polygon.map(p=>project(p[0],p[1]));return {name:s.name,x:pts.reduce((a,p)=>a+p[0],0)/pts.length,z:pts.reduce((a,p)=>a+p[1],0)/pts.length};});
-const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',paused:false,keys:new Set(),stick:[0,0],run:false,walkT:0};
+const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',paused:false,keys:new Set(),stick:[0,0],run:false,walkT:0,pad:readPad(null),padPrev:[]};
 function placeTruck(){const f=[-Math.sin(spawn.heading),-Math.cos(spawn.heading)],r=[Math.cos(spawn.heading),-Math.sin(spawn.heading)];truck.x=spawn.x+f[0]*14+r[0]*1.5;truck.z=spawn.z+f[1]*14+r[1]*1.5;truck.heading=spawn.heading;truck.v=0;}
 function resetAll(){state.mode='walk';state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();player.visible=true;syncUi();}
 placeTruck();
@@ -202,7 +203,7 @@ function updateMission(dt,t){
   else if(Math.abs(truck.v)<.4)flashHint(m.parking.ok?'位置符合，按 E 下車':'停車需調整：'+m.parking.issues.join('、'));}
  // 水線長度限制：人員不可超過水線長度。
  if(m.hose){const dx=state.x-truck.x,dz=state.z-truck.z,d=Math.hypot(dx,dz);if(d>RULES.hoseLength){state.x=truck.x+dx/d*RULES.hoseLength;state.z=truck.z+dz/d*RULES.hoseLength;}}
- m.spraying=m.hose&&state.mode==='walk'&&(state.keys.has(' ')||state.touchSpray)&&!state.paused;
+ m.spraying=m.hose&&state.mode==='walk'&&(state.keys.has(' ')||state.touchSpray||state.pad.held.spray)&&!state.paused;
  let spray=null;
  if(m.spraying){state.facing=state.yaw;person.arms[1].rotation.x=-1.35;person.arms[0].rotation.x=-1.1;
   const r=sprayHits({x:state.x,z:state.z},state.yaw,site,truck),range=Math.min(Math.max(r.dist,6),RULES.reach),dir=new T.Vector3(-Math.sin(state.yaw),0,-Math.cos(state.yaw));
@@ -246,10 +247,10 @@ function drawMinimap(){
 
 // 更新
 const clock=new T.Timer();let streetTimer=0;
-function input(){const k=state.keys;let f=(k.has('w')||k.has('arrowup')?1:0)-(k.has('s')||k.has('arrowdown')?1:0),r=(k.has('d')||k.has('arrowright')?1:0)-(k.has('a')||k.has('arrowleft')?1:0);f+=state.stick[1];r+=state.stick[0];return [Math.max(-1,Math.min(1,f)),Math.max(-1,Math.min(1,r))];}
+function input(){const k=state.keys;let f=(k.has('w')||k.has('arrowup')?1:0)-(k.has('s')||k.has('arrowdown')?1:0),r=(k.has('d')||k.has('arrowright')?1:0)-(k.has('a')||k.has('arrowleft')?1:0);f+=state.stick[1]+state.pad.move[1];r+=state.stick[0]+state.pad.move[0];if(state.mode==='drive')f+=state.pad.throttle-state.pad.reverse;return [Math.max(-1,Math.min(1,f)),Math.max(-1,Math.min(1,r))];}
 function updateWalk(dt){
  const [f,r]=input(),len=Math.hypot(f,r);
- if(len>.05){const speed=(state.keys.has('shift')||state.run?6:2.6)*Math.min(1,len),fx=-Math.sin(state.yaw),fz=-Math.cos(state.yaw),rx=Math.cos(state.yaw),rz=-Math.sin(state.yaw),dx=(fx*f+rx*r)/len,dz=(fz*f+rz*r)/len;
+ if(len>.05){const speed=(state.keys.has('shift')||state.run||state.pad.held.run?6:2.6)*Math.min(1,len),fx=-Math.sin(state.yaw),fz=-Math.cos(state.yaw),rx=Math.cos(state.yaw),rz=-Math.sin(state.yaw),dx=(fx*f+rx*r)/len,dz=(fz*f+rz*r)/len;
   let p=colliders.resolve(state.x+dx*speed*dt,state.z+dz*speed*dt,.38);
   // 消防車車身也視為障礙（三個圓近似）。
   for(const c of truckCircles()){const ex=p.x-c[0],ez=p.z-c[1],d=Math.hypot(ex,ez);if(d<c[2]+.38&&d>1e-6){p={x:c[0]+ex/d*(c[2]+.38),z:c[1]+ez/d*(c[2]+.38)};}}
@@ -262,7 +263,7 @@ function updateWalk(dt){
 }
 function truckCircles(){const f=[-Math.sin(truck.heading),-Math.cos(truck.heading)];return [-2.4,0,2.4].map(o=>[truck.x+f[0]*o,truck.z+f[1]*o,1.45]);}
 function updateDrive(dt){
- const [f,r]=input(),brake=state.keys.has(' ');
+ const [f,r]=input(),brake=state.keys.has(' ')||state.pad.held.brake;
  // 遊戲式操控：極速約 120 km/h，非實車性能。
  if(brake)truck.v*=Math.max(0,1-dt*3.5);else if(f>0)truck.v+=(truck.v<0?14:8.5-truck.v*.12)*f*dt;else if(f<0)truck.v+=(truck.v>0?14:4)*f*dt;else truck.v*=Math.max(0,1-dt*.45);
  truck.v=Math.max(-8,Math.min(33.4,truck.v));if(Math.abs(truck.v)<.05&&!f)truck.v=0;
@@ -270,19 +271,39 @@ function updateDrive(dt){
  const old={x:truck.x,z:truck.z,h:truck.heading};truck.heading+=truck.v/4.3*Math.tan(truck.steer)*dt;
  truck.x+=-Math.sin(truck.heading)*truck.v*dt;truck.z+=-Math.cos(truck.heading)*truck.v*dt;
  let hit=false;for(const c of truckCircles()){const p=colliders.resolve(c[0],c[1],c[2]);if(p.hit){hit=true;truck.x+=p.x-c[0];truck.z+=p.z-c[1];}}
- if(hit){if(Math.abs(truck.v)>3)truck.v*=-.25;else truck.v*=.5;for(const c of truckCircles())if(colliders.resolve(c[0],c[1],c[2]).hit){truck.x=old.x;truck.z=old.z;truck.heading=old.h;break;}}
+ if(hit){if(Math.abs(truck.v)>3){rumble(state.padRef,Math.min(1,Math.abs(truck.v)/20+.3),180);truck.v*=-.25;}else truck.v*=.5;for(const c of truckCircles())if(colliders.resolve(c[0],c[1],c[2]).hit){truck.x=old.x;truck.z=old.z;truck.heading=old.h;break;}}
  // NPC 車輛：與消防車重疊時退回原位並減速（NPC 會在前方自動停車）。
  for(const c of truckCircles())if(life.circles().some(o=>Math.hypot(o[0]-c[0],o[1]-c[1])<o[2]+c[2]*.8)){truck.x=old.x;truck.z=old.z;truck.heading=old.h;truck.v*=Math.abs(truck.v)>3?-.2:0;break;}
  truck.rig?.update(truck.v*dt,truck.steer);
  state.x=truck.x;state.z=truck.z;$('kmh').textContent=Math.round(Math.abs(truck.v)*3.6);$('prompt').hidden=true;
 }
+// 遊戲手把：每幀讀取，動作與鍵盤相同。Start＝暫停選單、Back／View＝地圖、B 關閉選單或地圖。
+// 回傳 true 表示本幀已切換暫停／地圖（跳過模擬）。
+let padNotice=false;
+function pollPad(){
+ const pad=pickPad(navigator.getGamepads?.());state.padRef=pad;
+ if(!pad){state.pad=readPad(null);state.padPrev=[];return false;}
+ const p=readPad(pad,state.padPrev),justB=(p.buttons[BUTTONS.b]??0)>.5&&!((state.padPrev[BUTTONS.b]??0)>.5);state.padPrev=p.buttons;
+ if(!padNotice){padNotice=true;audio.unlock();$('prompt').hidden=false;$('prompt').textContent='已偵測到手把：選單「操作說明」有按鍵配置';setTimeout(()=>{if($('prompt').textContent.startsWith('已偵測到手把'))$('prompt').hidden=true;},3500);}
+ if(bigmap.open){state.pad=readPad(null);if(justB||p.pressed.includes('map')){closeMap();return true;}return false;}
+ if(state.paused){state.pad=readPad(null);if(justB||p.pressed.includes('pause')){setPaused(false);return true;}return false;}
+ if(p.pressed.includes('pause')){setPaused(true);return true;}
+ if(p.pressed.includes('map')){openMap();return true;}
+ state.pad=p;
+ for(const a of p.pressed){if(a==='vehicle')toggleVehicle();else if(a==='hose')toggleHose();else if(a==='siren')toggleSiren();else if(a==='mission')startMission();else if(a==='time')cycleTime();
+  else if(a==='zoomIn')state.dist=Math.max(3,state.dist/1.15);else if(a==='zoomOut')state.dist=Math.min(40,state.dist*1.15);else if(a==='resetCam'){state.yaw=state.mode==='drive'?truck.heading:state.facing;state.pitch=.32;}}
+ return false;
+}
+function lookPad(dt){const [x,y]=state.pad.look;if(!x&&!y)return;const k=settings.sens;state.yaw-=x*2.6*k*dt;state.pitch=Math.min(1.25,Math.max(.05,state.pitch+y*1.8*k*dt*(settings.invertY?-1:1)));state.camHold=1.5;}
+addEventListener('gamepadconnected',()=>{padNotice=false;});
 let lastFrame=0;
 function frame(now){
  requestAnimationFrame(frame);
  // 30 FPS 省電：未到間隔就跳過這一幀；暫停時停止模擬與繪製。
  if(settings.fps===30&&now-lastFrame<1000/30-2)return;lastFrame=now;
- if(state.paused||bigmap.open){clock.update();return;}
+ if(pollPad()||state.paused||bigmap.open){clock.update();return;}
  clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();quality.sample(dt);
+ lookPad(dt);
  state.mode==='walk'?updateWalk(dt):updateDrive(dt);
  life.update(dt,t,state.mode==='drive'?truckCircles():[[state.x,state.z,.5],...truckCircles()],{siren:truck.siren?{x:truck.x,z:truck.z}:null});
  updateMission(dt,t);
@@ -343,5 +364,5 @@ for(const name of ['master','siren','engine','ambient']){const el=$('vol-'+name)
 addEventListener('pointerdown',()=>audio.unlock());
 $('loading').hidden=true;
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,tick(dt,n=1){for(let i=0;i<n;i++){state.mode==='walk'?updateWalk(dt):updateDrive(dt);updateMission(dt,i*dt);}}};
+window.__xinyiStreet={fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){state.mode==='walk'?updateWalk(dt):updateDrive(dt);updateMission(dt,i*dt);}}};
 requestAnimationFrame(frame);

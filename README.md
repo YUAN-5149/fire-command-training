@@ -17,7 +17,7 @@ npm run dev
 
 - 消防演練首頁：`dist/index.html`。
 - 臺北GIS與部署：`dist/taipei-map.html?place=xinyi`。
-- 信義街景漫遊（可步行／駕駛消防車）：`dist/xinyi-street.html`，說明見 `HANDOFF-XINYI-STREET-V1.md`。
+- 信義街景漫遊（可步行／駕駛消防車，支援鍵盤、觸控與遊戲手把）：`dist/xinyi-street.html`，說明見 `HANDOFF-XINYI-STREET-V1.md`。
 - 標線核對：`taipei-map.html?place=xinyi&verify=paint`。
 - 相鄰外牆：`taipei-map.html?place=xinyi&verify=neighbor`。
 - 輪廓對照：`taipei-map.html?place=xinyi&verify=neighbor-outline`。
@@ -48,6 +48,7 @@ node --no-warnings --experimental-loader ./tests/three-loader.mjs tests/wheel-ri
 node --no-warnings --experimental-loader ./tests/three-loader.mjs tests/xinyi-street-life.mjs
 node tests/xinyi-street-nav.mjs
 node --no-warnings --experimental-loader ./tests/three-loader.mjs tests/xinyi-street-mission.mjs
+node tests/xinyi-street-gamepad.mjs
 ```
 
 完整測試說明见 `tests/README.md`。API圖資及第三方地圖仍需網路連線。

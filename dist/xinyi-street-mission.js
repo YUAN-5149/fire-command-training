@@ -1,7 +1,7 @@
 // 信義街景・消防任務模式（訓練示意）：隨機派遣火警 → 駕駛消防車到場 → 安全位置停車 → 佈水線出水 → 火勢控制。
 // 火勢、水量、射程與時間皆為遊戲化示意，非火場物理預測或戰術評分；紀錄只列時間與位置供教官講評。
 import * as T from 'three';
-import {project} from './xinyi-street-world.js?v=s10';
+import {project} from './xinyi-street-world.js?v=s11';
 
 export const RULES={parkMin:8,parkMax:30,hoseLength:45,reach:22,aimCone:.30,knockdown:.075,growth:.004,arriveRadius:45};
 
