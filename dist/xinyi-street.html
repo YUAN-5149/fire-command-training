@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css">
+<link rel="stylesheet" href="xinyi-street.css?v=s9">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -91,6 +91,13 @@
 <div id="fps" hidden>— FPS</div>
 <div id="stick" aria-hidden="true"><i></i></div>
 <div id="touchButtons"><button id="tRun">跑</button><button id="tEnter">上／下車</button></div>
-<script type="module" src="xinyi-street.js"></script>
+<script>
+// 載入失敗時顯示原因，而不是一直停在「載入中」。版本號 ?v= 讓每次更新整套檔案一起重新下載，避免新舊檔案混用。
+(function(){var shown=false;function fail(msg){if(shown||document.getElementById('loading').hidden)return;shown=true;var e=document.getElementById('error');e.hidden=false;e.innerHTML='<b>街景載入失敗</b><span>'+String(msg).replace(/[<>&]/g,'')+'</span><span>請按 Ctrl+Shift+R（手機請關閉分頁後重新開啟）再試一次；若仍失敗，請截圖這個畫面。</span><button onclick="location.reload()">重新載入</button>';document.getElementById('loading').hidden=true;}
+addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.target&&(e.target.src||e.target.href)||''));},true);
+addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
+setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
+</script>
+<script type="module" src="xinyi-street.js?v=s9"></script>
 </body>
 </html>

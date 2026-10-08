@@ -3,16 +3,16 @@
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
-import {rigWheels} from './wheel-rig.js';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js';
-import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js';
-import {createBigMap} from './xinyi-street-map.js';
-import {createAudio} from './xinyi-street-audio.js';
+import {rigWheels} from './wheel-rig.js?v=s9';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s9';
+import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s9';
+import {createBigMap} from './xinyi-street-map.js?v=s9';
+import {createAudio} from './xinyi-street-audio.js?v=s9';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
-import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js';
+import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s9';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
 const canvas=$('view');let renderer;
