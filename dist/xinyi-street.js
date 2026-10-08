@@ -3,16 +3,17 @@
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
-import {rigWheels} from './wheel-rig.js?v=s9';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s9';
-import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s9';
-import {createBigMap} from './xinyi-street-map.js?v=s9';
-import {createAudio} from './xinyi-street-audio.js?v=s9';
+import {rigWheels} from './wheel-rig.js?v=s10';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s10';
+import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s10';
+import {createBigMap} from './xinyi-street-map.js?v=s10';
+import {createAudio} from './xinyi-street-audio.js?v=s10';
+import {RULES,pickFireSite,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s10';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
-import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s9';
+import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s10';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
 const canvas=$('view');let renderer;
@@ -110,7 +111,7 @@ function resetAll(){state.mode='walk';state.x=spawn.x;state.z=spawn.z;state.faci
 placeTruck();
 
 // 輸入
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();audio.unlock();if(bigmap.open){if(k==='m'||k==='escape')closeMap();return;}if(k==='m'&&!state.paused){openMap();return;}if(k==='escape'||k==='p'){setPaused(!state.paused);e.preventDefault();return;}if(k==='h'){setPaused(true,'controls');return;}if(state.paused)return;state.keys.add(k);if(k==='e')toggleVehicle();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();audio.unlock();if(bigmap.open){if(k==='m'||k==='escape')closeMap();return;}if(k==='m'&&!state.paused){openMap();return;}if(k==='escape'||k==='p'){setPaused(!state.paused);e.preventDefault();return;}if(k==='h'){setPaused(true,'controls');return;}if(state.paused)return;state.keys.add(k);if(k==='e')toggleVehicle();if(k==='t')startMission();if(k==='f')toggleHose();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
 addEventListener('keyup',e=>state.keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>state.keys.clear());
 let drag=null;
 canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&e.clientX<innerWidth*.45)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
@@ -127,7 +128,7 @@ $('enter').onclick=()=>toggleVehicle();$('siren').onclick=()=>toggleSiren();$('n
 
 function nearTruck(){return Math.hypot(state.x-truck.x,state.z-truck.z)<6;}
 function toggleVehicle(){
- if(state.mode==='walk'){if(!nearTruck())return;state.mode='drive';player.visible=false;state.dist=Math.max(state.dist,13);}
+ if(state.mode==='walk'){if(!nearTruck())return;if(mission?.hose){flashHint('請先按 F 收回水線再上車');return;}state.mode='drive';player.visible=false;state.dist=Math.max(state.dist,13);}
  else{if(Math.abs(truck.v)>1.5)return;state.mode='walk';const r=[Math.cos(truck.heading),-Math.sin(truck.heading)];const p=colliders.resolve(truck.x-r[0]*2.6,truck.z-r[1]*2.6,.4);state.x=p.x;state.z=p.z;state.facing=truck.heading;player.visible=true;state.dist=7;}
  syncUi();
 }
@@ -155,7 +156,7 @@ const mini=$('minimap'),mctx=mini.getContext('2d'),MAP=2048,mapScale=MAP/1100,ma
  g.strokeStyle='#c9a77b';g.lineWidth=2;g.beginPath();for(const [ax,az,bx,bz] of colliders.segs){g.moveTo(...P(ax,az));g.lineTo(...P(bx,bz));}g.stroke();
 }
 const bigmap=createBigMap({overlay:$('bigmap'),canvas:$('mapCanvas'),mapImg,MAP,mapScale,labels:roadLabels(streets.features),pois,
- getView:()=>({x:state.x,z:state.z,facing:state.mode==='drive'?truck.heading:state.facing,driving:state.mode==='drive',truck,waypoint:state.waypoint,route:state.route}),
+ getView:()=>({x:state.x,z:state.z,facing:state.mode==='drive'?truck.heading:state.facing,driving:state.mode==='drive',truck,waypoint:state.waypoint,route:state.route,fire:mission?.site&&mission.phase!=='done'?mission.site:null}),
  onPick:(x,z)=>setWaypoint(x,z,'地圖標記')});
 function openMap(){state.keys.clear();state.stick=[0,0];audio.suspend();$('mapStreet').textContent=$('street').textContent;bigmap.show();}
 function closeMap(){bigmap.hide();if(!state.paused)audio.resume();}
@@ -168,6 +169,64 @@ function updateNavigation(dt){
  if(state.routeTimer<=0){state.routeTimer=1;const r=findRoute(routeGraphs[state.mode==='drive'?'drive':'walk'],state.x,state.z,state.waypoint.x,state.waypoint.z);state.route=r?.points??null;state.routeLength=r?.length??remain;}
  const d=state.routeLength??remain;$('waypoint').hidden=false;$('wpText').textContent=`${state.waypoint.label} · ${d>=1000?(d/1000).toFixed(1)+' km':Math.round(d)+' m'}`+(state.route?'':'（無可行路線，直線距離）');
 }
+// ---------- 消防任務模式（訓練示意） ----------
+const fireFx=createFireFX(scene);let mission=null;
+const STEPS=['上消防車並開警示燈前往','抵達火場','於起火面外側 8–30 m 停妥後下車','在消防車旁按 F 佈設水線','按住 Space 對準火點出水','火勢控制'];
+const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+function flashHint(text){$('missionHint').textContent=text;}
+function startMission(){
+ if(mission&&mission.phase!=='done'&&!confirm('目前任務尚未完成，要改派新的火警嗎？'))return;
+ const site=pickFireSite(district.buildings,streets.features,ground,Math.random,{exclude,colliders});if(!site)return;
+ mission={site,phase:0,elapsed:0,times:{},intensity:.55,hose:false,spraying:false,parking:null};fireFx.setSite(site);
+ $('missionTitle').textContent='建物火警';$('missionWhere').textContent=`${site.street||'信義區'} 一帶・${site.floor} 樓冒煙（示意）`;$('mission').hidden=false;$('missionReport').hidden=true;
+ setWaypoint(site.x+site.nx*16,site.z+site.nz*16,'火警現場');renderMission();flashHint(state.mode==='drive'?'按 Q 開警示燈，依地圖黃線前往':'先走到消防車按 E 上車');
+}
+function endMission(){mission=null;fireFx.setSite(null);$('mission').hidden=true;clearWaypoint();person.nozzle.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
+function renderMission(){if(!mission)return;$('missionSteps').innerHTML=STEPS.map((s,i)=>`<li class="${i<mission.phase?'done':i===mission.phase?'now':''}">${s}</li>`).join('');$('fireLevel').style.width=Math.round(Math.max(0,mission.intensity)*100)+'%';}
+function toggleHose(){
+ if(!mission||state.mode!=='walk')return;
+ if(mission.hose){if(Math.hypot(state.x-truck.x,state.z-truck.z)>8){flashHint('回到消防車旁才能收回水線');return;}mission.hose=false;person.nozzle.visible=false;flashHint('已收回水線');return;}
+ if(mission.phase<3){flashHint('請先依步驟停妥消防車');return;}
+ if(!nearTruck()){flashHint('走到消防車旁按 F 佈設水線');return;}
+ mission.hose=true;person.nozzle.visible=true;if(mission.phase===3){mission.phase=4;mission.times.hose=mission.elapsed;}flashHint('面向火點，按住 Space 出水（水線長 '+RULES.hoseLength+' m）');renderMission();
+}
+function updateMission(dt,t){
+ if(!mission){fireFx.update(dt,0);return;}
+ const m=mission,site=m.site;
+ if(m.phase<6){m.elapsed+=dt;$('missionClock').textContent=fmt(m.elapsed);if(!m.spraying)m.intensity=Math.min(1,m.intensity+RULES.growth*dt);}
+ const truckDist=Math.hypot(truck.x-site.x,truck.z-site.z);
+ if(m.phase===0&&state.mode==='drive'){m.phase=1;m.times.depart=m.elapsed;}
+ if(m.phase===1&&truckDist<RULES.arriveRadius){m.phase=2;m.times.arrive=m.elapsed;flashHint('已抵達：於起火面外側 8–30 m 停車，停妥後按 E 下車');}
+ if(m.phase===2){m.parking=evaluateParking(truck,site,colliders,{speed:truck.v});
+  if(state.mode==='walk'){if(m.parking.ok){m.phase=3;m.times.parked=m.elapsed;m.parkDist=m.parking.dist;clearWaypoint();flashHint('停車位置符合；在消防車旁按 F 佈設水線');}else flashHint('停車需調整：'+m.parking.issues.join('、'));}
+  else if(Math.abs(truck.v)<.4)flashHint(m.parking.ok?'位置符合，按 E 下車':'停車需調整：'+m.parking.issues.join('、'));}
+ // 水線長度限制：人員不可超過水線長度。
+ if(m.hose){const dx=state.x-truck.x,dz=state.z-truck.z,d=Math.hypot(dx,dz);if(d>RULES.hoseLength){state.x=truck.x+dx/d*RULES.hoseLength;state.z=truck.z+dz/d*RULES.hoseLength;}}
+ m.spraying=m.hose&&state.mode==='walk'&&(state.keys.has(' ')||state.touchSpray)&&!state.paused;
+ let spray=null;
+ if(m.spraying){state.facing=state.yaw;person.arms[1].rotation.x=-1.35;person.arms[0].rotation.x=-1.1;
+  const r=sprayHits({x:state.x,z:state.z},state.yaw,site,truck),range=Math.min(Math.max(r.dist,6),RULES.reach),dir=new T.Vector3(-Math.sin(state.yaw),0,-Math.cos(state.yaw));
+  const origin=new T.Vector3(state.x+dir.x*.6,ground.at(state.x,state.z)+1.2,state.z+dir.z*.6);dir.y=(site.y-origin.y)/range;dir.normalize();
+  spray={origin,dir:new T.Vector3(-Math.sin(state.yaw),(site.y-origin.y)/range,-Math.cos(state.yaw)),range};
+  if(r.hit&&m.phase<6){if(m.times.water===undefined)m.times.water=m.elapsed;m.intensity=Math.max(0,m.intensity-RULES.knockdown*dt);flashHint('命中火點，持續射水');}
+  else if(m.phase>=6)flashHint('火勢已控制，可按 F 收回水線');
+  else flashHint(r.hose>RULES.hoseLength?'水線不夠長':r.dist>RULES.reach?`距火點 ${Math.round(r.dist)} m，請靠近至 ${RULES.reach} m 內`:'調整鏡頭方向對準火點');}
+ if(m.phase===4&&m.times.water!==undefined){m.phase=5;}
+ if(m.phase===5&&m.intensity<=0){m.phase=6;m.intensity=0;m.times.done=m.elapsed;fireFx.setSite(null);showReport();}
+ $('tHose').hidden=!(m.phase>=3&&state.mode==='walk');$('tSpray').hidden=!(m.hose&&state.mode==='walk');
+ const handPos=new T.Vector3(state.x,ground.at(state.x,state.z)+1,state.z),truckPos=new T.Vector3(truck.x,ground.at(truck.x,truck.z)+1,truck.z);
+ fireFx.update(dt,m.phase<6?m.intensity:0,{spray,hoseFrom:m.hose?truckPos:null,hoseTo:m.hose?handPos:null});
+ if(Math.floor(t*4)!==Math.floor((t-dt)*4))renderMission();
+}
+function showReport(){
+ const m=mission,T0=m.times,row=(a,b)=>`<tr><td>${a}</td><td>${b}</td></tr>`,span=(a,b)=>a!==undefined&&b!==undefined?fmt(b-a):'—';
+ $('reportBody').innerHTML='<table>'+row('派遣地點',`${m.site.street||'信義區'}・${m.site.floor} 樓（示意）`)+row('派遣 → 上車出發',span(0,T0.depart))+row('出發 → 抵達',span(T0.depart,T0.arrive))+row('抵達 → 停妥下車',span(T0.arrive,T0.parked))+row('停妥 → 佈設水線',span(T0.parked,T0.hose))+row('佈線 → 開始射水',span(T0.hose,T0.water))+row('射水 → 火勢控制',span(T0.water,T0.done))+row('總時間',fmt(T0.done))+row('停車距起火面',m.parkDist?m.parkDist.toFixed(1)+' m':'—')+'</table>';
+ $('missionReport').hidden=false;$('missionTitle').textContent='火勢已控制';flashHint('任務完成，可按 F 收回水線');renderMission();
+}
+$('missionBtn').onclick=()=>startMission();$('missionAbort').onclick=()=>{if(confirm('取消目前任務？'))endMission();};
+$('reportAgain').onclick=()=>{endMission();startMission();};$('reportClose').onclick=()=>{$('missionReport').hidden=true;};
+$('tHose').onclick=()=>toggleHose();
+$('tSpray').addEventListener('pointerdown',()=>{state.touchSpray=true;});for(const ev of ['pointerup','pointercancel','pointerleave'])$('tSpray').addEventListener(ev,()=>{state.touchSpray=false;});
 $('mapBtn').onclick=()=>openMap();$('mapClose').onclick=()=>closeMap();$('mapIn').onclick=()=>bigmap.zoom(1.3);$('mapOut').onclick=()=>bigmap.zoom(1/1.3);$('mapMe').onclick=()=>bigmap.center();
 $('mapClear').onclick=()=>clearWaypoint();$('mapTruckWp').onclick=()=>setWaypoint(truck.x,truck.z,'消防車');
 $('menuMap').onclick=()=>{setPaused(false);openMap();};
@@ -178,6 +237,7 @@ function drawMinimap(){
  const tx=(truck.x-state.camX)*mapScale,tz=(truck.z-state.camZ)*mapScale;
  if(state.mode==='walk'){mctx.fillStyle='#e8303a';mctx.fillRect(tx-6,tz-6,12,12);}
  if(state.route?.length>1){mctx.strokeStyle='rgba(255,211,107,.95)';mctx.lineWidth=7;mctx.lineJoin=mctx.lineCap='round';mctx.beginPath();state.route.forEach(([x,z],i)=>{const px=(x-state.camX)*mapScale,pz=(z-state.camZ)*mapScale;i?mctx.lineTo(px,pz):mctx.moveTo(px,pz);});mctx.stroke();}
+ if(mission?.site&&mission.phase!=='done'){const px=(mission.site.x-state.camX)*mapScale,pz=(mission.site.z-state.camZ)*mapScale;mctx.fillStyle='#ff3b2f';mctx.strokeStyle='#fff';mctx.lineWidth=3;mctx.beginPath();mctx.arc(px,pz,13,0,Math.PI*2);mctx.fill();mctx.stroke();}
  if(state.waypoint){const px=(state.waypoint.x-state.camX)*mapScale,pz=(state.waypoint.z-state.camZ)*mapScale;mctx.fillStyle='#ffd36b';mctx.strokeStyle='#111';mctx.lineWidth=3;mctx.beginPath();mctx.arc(px,pz,11,0,Math.PI*2);mctx.fill();mctx.stroke();}
  mctx.restore();mctx.save();mctx.translate(s/2,s/2);const facing=(state.mode==='drive'?truck.heading:state.facing)-state.yaw;mctx.rotate(-facing);
  mctx.fillStyle=state.mode==='drive'?'#ff4a4a':'#ffd36b';mctx.strokeStyle='#111';mctx.lineWidth=2;mctx.beginPath();mctx.moveTo(0,-10);mctx.lineTo(7,8);mctx.lineTo(0,4);mctx.lineTo(-7,8);mctx.closePath();mctx.fill();mctx.stroke();mctx.restore();
@@ -224,7 +284,8 @@ function frame(now){
  if(state.paused||bigmap.open){clock.update();return;}
  clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();quality.sample(dt);
  state.mode==='walk'?updateWalk(dt):updateDrive(dt);
- life.update(dt,t,state.mode==='drive'?truckCircles():[[state.x,state.z,.5],...truckCircles()]);
+ life.update(dt,t,state.mode==='drive'?truckCircles():[[state.x,state.z,.5],...truckCircles()],{siren:truck.siren?{x:truck.x,z:truck.z}:null});
+ updateMission(dt,t);
  // 消防車貼地，依前後輪地面高差俯仰。
  const fx=-Math.sin(truck.heading),fz=-Math.cos(truck.heading),yf=ground.at(truck.x+fx*2.3,truck.z+fz*2.3),yr=ground.at(truck.x-fx*2.1,truck.z-fz*2.1);
  truck.root.position.set(truck.x,(yf+yr)/2,truck.z);truck.root.rotation.set(Math.atan2(yf-yr,4.4),truck.heading,0,'YXZ');
@@ -233,7 +294,10 @@ function frame(now){
  state.camHold=Math.max(0,(state.camHold||0)-dt);
  if(state.mode==='drive'&&!state.camHold&&Math.abs(truck.v)>.5){const want=truck.heading;state.yaw+=Math.atan2(Math.sin(want-state.yaw),Math.cos(want-state.yaw))*Math.min(1,dt*2.5);}
  const tx=state.x,tz=state.z,ty=ground.at(tx,tz)+(state.mode==='drive'?2.8:1.5);state.camX=tx;state.camZ=tz;
- const d=state.dist+(state.mode==='drive'?Math.abs(truck.v)*.22:0),cx=tx+Math.sin(state.yaw)*Math.cos(state.pitch)*d,cz=tz+Math.cos(state.yaw)*Math.cos(state.pitch)*d;
+ let d=state.dist+(state.mode==='drive'?Math.abs(truck.v)*.22:0);
+ // 相機碰撞：沿視線往外取樣，碰到落地牆面就把相機拉到牆前，避免鏡頭穿進建物。
+ for(let s=1.5;s<=d;s+=.6){const x=tx+Math.sin(state.yaw)*Math.cos(state.pitch)*s,z=tz+Math.cos(state.yaw)*Math.cos(state.pitch)*s;if(colliders.resolve(x,z,.3).hit){d=Math.max(1.4,s-.6);break;}}
+ const cx=tx+Math.sin(state.yaw)*Math.cos(state.pitch)*d,cz=tz+Math.cos(state.yaw)*Math.cos(state.pitch)*d;
  camera.position.set(cx,Math.max(ty+Math.sin(state.pitch)*d,ground.at(cx,cz)+.6),cz);camera.lookAt(tx,ty,tz);sky.position.copy(camera.position);
  sun.position.set(tx+sunDir.x*250,ground.at(tx,tz)+sunDir.y*250,tz+sunDir.z*250);sun.target.position.set(tx,ground.at(tx,tz),tz);
  updateNavigation(dt);
@@ -279,5 +343,5 @@ for(const name of ['master','siren','engine','ambient']){const el=$('vol-'+name)
 addEventListener('pointerdown',()=>audio.unlock());
 $('loading').hidden=true;
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,tick(dt,n=1){for(let i=0;i<n;i++)state.mode==='walk'?updateWalk(dt):updateDrive(dt);}};
+window.__xinyiStreet={fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,tick(dt,n=1){for(let i=0;i<n;i++){state.mode==='walk'?updateWalk(dt):updateDrive(dt);updateMission(dt,i*dt);}}};
 requestAnimationFrame(frame);

@@ -18,6 +18,7 @@ export function createBigMap({overlay,canvas,mapImg,MAP,mapScale,labels,pois,get
   // 重點建物（第一批信義建物清單；名稱來自 OSM，量體對應仍為候選）
   g.font='600 13px "Noto Sans TC","PingFang TC",sans-serif';g.textAlign='left';g.textBaseline='middle';
   for(const p of pois){const [sx,sy]=toScreen(p.x,p.z);g.fillStyle='#8f6bd8';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(sx,sy,7,0,Math.PI*2);g.fill();g.stroke();if(view.scale>.6){g.lineWidth=4;g.strokeStyle='rgba(20,28,34,.9)';g.strokeText(p.name,sx+11,sy);g.fillStyle='#f1e9ff';g.fillText(p.name,sx+11,sy);}}
+  if(st.fire){const [sx,sy]=toScreen(st.fire.x,st.fire.z),r=12+Math.sin(performance.now()/200)*2;g.fillStyle='rgba(255,59,47,.25)';g.beginPath();g.arc(sx,sy,r+10,0,Math.PI*2);g.fill();g.fillStyle='#ff3b2f';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(sx,sy,r,0,Math.PI*2);g.fill();g.stroke();g.fillStyle='#fff';g.font='700 13px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('火',sx,sy+1);}
   // 目標、消防車、自己
   if(st.waypoint){const [sx,sy]=toScreen(st.waypoint.x,st.waypoint.z);g.fillStyle='#ffd36b';g.strokeStyle='#111';g.lineWidth=2;g.beginPath();g.moveTo(sx,sy);g.lineTo(sx-9,sy-16);g.arc(sx,sy-18,9,Math.PI*.8,Math.PI*.2);g.closePath();g.fill();g.stroke();}
   {const [sx,sy]=toScreen(st.truck.x,st.truck.z);g.save();g.translate(sx,sy);g.rotate(-st.truck.heading);g.fillStyle='#e8303a';g.strokeStyle='#fff';g.lineWidth=2;g.fillRect(-5,-9,10,18);g.strokeRect(-5,-9,10,18);g.restore();}
