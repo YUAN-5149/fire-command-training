@@ -1,9 +1,13 @@
-// 信義街景漫遊：以官方量體與 OSM 路網建立可步行、可駕駛消防車的街景。
-// 外觀為示意風格；未使用 taipei-gta 的地圖、程式或素材。
+// 信義街景漫遊：與 GIS 頁（taipei-map.html?place=xinyi 預設狀態）共用同一套建物、街道與設施建構函式，
+// 只把經緯度轉成本地公尺並改以 Three.js 呈現。外觀為示意；未使用 taipei-gta 的地圖、程式或素材。
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
-import {project,buildHeightField,buildWallArrays,buildColliders,buildRoadArrays,nearestStreet,spawnPoint} from './xinyi-street-world.js';
+import {buildDistrictBatch} from './geo-district.js';
+import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
+import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
+import {buildZebraCrossings} from './geo-street-fixtures.js';
+import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
 const canvas=$('view');let renderer;
@@ -11,68 +15,63 @@ try{renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-pe
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;
 const scene=new T.Scene(),camera=new T.PerspectiveCamera(60,1,0.2,2500);
 scene.fog=new T.Fog('#c9d6df',250,1100);
+// 日照與 GIS 頁精修範圍相同：2026-10-05 下午 3 時（臺灣），太陽約方位 245°、仰角 35°（展示光線）。
+const SUN_AZ=245*Math.PI/180,SUN_EL=35*Math.PI/180,sunDir=new T.Vector3(Math.sin(SUN_AZ)*Math.cos(SUN_EL),Math.sin(SUN_EL),-Math.cos(SUN_AZ)*Math.cos(SUN_EL));
 const hemi=new T.HemisphereLight('#dfeefa','#6b6458',1.1),sun=new T.DirectionalLight('#fff1d6',2.4);
 sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:1,far:600});sun.shadow.bias=-0.0004;
 scene.add(hemi,sun,sun.target);
 
-function canvasTexture(size,draw,repeat=[1,1]){const c=document.createElement('canvas');c.width=c.height=size;draw(c.getContext('2d'),size);const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(...repeat);t.anisotropy=renderer.capabilities.getMaxAnisotropy();t.colorSpace=T.SRGBColorSpace;return t;}
-let seed=7;const rand=()=>(seed=(seed*16807)%2147483647)/2147483647;
-// 外牆：8×8 窗格一張貼圖；夜間發光圖以隨機亮窗示意。
-function facade(tower){
- const N=8,lit=[...Array(N*N)].map(()=>rand()<.38),warm=['#ffd890','#ffe9b8','#cfe6ff'];
- const map=canvasTexture(256,(g,s)=>{const c=s/N;g.fillStyle='#f4f1ea';g.fillRect(0,0,s,s);for(let j=0;j<N;j++)for(let i=0;i<N;i++){
-  if(tower){g.fillStyle=(i+j)%3?'#5c7488':'#6c8597';g.fillRect(i*c+1,j*c+2,c-2,c-6);g.fillStyle='#d7dde0';g.fillRect(i*c,j*c+c-5,c,4);}
-  else{g.fillStyle='#38495a';g.fillRect(i*c+6,j*c+8,c-12,c-15);g.fillStyle='#c9c4b8';g.fillRect(i*c+4,j*c+c-8,c-8,3);}
- }},[1/N,1/N]);
- const emissive=canvasTexture(256,(g,s)=>{const c=s/N;g.fillStyle='#000';g.fillRect(0,0,s,s);for(let j=0;j<N;j++)for(let i=0;i<N;i++)if(lit[j*N+i]){g.fillStyle=warm[(i*3+j)%3];tower?g.fillRect(i*c+1,j*c+2,c-2,c-6):g.fillRect(i*c+6,j*c+8,c-12,c-15);}},[1/N,1/N]);
- return new T.MeshStandardMaterial({map,emissiveMap:emissive,emissive:'#ffffff',emissiveIntensity:0,vertexColors:true,roughness:tower?.35:.85,metalness:tower?.25:0});
+function canvasTexture(size,draw){const c=document.createElement('canvas');c.width=c.height=size;draw(c.getContext('2d'),size);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;return t;}
+// GIS 頁 Material 參數（color/metallic/roughness/colorTexture/doubleSided）轉為 Three.js 材質。
+class GisMaterial{constructor(o){const tex=o.colorTexture?.data??o.colorTexture;let map=null;if(tex){map=new T.CanvasTexture(tex);map.wrapS=map.wrapT=T.RepeatWrapping;map.colorSpace=T.SRGBColorSpace;map.anisotropy=renderer.capabilities.getMaxAnisotropy();}
+ return new T.MeshStandardMaterial({color:o.color??'white',map,metalness:o.metallic??0,roughness:o.roughness??.8,side:o.doubleSided?T.DoubleSide:T.FrontSide,vertexColors:true,flatShading:true});}}
+function mesh(position,{color,uv,index,groups,materials,material}){
+ const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(position,3));
+ if(uv)g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));
+ g.setAttribute('color',color?new T.BufferAttribute(linearColors(color),3):new T.BufferAttribute(new Float32Array(position.length).fill(1),3));
+ if(groups){const all=[],mats=[];for(const [kind,faces] of Object.entries(groups)){if(!faces.length)continue;g.addGroup(all.length,faces.length,mats.length);for(let i=0;i<faces.length;i++)all.push(faces[i]);mats.push(materials[kind]);}g.setIndex(all);material=mats;}
+ else g.setIndex(index);
+ g.computeVertexNormals();g.computeBoundingSphere();const m=new T.Mesh(g,material);m.castShadow=m.receiveShadow=true;return m;
 }
-const surfaces={
- road:canvasTexture(128,(g,s)=>{g.fillStyle='#4a4e52';g.fillRect(0,0,s,s);for(let i=0;i<900;i++){const v=60+rand()*40;g.fillStyle=`rgb(${v},${v+2},${v+5})`;g.fillRect(rand()*s,rand()*s,2,2);}},[1,1]),
- walk:canvasTexture(128,(g,s)=>{g.fillStyle='#b9b2a6';g.fillRect(0,0,s,s);g.strokeStyle='#9d968a';g.lineWidth=3;for(let i=0;i<=4;i++){g.beginPath();g.moveTo(i*s/4,0);g.lineTo(i*s/4,s);g.moveTo(0,i*s/4);g.lineTo(s,i*s/4);g.stroke();}},[.5,1]),
- cycle:canvasTexture(64,(g,s)=>{g.fillStyle='#8c5a4a';g.fillRect(0,0,s,s);},[1,1]),
- zebra:canvasTexture(64,(g,s)=>{g.fillStyle='#4a4e52';g.fillRect(0,0,s,s);g.fillStyle='#e8e8e2';g.fillRect(s*.12,0,s*.76,s/2);},[.25,2.5]),
- crossing:canvasTexture(64,(g,s)=>{g.fillStyle='#55595d';g.fillRect(0,0,s,s);},[1,1]),
-};
-surfaces.sidewalk=surfaces.walk;
-const surfaceMaterial=key=>new T.MeshStandardMaterial({map:surfaces[key],roughness:.95,polygonOffset:true,polygonOffsetFactor:-1-['road','crossing','zebra','cycle','sidewalk','walk'].indexOf(key),polygonOffsetUnits:-2});
-
-function geometry({position,uv,color,index}){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(position,3));if(uv)g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));if(color)g.setAttribute('color',new T.Float32BufferAttribute(color,3));if(index)g.setIndex(index);g.computeVertexNormals();g.computeBoundingSphere();return g;}
 
 step('讀取官方建物量體與路網');
-const [district,streets,fixtures]=await Promise.all(['district-xinyi.json','streets-xinyi.json','street-fixtures-xinyi.json'].map(f=>fetch('assets/'+f).then(r=>{if(!r.ok)throw Error(f+' '+r.status);return r.json();})));
+const [district,streets,fixtures,verified]=await Promise.all(['district-xinyi.json','streets-xinyi.json','street-fixtures-xinyi.json','verified-fixtures-xinyi.json'].map(f=>fetch('assets/'+f).then(r=>{if(!r.ok)throw Error(f+' '+r.status);return r.json();})));
 step('建立地形、建物與道路');
-const ground=buildHeightField(district.buildings,district.bbox),walls=buildWallArrays(district.buildings),colliders=buildColliders(district.buildings,ground),roads=buildRoadArrays(streets.features,ground);
-// 店面：每 4 m 一間，深色玻璃、上方招牌色帶（示意，無品牌）；夜間招牌發光。
-const signs=['#d23b3b','#2f8f6b','#e0a526','#3a6fc4','#c4508c','#e6763a','#4aa3a8','#7a5bc2'];
-const shopTex=lit=>canvasTexture(512,(g,s)=>{const c=s/8;for(let i=0;i<8;i++){const sign=signs[(i*5)%8];g.fillStyle=lit?'#000':'#6d6a64';g.fillRect(i*c,0,c,s);
- g.fillStyle=lit?sign:sign;g.fillRect(i*c+2,s*.08,c-4,s*.17);g.fillStyle=lit?(i%3?'#ffe6b0':'#000'):'#253540';g.fillRect(i*c+5,s*.33,c-10,s*.67);
- if(!lit){g.fillStyle='#8aa0ad';g.fillRect(i*c+5,s*.33,c-10,3);g.fillStyle='#1b252c';g.fillRect(i*c+c/2-1,s*.33,2,s*.67);}}},[1/8,1]);
-shopTex.day=shopTex(false);shopTex.night=shopTex(true);shopTex.day.wrapT=shopTex.night.wrapT=T.ClampToEdgeWrapping;
-const shopMat=new T.MeshStandardMaterial({map:shopTex.day,emissiveMap:shopTex.night,emissive:'#ffffff',emissiveIntensity:0,roughness:.5,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
-const lowMat=facade(false),towerMat=facade(true),roofMat=new T.MeshStandardMaterial({vertexColors:true,roughness:.9,side:T.DoubleSide});
-for(const [arrays,mat] of [[walls.low,lowMat],[walls.tower,towerMat],[walls.shop,shopMat],[walls.roof,roofMat]]){const m=new T.Mesh(geometry(arrays),mat);m.castShadow=m.receiveShadow=true;scene.add(m);}
-for(const [key,arrays] of Object.entries(roads)){if(!arrays.index.length)continue;const m=new T.Mesh(geometry(arrays),surfaceMaterial(key));m.receiveShadow=true;scene.add(m);}
-{// 地面：示意高程格網，鋪面色。
- const {x0,z0,cell,nx,nz,h}=ground,position=[],index=[];
- for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)position.push(x0+i*cell,h[j*nx+i]-0.05,z0+j*cell);
+const ground=buildHeightField(district.buildings,district.bbox),colliders=buildColliders(district.buildings,ground);
+// 建物：精修範圍（中心約 250 m）用 buildXinyiDetail，其餘用 buildDistrictBatch，與 GIS 頁預設相同。
+{const refined=district.buildings.filter(focusedBuilding),basic=district.buildings.filter(b=>!focusedBuilding(b));
+ // 遠處建物只接收陰影、不投射，減少陰影計算量。
+ const batch=buildDistrictBatch(basic);const far=mesh(toLocal(batch.position,ground),{color:batch.color,index:batch.faces,material:new T.MeshStandardMaterial({vertexColors:true,roughness:.85,side:T.DoubleSide,flatShading:true})});far.castShadow=false;scene.add(far);
+ const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:createDetailMaterials(GisMaterial)}));
+}
+// 街道：基本路面（整區）＋ 精修範圍鋪面材質＋ OSM 已標記 zebra 斑馬線，與 GIS 頁相同。
+for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:g.raised?-2:-1,polygonOffsetUnits:g.raised?-2:-1})});m.castShadow=false;scene.add(m);}
+{const d=buildStreetDetail(streets.features),mats=createStreetMaterials(GisMaterial);for(const m of Object.values(mats)){m.polygonOffset=true;m.polygonOffsetFactor=m.polygonOffsetUnits=-3;}
+ const m=mesh(toLocal(d.position,ground,true),{uv:d.uv,groups:d.groups,materials:mats});m.castShadow=false;scene.add(m);
+ const position=[],index=[];for(const z of buildZebraCrossings(streets.features))for(const ring of z.rings){const s=position.length/3;for(const p of ring.slice(0,4))position.push(p[0],p[1],.06);index.push(s,s+1,s+2,s,s+2,s+3);}
+ const zebra=mesh(toLocal(new Float64Array(position),ground,true),{index,material:new T.MeshStandardMaterial({color:'#eeeae0',roughness:.8,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4})});zebra.castShadow=false;scene.add(zebra);
+}
+{// 地面：示意高程格網（GIS 頁使用 world-elevation 地形，此處無法離線取得，改由官方牆腳高程內插）。
+ const {x0,z0,cell,nx,nz,h}=ground,position=new Float32Array(nx*nz*3),index=[];
+ for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)position.set([x0+i*cell,h[j*nx+i]-0.02,z0+j*cell],(j*nx+i)*3);
  for(let j=0;j<nz-1;j++)for(let i=0;i<nx-1;i++){const k=j*nx+i;index.push(k,k+nx,k+1,k+1,k+nx,k+nx+1);}
- const m=new T.Mesh(geometry({position,index}),new T.MeshStandardMaterial({color:'#8f8b80',roughness:1}));m.receiveShadow=true;scene.add(m);
+ const m=mesh(position,{index,material:new T.MeshStandardMaterial({color:'#8f8b80',roughness:1})});m.castShadow=false;scene.add(m);
  const outer=new T.Mesh(new T.PlaneGeometry(6000,6000),new T.MeshStandardMaterial({color:'#6f7466',roughness:1}));outer.rotation.x=-Math.PI/2;outer.position.y=Math.min(...h)-0.6;scene.add(outer);
 }
-// 街道設施：路燈（臺北市開放資料，含桿高）、行道樹與號誌位置（OSM）。外形為示意。
-const lampGlow=[];
+// 街道設施：與 GIS 頁相同尺寸與配色——市府路燈（桿徑 0.16 m、資料桿高、燈具 0.5×0.3×0.2 m）、
+// OSM 路樹（樹幹 0.28×2.4 m、樹冠 3.2×3.8 m 自 2.2 m 起）、市府號誌設施桿位（0.12×3 m，桿形待核對）。
+const lampGlow=[],lampHeads=[];
 {
- const dummy=new T.Object3D(),poleMat=new T.MeshStandardMaterial({color:'#5d666c',metalness:.5,roughness:.5}),headMat=new T.MeshStandardMaterial({color:'#2d3235',emissive:'#ffd9a0',emissiveIntensity:0});
- const lamps=fixtures.lamps,pole=new T.InstancedMesh(new T.CylinderGeometry(.09,.13,1,8),poleMat,lamps.length),head=new T.InstancedMesh(new T.BoxGeometry(.35,.18,.9),headMat,lamps.length);
- lamps.forEach((l,i)=>{const [x,z]=project(l.lon,l.lat),y=ground.at(x,z),hgt=l.height||8;dummy.position.set(x,y+hgt/2,z);dummy.scale.set(1,hgt,1);dummy.rotation.set(0,0,0);dummy.updateMatrix();pole.setMatrixAt(i,dummy.matrix);dummy.position.set(x,y+hgt,z);dummy.scale.set(1,1,1);dummy.rotation.y=i;dummy.updateMatrix();head.setMatrixAt(i,dummy.matrix);lampGlow.push(x,y+hgt-.15,z);});
- pole.castShadow=true;scene.add(pole,head);surfaces.lampHead=headMat;
- const trees=fixtures.trees,trunk=new T.InstancedMesh(new T.CylinderGeometry(.16,.22,3,7),new T.MeshStandardMaterial({color:'#5b4532'}),trees.length),crown=new T.InstancedMesh(new T.IcosahedronGeometry(2.2,1),new T.MeshStandardMaterial({color:'#4f7a3f',roughness:.9,flatShading:true}),trees.length);
- trees.forEach((t,i)=>{const [x,z]=project(t.lon,t.lat),y=ground.at(x,z);dummy.rotation.set(0,i,0);dummy.scale.set(1,1,1);dummy.position.set(x,y+1.5,z);dummy.updateMatrix();trunk.setMatrixAt(i,dummy.matrix);dummy.position.set(x,y+4.2,z);dummy.scale.set(1,.85+(i%3)*.1,1);dummy.updateMatrix();crown.setMatrixAt(i,dummy.matrix);});
- trunk.castShadow=crown.castShadow=true;scene.add(trunk,crown);
- const sig=fixtures.signals,spole=new T.InstancedMesh(new T.CylinderGeometry(.1,.1,4.5,8),poleMat,sig.length),box=new T.InstancedMesh(new T.BoxGeometry(.4,1.1,.35),new T.MeshStandardMaterial({color:'#262b2e'}),sig.length);
- sig.forEach((s,i)=>{const [x,z]=project(s.lon,s.lat),y=ground.at(x,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.position.set(x,y+2.25,z);dummy.updateMatrix();spole.setMatrixAt(i,dummy.matrix);dummy.position.set(x,y+4.3,z);dummy.updateMatrix();box.setMatrixAt(i,dummy.matrix);});
- scene.add(spole,box);
+ const dummy=new T.Object3D(),place=(inst,i,x,y,z,sx,sy,sz)=>{dummy.position.set(x,y,z);dummy.scale.set(sx,sy,sz);dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);};
+ const cyl=new T.CylinderGeometry(.5,.5,1,10).translate(0,.5,0),box=new T.BoxGeometry(1,1,1).translate(0,.5,0),ball=new T.SphereGeometry(.5,14,10).translate(0,.5,0);
+ const lamps=fixtures.lamps,pole=new T.InstancedMesh(cyl,new T.MeshStandardMaterial({color:'#6e7477',roughness:.6}),lamps.length),headMat=new T.MeshStandardMaterial({color:'#d9dedc',emissive:'#ffd9a0',emissiveIntensity:0}),head=new T.InstancedMesh(box,headMat,lamps.length);
+ lamps.forEach((l,i)=>{const [x,z]=project(l.lon,l.lat),y=ground.at(x,z);place(pole,i,x,y,z,.16,l.height,.16);place(head,i,x,y+l.height,z,.5,.2,.3);lampGlow.push(x,y+l.height-.1,z);});
+ lampHeads.push(headMat);
+ const trees=fixtures.trees,trunk=new T.InstancedMesh(cyl,new T.MeshStandardMaterial({color:'#665544'}),trees.length),crown=new T.InstancedMesh(ball,new T.MeshStandardMaterial({color:'#4a6950',roughness:.9}),trees.length);
+ trees.forEach((t,i)=>{const [x,z]=project(t.lon,t.lat),y=ground.at(x,z);place(trunk,i,x,y,z,.28,2.4,.28);place(crown,i,x,y+2.2,z,3.2,3.8,3.2);});
+ const poles=verified.poles,sig=new T.InstancedMesh(cyl,new T.MeshStandardMaterial({color:'#9ba5a7',roughness:.5}),poles.length);
+ poles.forEach((p,i)=>{const [x,z]=project(p.lon,p.lat);place(sig,i,x,ground.at(x,z),z,.12,3,.12);});
+ for(const m of [pole,head,trunk,crown,sig]){m.castShadow=true;scene.add(m);}
 }
 const glow=new T.Points(new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(lampGlow,3)),new T.PointsMaterial({color:'#ffd9a0',size:3.2,transparent:true,opacity:.75,depthWrite:false,map:canvasTexture(64,(g,s)=>{const r=g.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);r.addColorStop(0,'#fff');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,s,s);})}));
 glow.visible=false;scene.add(glow);
@@ -82,9 +81,10 @@ step('載入角色與消防車');
 const spawn=spawnPoint(streets.features),player=new T.Group(),person=createActionScene(new T.Scene()).createPerson(player,'中隊長');
 person.body.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(player);
 // 消防車：既有 GIS 車型，紅色警示燈保持紅色。
-const truck={root:new T.Group(),model:null,x:0,z:0,heading:0,v:0,steer:0,wheels:[],beacons:[],siren:false};
+const truck={root:new T.Group(),model:null,x:0,z:0,heading:0,v:0,steer:0,beacons:[],siren:false};
 {const gltf=await new GLTFLoader().loadAsync('assets/geo-fire-engine.glb');truck.model=gltf.scene;truck.model.rotation.y=-Math.PI/2;truck.root.add(truck.model);
- truck.model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const m=o.material;if(/beacon|warning|LED strip|red.*lens|emergency.*lens|red.*flasher/i.test(m?.name||'')){o.material=m.clone();truck.beacons.push(o.material);}}if(/^Wheel_/.test(o.name))truck.wheels.push(o);});
+ // 車型節點 Wheel_* 內含擋泥板等非輪胎零件且不以輪軸為原點，旋轉會使零件脫離車身；故車輪不做轉動動畫，保持原車型。
+ truck.model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const m=o.material;if(/beacon|warning|LED strip|red.*lens|emergency.*lens|red.*flasher/i.test(m?.name||'')){o.material=m.clone();truck.beacons.push(o.material);}}});
  scene.add(truck.root);
  const head=new T.SpotLight('#fff4dc',0,60,.45,.5,1.2);head.position.set(0,1.3,-3.6);head.target.position.set(0,0,-20);truck.root.add(head,head.target);truck.headlight=head;
 }
@@ -120,8 +120,8 @@ function toggleSiren(){if(state.mode!=='drive')return;truck.siren=!truck.siren;s
 function toggleNight(){
  state.night=!state.night;const n=state.night;
  scene.background=new T.Color(n?'#0b1424':'#a9c7e0');scene.fog.color.set(n?'#0b1424':'#c9d6df');scene.fog.near=n?120:250;scene.fog.far=n?700:1100;
- hemi.intensity=n?.35:1.1;hemi.color.set(n?'#6d82a8':'#dfeefa');sun.intensity=n?.25:2.4;sun.color.set(n?'#9fb4e0':'#fff1d6');
- lowMat.emissiveIntensity=towerMat.emissiveIntensity=n?1:0;shopMat.emissiveIntensity=n?1.2:0;surfaces.lampHead.emissiveIntensity=n?2:0;glow.visible=n;truck.headlight.intensity=n?60:0;syncUi();
+ hemi.intensity=n?.55:1.1;hemi.color.set(n?'#6d82a8':'#dfeefa');sun.intensity=n?.25:2.4;sun.color.set(n?'#9fb4e0':'#fff1d6');
+ for(const m of lampHeads)m.emissiveIntensity=n?2:0;glow.visible=n;truck.headlight.intensity=n?60:0;syncUi();
 }
 function syncUi(){
  $('enter').textContent=state.mode==='drive'?'下車':'上車';$('siren').hidden=state.mode!=='drive';$('siren').classList.toggle('on',truck.siren);$('night').classList.toggle('on',state.night);
@@ -173,7 +173,6 @@ function updateDrive(dt){
  truck.x+=-Math.sin(truck.heading)*truck.v*dt;truck.z+=-Math.cos(truck.heading)*truck.v*dt;
  let hit=false;for(const c of truckCircles()){const p=colliders.resolve(c[0],c[1],c[2]);if(p.hit){hit=true;truck.x+=p.x-c[0];truck.z+=p.z-c[1];}}
  if(hit){if(Math.abs(truck.v)>3)truck.v*=-.25;else truck.v*=.5;for(const c of truckCircles())if(colliders.resolve(c[0],c[1],c[2]).hit){truck.x=old.x;truck.z=old.z;truck.heading=old.h;break;}}
- for(const w of truck.wheels)w.rotateY(truck.v*dt/.63);
  state.x=truck.x;state.z=truck.z;$('kmh').textContent=Math.round(Math.abs(truck.v)*3.6);$('prompt').hidden=true;
 }
 function frame(){
@@ -189,7 +188,7 @@ function frame(){
  const tx=state.x,tz=state.z,ty=ground.at(tx,tz)+(state.mode==='drive'?2.8:1.5);state.camX=tx;state.camZ=tz;
  const d=state.dist,cx=tx+Math.sin(state.yaw)*Math.cos(state.pitch)*d,cz=tz+Math.cos(state.yaw)*Math.cos(state.pitch)*d;
  camera.position.set(cx,Math.max(ty+Math.sin(state.pitch)*d,ground.at(cx,cz)+.6),cz);camera.lookAt(tx,ty,tz);
- sun.position.set(tx+120,ground.at(tx,tz)+220,tz+60);sun.target.position.set(tx,ground.at(tx,tz),tz);
+ sun.position.set(tx+sunDir.x*250,ground.at(tx,tz)+sunDir.y*250,tz+sunDir.z*250);sun.target.position.set(tx,ground.at(tx,tz),tz);
  streetTimer-=dt;if(streetTimer<0){streetTimer=.4;$('street').textContent=nearestStreet(streets.features,state.x,state.z)??'信義區（無道路名稱）';}
  drawMinimap();renderer.render(scene,camera);requestAnimationFrame(frame);
 }
