@@ -93,3 +93,6 @@ kbd{display:inline-block;min-width:24px;padding:1px 7px;margin:0 2px;border-radi
 .map-tools button{min-width:44px;min-height:40px;font-size:15px}
 .map-hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(10,16,22,.8);padding:6px 14px;border-radius:999px;font-size:12px;color:#c9d3d8;max-width:calc(100% - 32px);text-align:center}
 @media (max-width:640px){.map-legend{top:auto;bottom:150px;left:10px;right:auto;font-size:12px;padding:8px 10px}.map-tools{right:10px;bottom:70px}.map-hint{bottom:10px;font-size:11px;border-radius:10px}#waypoint{top:60px;font-size:13px}}
+#error{text-align:center;padding:24px;line-height:1.7}
+#error span{color:#c9d3d8;font-size:14px;max-width:560px}
+#error button{margin-top:8px}
