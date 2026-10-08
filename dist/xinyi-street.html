@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>信義街景漫遊｜消防訓練</title>
+<link rel="stylesheet" href="xinyi-street.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div id="loading"><b>信義街景載入中…</b><span id="loadStep">讀取官方建物量體</span></div>
+<div id="error" hidden>3D場景無法啟動，請使用支援 WebGL 的瀏覽器重新開啟。</div>
+<header class="hud top">
+ <div class="brand"><span class="badge">119</span><div><strong>信義街景漫遊</strong><small id="street">—</small></div></div>
+ <div class="actions">
+  <button id="night" title="N">夜間</button>
+  <button id="enter" title="E">上車</button>
+  <button id="siren" title="Q" hidden>警示燈</button>
+  <button id="reset" title="R">回出生點</button>
+  <button id="help" title="H">說明</button>
+ </div>
+</header>
+<canvas id="minimap" width="220" height="220" aria-label="小地圖"></canvas>
+<div id="speed" hidden><b id="kmh">0</b><small>km/h</small></div>
+<div id="prompt" hidden></div>
+<aside id="info" hidden>
+ <h2>操作</h2>
+ <p><b>步行</b>：WASD／方向鍵移動，Shift 跑步，滑鼠拖曳轉視角，滾輪縮放。</p>
+ <p><b>消防車</b>：靠近消防車按 E 上車；W/S 油門與倒車，A/D 轉向，空白鍵煞車，Q 開關警示燈，E 下車。</p>
+ <p><b>手機</b>：左下搖桿移動，右半螢幕拖曳轉視角。</p>
+ <h2>資料來源與限制</h2>
+ <p>建物位置、輪廓與高度：臺北市都發局 2024 LOD1 官方建物量體。道路中心線：OpenStreetMap（ODbL）。路燈：臺北市開放資料；行道樹與號誌：OSM。</p>
+ <p>外牆窗格、色彩、路面寬度與地面高程為<b>示意外觀</b>，非實景、非實測。窗格不代表實際樓層或救援開口；道路寬度多為估算，不可據此量測支腿空間。未添加未經核對的車道標線。</p>
+ <p>風格參考 taipei-gta，但未使用該網站的地圖、程式或素材。</p>
+ <p><a href="index.html">回消防演練首頁</a>　<a href="taipei-map.html?place=xinyi">臺北真實圖資（GIS部署）</a></p>
+ <button id="closeInfo">關閉</button>
+</aside>
+<div id="stick" aria-hidden="true"><i></i></div>
+<div id="touchButtons"><button id="tRun">跑</button><button id="tEnter">上／下車</button></div>
+<script type="module" src="xinyi-street.js"></script>
+</body>
+</html>
