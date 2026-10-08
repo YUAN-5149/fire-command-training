@@ -1,0 +1,93 @@
+{
+  "checkedAt": "2026-10-08",
+  "road": {
+    "sourceUrl": "https://www.google.com/maps/place/%E5%BE%AE%E9%A2%A8%E5%8D%97%E5%B1%B1/@25.0343559,121.5654257,8a,75y,29.25h,90t/data=!3m7!1e1!3m5!1sO5Zqs5z6x8hL9dfGRT3tJw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.clients6.google.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DO5Zqs5z6x8hL9dfGRT3tJw%26yaw%3D29.25176406502169!7i16384!8i8192!4m15!1m8!3m7!1s0x3442ab08ec05582d:0x4ed594cc03323c60!2z5b6u6aKo5Y2X5bGx!8m2!3d25.0343073!4d121.5659555!10e5!16s%2Fg%2F11c83f5bl8!3m5!1s0x3442ab08ec05582d:0x4ed594cc03323c60!8m2!3d25.0343073!4d121.5659555!16s%2Fg%2F11c83f5bl8?entry=ttu&g_ep=EgoyMDI2MTAwNS4wIKXMDSoASAFQAw%3D%3D",
+    "imageDate": "2025-01",
+    "pano": "O5Zqs5z6x8hL9dfGRT3tJw",
+    "coordinate": [
+      121.5654257,
+      25.0343559
+    ],
+    "observed": [
+      "雙黃實線",
+      "白色車道分隔虛線",
+      "中央分隔設施"
+    ],
+    "widthMeasured": false,
+    "placementVerified": false,
+    "reviewLatRange": [
+      25.03412,
+      25.035685
+    ],
+    "continuityVerified": false,
+    "trialLineWidthM": 0.1,
+    "trialCentreOffsetM": 0.14,
+    "planningWidthReference": {
+      "widthM": 20,
+      "scope": "計畫道路寬，不是實測車道淨寬",
+      "appliedToGeometry": false,
+      "sourceUrl": "https://www-ws.gov.taipei/001/Upload/363/relfile/45505/8232908/151aee8d-0c48-42b1-b099-2532e62b5895.pdf"
+    }
+  },
+  "neighbor": {
+    "name": "ATT 4 FUN",
+    "sourceUrl": "https://www.google.com/maps/place/%E5%BE%AE%E9%A2%A8%E5%8D%97%E5%B1%B1/@25.0348597,121.5658428,8a,75y,29.25h,90t/data=!3m7!1e1!3m5!1s6U9NoW2t6-vsRWSuT-Nrkg!2e0!6shttps:%2F%2Fstreetviewpixels-pa.clients6.google.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3D6U9NoW2t6-vsRWSuT-Nrkg%26yaw%3D29.25176406502169!7i16384!8i8192!4m15!1m8!3m7!1s0x3442ab08ec05582d:0x4ed594cc03323c60!2z5b6u6aKo5Y2X5bGx!8m2!3d25.0343073!4d121.5659555!10e5!16s%2Fg%2F11c83f5bl8!3m5!1s0x3442ab08ec05582d:0x4ed594cc03323c60!8m2!3d25.0343073!4d121.5659555!16s%2Fg%2F11c83f5bl8?entry=ttu&g_ep=EgoyMDI2MTAwNS4wIKXMDSoASAFQAw%3D%3D",
+    "imageDate": "2025-04",
+    "coordinate": [
+      121.5658428,
+      25.0348597
+    ],
+    "observed": [
+      "淺色菱形網屏",
+      "弧形網屏邊界",
+      "深色店面框架"
+    ],
+    "candidateBuildingId": 265936,
+    "buildingMatchVerified": false,
+    "dimensionsMeasured": false,
+    "frontageFrameRendered": true,
+    "addressReference": {
+      "address": "臺北市信義區松壽路12號",
+      "sourceUrl": "https://attgroup.com.tw/about_2.php",
+      "volumeMatchVerified": false
+    },
+    "footprintSupport": {
+      "status": "footprint-supported",
+      "source": "att-frontage-review.json",
+      "selectedBuildingIds": [
+        265936,
+        266115,
+        266138
+      ],
+      "surveyVerified": false
+    }
+  },
+  "arcade": {
+    "sidewalkToFloorCm": null,
+    "floorToThresholdCm": null,
+    "measured": false
+  },
+  "junction": {
+    "checkedAt": "2026-10-08",
+    "imageDate": "2025-01",
+    "sourceUrl": "https://www.google.com/maps/place/%E5%BE%AE%E9%A2%A8%E5%8D%97%E5%B1%B1/@25.0357533,121.5654584,8a,75y,176.62h,90t/data=!3m7!1e1!3m5!1sJoQ82TD4k4bN4bk8rcjcPw!2e0!6shttps:%2F%2Fstreetviewpixels-pa.clients6.google.com%2Fv1%2Fthumbnail%3Fcb_client%3Dmaps_sv.tactile%26w%3D900%26h%3D600%26pitch%3D0%26panoid%3DJoQ82TD4k4bN4bk8rcjcPw%26yaw%3D176.62056853016406!7i16384!8i8192!4m15!1m8!3m7!1s0x3442ab08ec05582d:0x4ed594cc03323c60!2z5b6u6aKo5Y2X5bGx!8m2!3d25.0343073!4d121.5659555!10e5!16s%2Fg%2F11c83f5bl8!3m5!1s0x3442ab08ec05582d:0x4ed594cc03323c60!8m2!3d25.0343073!4d121.5659555!16s%2Fg%2F11c83f5bl8?entry=ttu&g_ep=EgoyMDI2MTAwNS4wIKXMDSoASAFQAw%3D%3D",
+    "pano": "JoQ82TD4k4bN4bk8rcjcPw",
+    "coordinate": [
+      121.5654584,
+      25.0357533
+    ],
+    "observed": [
+      "北向內側左轉箭頭",
+      "南向兩個直行箭頭",
+      "北向停止線",
+      "車道白色虛線",
+      "機車停等區"
+    ],
+    "placementVerified": false,
+    "dimensionsMeasured": false,
+    "motorcycleBoxRendered": true,
+    "gridRendered": true,
+    "gridTypeVerified": false,
+    "gridBoundaryVerified": false
+  }
+}

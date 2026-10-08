@@ -1,0 +1,65 @@
+{
+  "engine": {
+    "file": "assets/geo-fire-engine.glb",
+    "width": 7.444499969482422,
+    "height": 3.5558521524071693,
+    "depth": 3.049999952316284,
+    "headingOffset": 90,
+    "length": 7.444499969482422,
+    "span": 3.049999952316284
+  },
+  "ambulance": {
+    "file": "assets/geo-ambulance-detailed.glb",
+    "width": 5.7799999713897705,
+    "height": 2.684902035165578,
+    "depth": 2.3750000447034836,
+    "headingOffset": 90,
+    "length": 5.7799999713897705,
+    "span": 2.3750000447034836
+  },
+  "aerial": {
+    "file": "assets/geo-aerial-ladder.glb",
+    "width": 10.403545508833302,
+    "height": 3.817059615078669,
+    "depth": 3.0799999237060547,
+    "headingOffset": 90,
+    "length": 10.403545508833302,
+    "span": 3.0799999237060547
+  },
+  "commander": {
+    "file": "assets/geo-commander.glb",
+    "width": 0.8719999933242798,
+    "height": 1.8099999982118606,
+    "depth": 0.6836373400688172,
+    "headingOffset": 0,
+    "length": 0.6836373400688172,
+    "span": 0.8719999933242798
+  },
+  "leader": {
+    "file": "assets/geo-leader.glb",
+    "width": 0.8739999973773956,
+    "height": 1.8099999982118606,
+    "depth": 0.6836373400688172,
+    "headingOffset": 0,
+    "length": 0.6836373400688172,
+    "span": 0.8739999973773956
+  },
+  "squad": {
+    "file": "assets/geo-squad.glb",
+    "width": 0.8739999973773956,
+    "height": 1.8099999982118606,
+    "depth": 0.6836373400688172,
+    "headingOffset": 0,
+    "length": 0.6836373400688172,
+    "span": 0.8739999973773956
+  },
+  "crew": {
+    "file": "assets/geo-crew.glb",
+    "width": 0.8719999933242798,
+    "height": 1.8099999982118606,
+    "depth": 0.6836373400688172,
+    "headingOffset": 0,
+    "length": 0.6836373400688172,
+    "span": 0.8719999933242798
+  }
+}

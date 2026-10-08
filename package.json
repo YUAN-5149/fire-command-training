@@ -1,0 +1,1 @@
+{"name":"fire-command-training","private":true,"type":"module","scripts":{"dev":"vite dist --config vite.config.js"},"devDependencies":{"vite":"^7.0.0"}}

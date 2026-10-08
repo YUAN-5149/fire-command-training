@@ -1,0 +1,59 @@
+{
+  "checkedAt": "2026-10-08",
+  "items": [
+    {
+      "label": "標線精確定位",
+      "measured": null,
+      "verified": false,
+      "need": "路緣／停止線基準點座標"
+    },
+    {
+      "label": "道路及車道淨寬",
+      "measured": null,
+      "verified": false,
+      "need": "橫斷量測（公尺）"
+    },
+    {
+      "label": "虛線長度、間距及線寬",
+      "measured": null,
+      "verified": false,
+      "need": "逐項量測（公尺）"
+    },
+    {
+      "label": "箭頭長寬與停止線距離",
+      "measured": null,
+      "verified": false,
+      "need": "定位點及尺寸（公尺）"
+    },
+    {
+      "label": "機車停等框",
+      "measured": null,
+      "verified": false,
+      "need": "四角定位、淨寬、深度及線寬"
+    },
+    {
+      "label": "路口網格",
+      "measured": null,
+      "verified": false,
+      "need": "種類、完整邊界、間距及線寬"
+    },
+    {
+      "label": "人行道至騎樓地坪高差",
+      "measured": null,
+      "verified": false,
+      "need": "同一位置垂直高差（公分）"
+    },
+    {
+      "label": "騎樓地坪至門檻高差",
+      "measured": null,
+      "verified": false,
+      "need": "同一位置垂直高差（公分）"
+    },
+    {
+      "label": "相鄰建物店面",
+      "measured": null,
+      "verified": false,
+      "need": "量體對應、連續近照與柱距"
+    }
+  ]
+}

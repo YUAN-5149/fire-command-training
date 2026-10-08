@@ -1,0 +1,725 @@
+{
+  "date": "2026-10-05",
+  "sites": [
+    {
+      "osmId": "226945262",
+      "name": "信義大樓",
+      "address": "110 台北市信義區信義路五段100號",
+      "polygon": [
+        [
+          121.5654949,
+          25.0326297
+        ],
+        [
+          121.565488,
+          25.0324419
+        ],
+        [
+          121.5662888,
+          25.0324177
+        ],
+        [
+          121.5662957,
+          25.0326055
+        ],
+        [
+          121.5654949,
+          25.0326297
+        ]
+      ],
+      "officialVolumeCandidates": [
+        265427,
+        265889,
+        265890,
+        265891,
+        265426,
+        265446,
+        265436,
+        265435,
+        265424,
+        265556,
+        265425
+      ],
+      "matchingMethod": "official roof bounding-box centre inside OSM footprint; candidate mapping, not identity confirmation",
+      "status": "inventoried",
+      "appearanceStatus": "not-surveyed",
+      "missing": [
+        "facade photograph date",
+        "door and frontage dimensions",
+        "fire entrance confirmation",
+        "shopfront and arcade close-ups"
+      ]
+    },
+    {
+      "osmId": "234589397",
+      "name": "ATT 4 FUN",
+      "address": "11051臺北市信義區松壽路12號",
+      "polygon": [
+        [
+          121.5662857,
+          25.0357079
+        ],
+        [
+          121.5663053,
+          25.0356879
+        ],
+        [
+          121.5663151,
+          25.0356656
+        ],
+        [
+          121.5663168,
+          25.0356283
+        ],
+        [
+          121.5663182,
+          25.0355976
+        ],
+        [
+          121.5663046,
+          25.0350362
+        ],
+        [
+          121.566209,
+          25.0350381
+        ],
+        [
+          121.5662088,
+          25.035031
+        ],
+        [
+          121.5662076,
+          25.0349828
+        ],
+        [
+          121.5662069,
+          25.0349537
+        ],
+        [
+          121.5662064,
+          25.0349321
+        ],
+        [
+          121.566206,
+          25.0349171
+        ],
+        [
+          121.5661763,
+          25.0349177
+        ],
+        [
+          121.5660225,
+          25.0349207
+        ],
+        [
+          121.5658934,
+          25.0349233
+        ],
+        [
+          121.5658937,
+          25.0349371
+        ],
+        [
+          121.5658941,
+          25.0349533
+        ],
+        [
+          121.5658945,
+          25.0349679
+        ],
+        [
+          121.5657639,
+          25.0349705
+        ],
+        [
+          121.5657656,
+          25.0350413
+        ],
+        [
+          121.5657793,
+          25.0356083
+        ],
+        [
+          121.5657835,
+          25.035676
+        ],
+        [
+          121.5657966,
+          25.035699
+        ],
+        [
+          121.5658157,
+          25.0357177
+        ],
+        [
+          121.5658529,
+          25.035731
+        ],
+        [
+          121.5662504,
+          25.0357231
+        ],
+        [
+          121.5662857,
+          25.0357079
+        ]
+      ],
+      "officialVolumeCandidates": [
+        266071,
+        266115,
+        266172,
+        265936,
+        266033,
+        266138,
+        266170,
+        265935,
+        266070,
+        266111,
+        266169,
+        265934,
+        266110,
+        266171,
+        266032
+      ],
+      "matchingMethod": "official roof bounding-box centre inside OSM footprint; candidate mapping, not identity confirmation",
+      "status": "inventoried",
+      "appearanceStatus": "not-surveyed",
+      "missing": [
+        "facade photograph date",
+        "door and frontage dimensions",
+        "fire entrance confirmation",
+        "shopfront and arcade close-ups"
+      ]
+    },
+    {
+      "osmId": "513491894",
+      "name": "微風南山",
+      "address": "110台北市信義區松智路17號",
+      "polygon": [
+        [
+          121.5668437,
+          25.0345283
+        ],
+        [
+          121.5667657,
+          25.0345297
+        ],
+        [
+          121.5664842,
+          25.0345348
+        ],
+        [
+          121.5664862,
+          25.0346269
+        ],
+        [
+          121.5664793,
+          25.034627
+        ],
+        [
+          121.5658438,
+          25.0346386
+        ],
+        [
+          121.5657666,
+          25.03464
+        ],
+        [
+          121.5657664,
+          25.0346304
+        ],
+        [
+          121.5657498,
+          25.0346307
+        ],
+        [
+          121.5657401,
+          25.0341909
+        ],
+        [
+          121.5658578,
+          25.0341887
+        ],
+        [
+          121.5658567,
+          25.0341387
+        ],
+        [
+          121.5664337,
+          25.0341283
+        ],
+        [
+          121.5664352,
+          25.0341948
+        ],
+        [
+          121.5664767,
+          25.0341941
+        ],
+        [
+          121.5664789,
+          25.0342964
+        ],
+        [
+          121.5667604,
+          25.0342913
+        ],
+        [
+          121.5668384,
+          25.0342899
+        ],
+        [
+          121.5668437,
+          25.0345283
+        ]
+      ],
+      "officialVolumeCandidates": [
+        266143,
+        357399,
+        266144,
+        266142,
+        266141,
+        266139,
+        266140,
+        266146,
+        266145
+      ],
+      "matchingMethod": "official roof bounding-box centre inside OSM footprint; candidate mapping, not identity confirmation",
+      "status": "inventoried",
+      "appearanceStatus": "photo-reference-prototype",
+      "missing": [
+        "facade photograph date",
+        "door and frontage dimensions",
+        "fire entrance confirmation",
+        "shopfront and arcade close-ups"
+      ],
+      "reference": "https://www.breeze.com.tw/branches/012",
+      "confirmedAddress": "臺北市信義區松智路17號",
+      "prototype": {
+        "officialId": 357399,
+        "wallIndex": 8,
+        "status": "geometry-pinned, appearance approximate; not identity-certified",
+        "photoFeatures": [
+          "gold ring-pattern screen",
+          "horizontal bands"
+        ],
+        "approximateFeatures": [
+          "band heights",
+          "pattern spacing",
+          "lower glass zone"
+        ],
+        "notModelled": [
+          "actual signs",
+          "doors",
+          "arcade",
+          "interior",
+          "fire entrance"
+        ],
+        "photoDate": "unknown",
+        "referenceChecked": "2026-10-05",
+        "method": "original procedural texture, reference photo not copied or redistributed"
+      }
+    },
+    {
+      "osmId": "1159328965",
+      "name": "台北101",
+      "address": "台北市信義區信義路五段7號",
+      "polygon": [
+        [
+          121.5638833,
+          25.0345473
+        ],
+        [
+          121.5638708,
+          25.0340092
+        ],
+        [
+          121.563864,
+          25.0337137
+        ],
+        [
+          121.5638634,
+          25.0336843
+        ],
+        [
+          121.5638626,
+          25.0336503
+        ],
+        [
+          121.5638583,
+          25.0334672
+        ],
+        [
+          121.5639777,
+          25.0334649
+        ],
+        [
+          121.5639772,
+          25.0334429
+        ],
+        [
+          121.5639763,
+          25.0334021
+        ],
+        [
+          121.5640471,
+          25.0334008
+        ],
+        [
+          121.5641188,
+          25.0333994
+        ],
+        [
+          121.5641197,
+          25.0334403
+        ],
+        [
+          121.5641202,
+          25.0334622
+        ],
+        [
+          121.5642445,
+          25.0334599
+        ],
+        [
+          121.5642464,
+          25.0335443
+        ],
+        [
+          121.5644871,
+          25.0335397
+        ],
+        [
+          121.5644836,
+          25.0333845
+        ],
+        [
+          121.5647106,
+          25.0333802
+        ],
+        [
+          121.5647111,
+          25.0333992
+        ],
+        [
+          121.5647455,
+          25.0333986
+        ],
+        [
+          121.5647448,
+          25.033372
+        ],
+        [
+          121.5647445,
+          25.0333585
+        ],
+        [
+          121.5647428,
+          25.0332826
+        ],
+        [
+          121.5648023,
+          25.0332814
+        ],
+        [
+          121.5648611,
+          25.0332803
+        ],
+        [
+          121.5648629,
+          25.0333563
+        ],
+        [
+          121.5648632,
+          25.0333697
+        ],
+        [
+          121.5648638,
+          25.0333963
+        ],
+        [
+          121.5648975,
+          25.0333957
+        ],
+        [
+          121.5648971,
+          25.0333767
+        ],
+        [
+          121.5651216,
+          25.0333724
+        ],
+        [
+          121.565127,
+          25.0336073
+        ],
+        [
+          121.5651453,
+          25.033607
+        ],
+        [
+          121.565233,
+          25.0336053
+        ],
+        [
+          121.5652343,
+          25.0336604
+        ],
+        [
+          121.5652356,
+          25.0337159
+        ],
+        [
+          121.5651478,
+          25.0337176
+        ],
+        [
+          121.5651296,
+          25.0337179
+        ],
+        [
+          121.565135,
+          25.0339524
+        ],
+        [
+          121.5649646,
+          25.0339556
+        ],
+        [
+          121.5649697,
+          25.0341766
+        ],
+        [
+          121.565062,
+          25.0341748
+        ],
+        [
+          121.5650644,
+          25.0342826
+        ],
+        [
+          121.5650793,
+          25.0342823
+        ],
+        [
+          121.5651312,
+          25.0342813
+        ],
+        [
+          121.5651328,
+          25.0343512
+        ],
+        [
+          121.5651344,
+          25.0344193
+        ],
+        [
+          121.5650824,
+          25.0344203
+        ],
+        [
+          121.5650676,
+          25.0344206
+        ],
+        [
+          121.5650701,
+          25.0345247
+        ],
+        [
+          121.5648657,
+          25.0345286
+        ],
+        [
+          121.5648295,
+          25.0345293
+        ],
+        [
+          121.5647949,
+          25.03453
+        ],
+        [
+          121.5645936,
+          25.0345338
+        ],
+        [
+          121.5645919,
+          25.0345528
+        ],
+        [
+          121.5645903,
+          25.0345718
+        ],
+        [
+          121.5645891,
+          25.034586
+        ],
+        [
+          121.5645952,
+          25.0346057
+        ],
+        [
+          121.5645646,
+          25.0346063
+        ],
+        [
+          121.5644768,
+          25.0346079
+        ],
+        [
+          121.5643891,
+          25.0346096
+        ],
+        [
+          121.5643551,
+          25.0346102
+        ],
+        [
+          121.5643602,
+          25.0345903
+        ],
+        [
+          121.5643584,
+          25.0345762
+        ],
+        [
+          121.5643559,
+          25.0345574
+        ],
+        [
+          121.5643534,
+          25.0345384
+        ],
+        [
+          121.5641556,
+          25.0345421
+        ],
+        [
+          121.5641195,
+          25.0345428
+        ],
+        [
+          121.5640831,
+          25.0345435
+        ],
+        [
+          121.5638833,
+          25.0345473
+        ]
+      ],
+      "officialVolumeCandidates": [
+        266079,
+        265767,
+        265768,
+        265766,
+        265916,
+        265913,
+        265914,
+        265907,
+        265771,
+        265910,
+        265908,
+        265909,
+        265904,
+        265903,
+        265765,
+        265915,
+        265772,
+        265770,
+        265917,
+        265894,
+        265895,
+        265769,
+        265893,
+        266082,
+        265896,
+        266099,
+        266089,
+        265405,
+        265442,
+        265444,
+        266088,
+        265911,
+        265445,
+        265447,
+        266091,
+        266039,
+        266081,
+        266095,
+        266059,
+        265897,
+        265773,
+        265900,
+        266083,
+        266090,
+        265898,
+        265901,
+        265899,
+        266080,
+        265902,
+        265905,
+        265762,
+        265760,
+        265761,
+        265759,
+        265764,
+        265763,
+        265906,
+        266098,
+        265912,
+        266097,
+        266058
+      ],
+      "matchingMethod": "official roof bounding-box centre inside OSM footprint; candidate mapping, not identity confirmation",
+      "status": "inventoried",
+      "appearanceStatus": "not-surveyed",
+      "missing": [
+        "facade photograph date",
+        "door and frontage dimensions",
+        "fire entrance confirmation",
+        "shopfront and arcade close-ups"
+      ]
+    }
+  ],
+  "scope": "First candidate inventory around Songzhi Road; four sites, not four completed real-scene buildings",
+  "intersectionCandidate": {
+    "name": "松智路／松廉路",
+    "status": "location and detail verification pending",
+    "markings": "not modelled"
+  },
+  "secondBatch": {
+    "scope": "Same west-facing candidate wall OBJECTID 357399, not all mall frontages",
+    "reference": "https://www.mjd.co.jp/projects/27998/",
+    "referenceImage": "https://www.mjd.co.jp/wp-content/uploads/2024/07/27998_20240727-2-2048x1366.jpg",
+    "captureDate": "unknown; historical architecture photograph, not a current shop survey",
+    "observedFeatures": [
+      "dark ground glazing",
+      "broad piers and thin mullions",
+      "glass ribbons alternating with gold screens"
+    ],
+    "implementation": "Original procedural materials on unchanged official wall; approximate bay count, heights and reflection",
+    "notVerified": [
+      "precise photographed elevation alignment",
+      "opening positions and dimensions",
+      "current storefronts",
+      "arcade clearance",
+      "street furniture and markings"
+    ],
+    "photoReused": false
+  },
+  "thirdBatch": {
+    "checkedOn": "2026-10-05",
+    "officialFloorPlan": "https://www.breeze.com.tw/zh_tw/branches/012",
+    "streetSide": "Songzhi Road / west; north Max Mara, south PRADA; interior circulation between",
+    "pradaOfficialStore": "https://www.prada.com/ww/en/store-locator/taiwan-region/prada_taiwan_taipei_breeze_nanshan/SE59.html",
+    "pradaOfficialStorePoint": [
+      121.5659555,
+      25.0343073
+    ],
+    "pointMeaning": "store locator point, not entrance or sign location",
+    "implemented": "Original typeset shop-name sign studies on candidate official wall 357399; dimensions and exact placement approximate",
+    "entranceStatus": "floorplan circulation verified; door location, width, recess and fire access unverified; no door geometry added",
+    "arcadeStatus": "not built; no measured recess/clearance, no walkable or collision change",
+    "photosCopied": false,
+    "next": "Verify same west frontage photo and surveyed door/recess dimensions before openings/arcade; then adjacent buildings and junction"
+  }
+}

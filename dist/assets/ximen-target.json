@@ -1,0 +1,35 @@
+{
+  "objectId": 17697,
+  "label": "32R",
+  "height": 74.62999725341797,
+  "groundElevation": 4.28,
+  "roofElevation": 78.91,
+  "center": [
+    121.50674032195339,
+    25.04446642558969
+  ],
+  "name": "西寧南路搶救目標・阿曼 TiT",
+  "source": "https://www.historygis.udd.gov.taipei/arcgis/rest/services/Hosted/LOD1_2024/SceneServer/layers/0",
+  "sourceNode": "184",
+  "front": {
+    "a": [
+      121.50650693635598,
+      25.044308573825674,
+      4.2800033
+    ],
+    "b": [
+      121.50660246548934,
+      25.0446175300785,
+      4.2800033
+    ],
+    "normal": [
+      -0.9624605100456721,
+      0.2714217504228884,
+      0.0
+    ],
+    "width": 35.49499263842599,
+    "height": 74.62999722727758
+  },
+  "reference": "使用者提供之 Google 街景截圖，2025 年 5 月",
+  "appearance": "正面依照片重建；窗帶節距與材質非實測；未修改背面、屋頂或室內。"
+}

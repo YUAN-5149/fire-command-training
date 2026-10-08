@@ -1,0 +1,258 @@
+{
+  "source": "https://data.taipei/dataset/detail?id=4588e4ef-657f-4dfc-9e34-f55f44917cfb",
+  "retrievedAt": "2026-10-08",
+  "radius": 250,
+  "crs": "EPSG:3826 transformed to EPSG:4326",
+  "category": "號誌",
+  "heightVerified": false,
+  "shapeVerified": false,
+  "poles": [
+    {
+      "id": 17756,
+      "lon": 121.56335436694437,
+      "lat": 25.03323109220225,
+      "twd97": [
+        306850.2750000004,
+        2769576.5735
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 31300,
+      "lon": 121.56552628261166,
+      "lat": 25.033907923034302,
+      "twd97": [
+        307069.1429000003,
+        2769652.4569
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 31475,
+      "lon": 121.56366827659505,
+      "lat": 25.03580213300754,
+      "twd97": [
+        306880.7679000003,
+        2769861.4887
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 31833,
+      "lon": 121.56338550808358,
+      "lat": 25.034412577416347,
+      "twd97": [
+        306852.87310000043,
+        2769707.4547
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 31834,
+      "lon": 121.5636161260271,
+      "lat": 25.034299397524855,
+      "twd97": [
+        306876.1980999997,
+        2769695.0151
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 31835,
+      "lon": 121.5636019840049,
+      "lat": 25.033449325766174,
+      "twd97": [
+        306875.1628999999,
+        2769600.850299999
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 31836,
+      "lon": 121.56363244212706,
+      "lat": 25.03311989913031,
+      "twd97": [
+        306878.38850000035,
+        2769564.3739
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 32612,
+      "lon": 121.56532023152224,
+      "lat": 25.032666453401266,
+      "twd97": [
+        307048.9232999999,
+        2769514.8576999996
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 32613,
+      "lon": 121.56547037386832,
+      "lat": 25.03267474415151,
+      "twd97": [
+        307064.07129999995,
+        2769515.839299999
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 35624,
+      "lon": 121.56684943678434,
+      "lat": 25.03575702605126,
+      "twd97": [
+        307201.81209999975,
+        2769857.832699999
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 36288,
+      "lon": 121.56561836466295,
+      "lat": 25.033954823646145,
+      "twd97": [
+        307078.4137000004,
+        2769657.6907
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 78116,
+      "lon": 121.56534393964712,
+      "lat": 25.03271562391826,
+      "twd97": [
+        307051.29310000036,
+        2769520.314099999
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 79759,
+      "lon": 121.56530128102854,
+      "lat": 25.033126147564555,
+      "twd97": [
+        307046.7982999999,
+        2769565.7681
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 82719,
+      "lon": 121.56556414639815,
+      "lat": 25.033030063946974,
+      "twd97": [
+        307073.37009999994,
+        2769555.2360999994
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 82741,
+      "lon": 121.56524160790362,
+      "lat": 25.033053962282736,
+      "twd97": [
+        307040.8097,
+        2769557.7473
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 82742,
+      "lon": 121.56359139405143,
+      "lat": 25.033202730163744,
+      "twd97": [
+        306874.2078999998,
+        2769573.5315
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 82844,
+      "lon": 121.56550582181445,
+      "lat": 25.033114597121347,
+      "twd97": [
+        307067.4451000001,
+        2769564.5748999994
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 84789,
+      "lon": 121.56370755756706,
+      "lat": 25.032835291728304,
+      "twd97": [
+        306886.1001000004,
+        2769532.8806999996
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 84790,
+      "lon": 121.56523865199877,
+      "lat": 25.032801583309514,
+      "twd97": [
+        307040.6281000003,
+        2769529.791099999
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 84791,
+      "lon": 121.56556524284704,
+      "lat": 25.03279155111014,
+      "twd97": [
+        307073.59109999985,
+        2769528.8175
+      ],
+      "height": null,
+      "heightVerified": false
+    },
+    {
+      "id": 84821,
+      "lon": 121.5655114691334,
+      "lat": 25.03312174210507,
+      "twd97": [
+        307068.0116999997,
+        2769565.3686999995
+      ],
+      "height": null,
+      "heightVerified": false
+    }
+  ],
+  "rampAudit": {
+    "nearbyRecords": 71,
+    "positiveWidthRecords": 0,
+    "positiveSlopeRecords": 0,
+    "arcadeHeightDifference": null
+  },
+  "excludedTrafficFacilities": {
+    "count": 165,
+    "category": "車柱",
+    "reason": "不可當作號誌桿"
+  },
+  "additionalSignalAudit": {
+    "powerPolesCityRecords": 43,
+    "signalCityRecords": 4,
+    "withinFocusRecords": 0
+  }
+}

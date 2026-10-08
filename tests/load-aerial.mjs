@@ -1,0 +1,2 @@
+import {readFile} from 'node:fs/promises';import * as T from 'three';import {GLTFLoader} from '../dist/vendor/GLTFLoader.js';
+export async function load(){const b=await readFile(new URL('../dist/assets/aerial-ladder.glb',import.meta.url));const loader=new GLTFLoader();loader.register(()=>({name:'headless-textures',loadTexture:()=>Promise.resolve(new T.Texture())}));return (await loader.parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),'')).scene;}
