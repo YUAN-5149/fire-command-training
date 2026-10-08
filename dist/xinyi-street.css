@@ -37,3 +37,5 @@ button.on{background:#c8202b;border-color:#ff6b6b}
  #touchButtons{bottom:162px;right:10px}
  #info{left:8px;right:8px;max-width:none}
 }
+#info .toggles{display:flex;flex-wrap:wrap;gap:6px 14px}
+#info .toggles label{white-space:nowrap}

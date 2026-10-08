@@ -4,6 +4,7 @@ import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
 import {rigWheels} from './wheel-rig.js';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
@@ -36,14 +37,15 @@ function mesh(position,{color,uv,index,groups,materials,material}){
 }
 
 step('讀取官方建物量體與路網');
-const [district,streets,fixtures,verified]=await Promise.all(['district-xinyi.json','streets-xinyi.json','street-fixtures-xinyi.json','verified-fixtures-xinyi.json'].map(f=>fetch('assets/'+f).then(r=>{if(!r.ok)throw Error(f+' '+r.status);return r.json();})));
+const [district,streets,fixtures,verified,firstBatch]=await Promise.all(['district-xinyi.json','streets-xinyi.json','street-fixtures-xinyi.json','verified-fixtures-xinyi.json','xinyi-first-batch.json'].map(f=>fetch('assets/'+f).then(r=>{if(!r.ok)throw Error(f+' '+r.status);return r.json();})));
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox),colliders=buildColliders(district.buildings,ground);
+let detailMats,farMat;
 // 建物：精修範圍（中心約 250 m）用 buildXinyiDetail，其餘用 buildDistrictBatch，與 GIS 頁預設相同。
 {const refined=district.buildings.filter(focusedBuilding),basic=district.buildings.filter(b=>!focusedBuilding(b));
  // 遠處建物只接收陰影、不投射，減少陰影計算量。
- const batch=buildDistrictBatch(basic);const far=mesh(toLocal(batch.position,ground),{color:batch.color,index:batch.faces,material:new T.MeshStandardMaterial({vertexColors:true,roughness:.85,side:T.DoubleSide,flatShading:true})});far.castShadow=false;scene.add(far);
- const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:createDetailMaterials(GisMaterial)}));
+ const batch=buildDistrictBatch(basic);farMat=litWindows(new T.MeshStandardMaterial({vertexColors:true,roughness:.85,side:T.DoubleSide,flatShading:true}),{byColor:true});const far=mesh(toLocal(batch.position,ground),{color:batch.color,index:batch.faces,material:farMat});far.castShadow=false;scene.add(far);
+ const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});detailMats=createDetailMaterials(GisMaterial);litWindows(detailMats.glass);scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:detailMats}));
 }
 // 街道：基本路面（整區）＋ 精修範圍鋪面材質＋ OSM 已標記 zebra 斑馬線，與 GIS 頁相同。
 for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:g.raised?-2:-1,polygonOffsetUnits:g.raised?-2:-1})});m.castShadow=false;scene.add(m);}
@@ -90,13 +92,18 @@ const truck={root:new T.Group(),model:null,x:0,z:0,heading:0,v:0,steer:0,beacons
  scene.add(truck.root);
  const head=new T.SpotLight('#fff4dc',0,60,.45,.5,1.2);head.position.set(0,1.3,-3.6);head.target.position.set(0,0,-20);truck.root.add(head,head.target);truck.headlight=head;
 }
-const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,night:false,keys:new Set(),stick:[0,0],run:false,walkT:0};
+// 街道生活層（示意）：排除已有照片／樣板研究的量體（微風南山、ATT 相鄰外牆、第一批信義建物候選）。
+step('建立車流、行人與店面');
+const exclude=new Set([357399,265936,266115,266138]);(function collect(o){if(Array.isArray(o))o.forEach(collect);else if(o&&typeof o==='object')for(const [k,v] of Object.entries(o)){if(k==='officialVolumeCandidates'&&Array.isArray(v))v.forEach(id=>exclude.add(+id));else collect(v);}})(firstBatch);
+const life=createStreetLife(scene,{features:streets.features,buildings:district.buildings,ground,colliders,fixtures,exclude,spawn});
+const sky=createSky();scene.add(sky);
+const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',keys:new Set(),stick:[0,0],run:false,walkT:0};
 function placeTruck(){const f=[-Math.sin(spawn.heading),-Math.cos(spawn.heading)],r=[Math.cos(spawn.heading),-Math.sin(spawn.heading)];truck.x=spawn.x+f[0]*14+r[0]*1.5;truck.z=spawn.z+f[1]*14+r[1]*1.5;truck.heading=spawn.heading;truck.v=0;}
 function resetAll(){state.mode='walk';state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();player.visible=true;syncUi();}
 placeTruck();
 
 // 輸入
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();state.keys.add(k);if(k==='e')toggleVehicle();if(k==='q')toggleSiren();if(k==='n')toggleNight();if(k==='r')resetAll();if(k==='h')$('info').hidden=!$('info').hidden;if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();state.keys.add(k);if(k==='e')toggleVehicle();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if(k==='h')$('info').hidden=!$('info').hidden;if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
 addEventListener('keyup',e=>state.keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>state.keys.clear());
 let drag=null;
 canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&e.clientX<innerWidth*.45)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
@@ -109,7 +116,7 @@ canvas.addEventListener('wheel',e=>{state.dist=Math.min(40,Math.max(3,state.dist
  const end=()=>{id=null;state.stick=[0,0];knob.style.transform='';};stick.addEventListener('pointerup',end);stick.addEventListener('pointercancel',end);
  $('tRun').addEventListener('pointerdown',()=>{state.run=!state.run;$('tRun').classList.toggle('on',state.run);});$('tEnter').addEventListener('click',()=>toggleVehicle());
 }
-$('enter').onclick=()=>toggleVehicle();$('siren').onclick=()=>toggleSiren();$('night').onclick=()=>toggleNight();$('reset').onclick=()=>resetAll();
+$('enter').onclick=()=>toggleVehicle();$('siren').onclick=()=>toggleSiren();$('night').onclick=()=>cycleTime();$('reset').onclick=()=>resetAll();
 $('help').onclick=()=>$('info').hidden=!$('info').hidden;$('closeInfo').onclick=()=>$('info').hidden=true;
 
 function nearTruck(){return Math.hypot(state.x-truck.x,state.z-truck.z)<6;}
@@ -119,17 +126,19 @@ function toggleVehicle(){
  syncUi();
 }
 function toggleSiren(){if(state.mode!=='drive')return;truck.siren=!truck.siren;syncUi();}
-function toggleNight(){
- state.night=!state.night;const n=state.night;
- scene.background=new T.Color(n?'#0b1424':'#a9c7e0');scene.fog.color.set(n?'#0b1424':'#c9d6df');scene.fog.near=n?120:250;scene.fog.far=n?700:1100;
- hemi.intensity=n?.55:1.1;hemi.color.set(n?'#6d82a8':'#dfeefa');sun.intensity=n?.25:2.4;sun.color.set(n?'#9fb4e0':'#fff1d6');
- for(const m of lampHeads)m.emissiveIntensity=n?2:0;glow.visible=n;truck.headlight.intensity=n?60:0;syncUi();
+function cycleTime(){const order=Object.keys(TIME_PRESETS);applyTime(order[(order.indexOf(state.time)+1)%order.length]);}
+function applyTime(name){
+ state.time=name;const p=TIME_PRESETS[name],az=p.az*Math.PI/180,el=p.el*Math.PI/180;
+ sunDir.set(Math.sin(az)*Math.cos(el),Math.sin(el),-Math.cos(az)*Math.cos(el));
+ sky.material.uniforms.top.value.set(p.top);sky.material.uniforms.horizon.value.set(p.horizon);scene.fog.color.set(p.horizon);scene.fog.near=p.fogNear;scene.fog.far=p.fogFar;
+ hemi.intensity=p.hemiI;hemi.color.set(p.hemiSky);hemi.groundColor.set(p.hemiGround);sun.intensity=p.sunI;sun.color.set(p.sun);
+ for(const m of lampHeads)m.emissiveIntensity=p.lights*2;glow.visible=p.lights>0;truck.headlight.intensity=p.lights*60;
+ detailMats.glass.emissiveIntensity=p.windows*.9;farMat.emissiveIntensity=p.windows*1.2;life.setLights(p.lights);syncUi();
 }
 function syncUi(){
- $('enter').textContent=state.mode==='drive'?'下車':'上車';$('siren').hidden=state.mode!=='drive';$('siren').classList.toggle('on',truck.siren);$('night').classList.toggle('on',state.night);
+ $('enter').textContent=state.mode==='drive'?'下車':'上車';$('siren').hidden=state.mode!=='drive';$('siren').classList.toggle('on',truck.siren);$('night').textContent='時段：'+TIME_PRESETS[state.time].label;
  $('speed').hidden=state.mode!=='drive';
 }
-scene.background=new T.Color('#a9c7e0');
 
 // 小地圖：預先繪製路網與牆線，執行時依視角旋轉。
 const mini=$('minimap'),mctx=mini.getContext('2d'),MAP=2048,mapScale=MAP/1100,mapImg=document.createElement('canvas');
@@ -159,6 +168,7 @@ function updateWalk(dt){
   let p=colliders.resolve(state.x+dx*speed*dt,state.z+dz*speed*dt,.38);
   // 消防車車身也視為障礙（三個圓近似）。
   for(const c of truckCircles()){const ex=p.x-c[0],ez=p.z-c[1],d=Math.hypot(ex,ez);if(d<c[2]+.38&&d>1e-6){p={x:c[0]+ex/d*(c[2]+.38),z:c[1]+ez/d*(c[2]+.38)};}}
+  for(const c of life.circles()){const ex=p.x-c[0],ez=p.z-c[1],d=Math.hypot(ex,ez);if(d<c[2]+.38&&d>1e-6)p={x:c[0]+ex/d*(c[2]+.38),z:c[1]+ez/d*(c[2]+.38)};}
   state.x=p.x;state.z=p.z;const target=Math.atan2(-dx,-dz);state.facing+=Math.atan2(Math.sin(target-state.facing),Math.cos(target-state.facing))*Math.min(1,dt*12);state.walkT+=dt*speed*2.2;
  }
  const stride=len>.05?Math.sin(state.walkT)*.6:0;person.legs[0].rotation.x=stride;person.legs[1].rotation.x=-stride;person.arms[0].rotation.x=-stride*.8;person.arms[1].rotation.x=stride*.8;
@@ -168,19 +178,23 @@ function updateWalk(dt){
 function truckCircles(){const f=[-Math.sin(truck.heading),-Math.cos(truck.heading)];return [-2.4,0,2.4].map(o=>[truck.x+f[0]*o,truck.z+f[1]*o,1.45]);}
 function updateDrive(dt){
  const [f,r]=input(),brake=state.keys.has(' ');
- if(brake)truck.v*=Math.max(0,1-dt*3);else if(f>0)truck.v+=(truck.v<0?9:4.2)*f*dt;else if(f<0)truck.v+=(truck.v>0?9:3)*f*dt;else truck.v*=Math.max(0,1-dt*.6);
- truck.v=Math.max(-5,Math.min(19,truck.v));if(Math.abs(truck.v)<.05&&!f)truck.v=0;
+ // 遊戲式操控：極速約 120 km/h，非實車性能。
+ if(brake)truck.v*=Math.max(0,1-dt*3.5);else if(f>0)truck.v+=(truck.v<0?14:8.5-truck.v*.12)*f*dt;else if(f<0)truck.v+=(truck.v>0?14:4)*f*dt;else truck.v*=Math.max(0,1-dt*.45);
+ truck.v=Math.max(-8,Math.min(33.4,truck.v));if(Math.abs(truck.v)<.05&&!f)truck.v=0;
  truck.steer+=((-r)*.55/(1+Math.abs(truck.v)*.06)-truck.steer)*Math.min(1,dt*5);
  const old={x:truck.x,z:truck.z,h:truck.heading};truck.heading+=truck.v/4.3*Math.tan(truck.steer)*dt;
  truck.x+=-Math.sin(truck.heading)*truck.v*dt;truck.z+=-Math.cos(truck.heading)*truck.v*dt;
  let hit=false;for(const c of truckCircles()){const p=colliders.resolve(c[0],c[1],c[2]);if(p.hit){hit=true;truck.x+=p.x-c[0];truck.z+=p.z-c[1];}}
  if(hit){if(Math.abs(truck.v)>3)truck.v*=-.25;else truck.v*=.5;for(const c of truckCircles())if(colliders.resolve(c[0],c[1],c[2]).hit){truck.x=old.x;truck.z=old.z;truck.heading=old.h;break;}}
+ // NPC 車輛：與消防車重疊時退回原位並減速（NPC 會在前方自動停車）。
+ for(const c of truckCircles())if(life.circles().some(o=>Math.hypot(o[0]-c[0],o[1]-c[1])<o[2]+c[2]*.8)){truck.x=old.x;truck.z=old.z;truck.heading=old.h;truck.v*=Math.abs(truck.v)>3?-.2:0;break;}
  truck.rig?.update(truck.v*dt,truck.steer);
  state.x=truck.x;state.z=truck.z;$('kmh').textContent=Math.round(Math.abs(truck.v)*3.6);$('prompt').hidden=true;
 }
 function frame(){
  clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();
  state.mode==='walk'?updateWalk(dt):updateDrive(dt);
+ life.update(dt,t,state.mode==='drive'?truckCircles():[[state.x,state.z,.5],...truckCircles()]);
  // 消防車貼地，依前後輪地面高差俯仰。
  const fx=-Math.sin(truck.heading),fz=-Math.cos(truck.heading),yf=ground.at(truck.x+fx*2.3,truck.z+fz*2.3),yr=ground.at(truck.x-fx*2.1,truck.z-fz*2.1);
  truck.root.position.set(truck.x,(yf+yr)/2,truck.z);truck.root.rotation.set(Math.atan2(yf-yr,4.4),truck.heading,0,'YXZ');
@@ -189,15 +203,16 @@ function frame(){
  state.camHold=Math.max(0,(state.camHold||0)-dt);
  if(state.mode==='drive'&&!state.camHold&&Math.abs(truck.v)>.5){const want=truck.heading;state.yaw+=Math.atan2(Math.sin(want-state.yaw),Math.cos(want-state.yaw))*Math.min(1,dt*2.5);}
  const tx=state.x,tz=state.z,ty=ground.at(tx,tz)+(state.mode==='drive'?2.8:1.5);state.camX=tx;state.camZ=tz;
- const d=state.dist,cx=tx+Math.sin(state.yaw)*Math.cos(state.pitch)*d,cz=tz+Math.cos(state.yaw)*Math.cos(state.pitch)*d;
- camera.position.set(cx,Math.max(ty+Math.sin(state.pitch)*d,ground.at(cx,cz)+.6),cz);camera.lookAt(tx,ty,tz);
+ const d=state.dist+(state.mode==='drive'?Math.abs(truck.v)*.22:0),cx=tx+Math.sin(state.yaw)*Math.cos(state.pitch)*d,cz=tz+Math.cos(state.yaw)*Math.cos(state.pitch)*d;
+ camera.position.set(cx,Math.max(ty+Math.sin(state.pitch)*d,ground.at(cx,cz)+.6),cz);camera.lookAt(tx,ty,tz);sky.position.copy(camera.position);
  sun.position.set(tx+sunDir.x*250,ground.at(tx,tz)+sunDir.y*250,tz+sunDir.z*250);sun.target.position.set(tx,ground.at(tx,tz),tz);
  streetTimer-=dt;if(streetTimer<0){streetTimer=.4;$('street').textContent=nearestStreet(streets.features,state.x,state.z)??'信義區（無道路名稱）';}
  drawMinimap();renderer.render(scene,camera);requestAnimationFrame(frame);
 }
 function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const s=innerWidth<=640?140:220;mini.width=mini.height=s*Math.min(devicePixelRatio,2);}
-addEventListener('resize',resize);resize();syncUi();
+addEventListener('resize',resize);resize();applyTime('afternoon');
+for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);if(box)box.onchange=()=>{life.groups[group].visible=box.checked;};}
 $('loading').hidden=true;
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={state,truck,colliders,ground,tick(dt,n=1){for(let i=0;i<n;i++)state.mode==='walk'?updateWalk(dt):updateDrive(dt);}};
+window.__xinyiStreet={state,truck,colliders,ground,life,applyTime,tick(dt,n=1){for(let i=0;i<n;i++)state.mode==='walk'?updateWalk(dt):updateDrive(dt);}};
 requestAnimationFrame(frame);
