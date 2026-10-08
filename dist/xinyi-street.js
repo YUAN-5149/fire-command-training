@@ -3,6 +3,7 @@
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
+import {rigWheels} from './wheel-rig.js';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
@@ -83,8 +84,9 @@ person.body.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(player);
 // 消防車：既有 GIS 車型，紅色警示燈保持紅色。
 const truck={root:new T.Group(),model:null,x:0,z:0,heading:0,v:0,steer:0,beacons:[],siren:false};
 {const gltf=await new GLTFLoader().loadAsync('assets/geo-fire-engine.glb');truck.model=gltf.scene;truck.model.rotation.y=-Math.PI/2;truck.root.add(truck.model);
- // 車型節點 Wheel_* 內含擋泥板等非輪胎零件且不以輪軸為原點，旋轉會使零件脫離車身；故車輪不做轉動動畫，保持原車型。
- truck.model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const m=o.material;if(/beacon|warning|LED strip|red.*lens|emergency.*lens|red.*flasher/i.test(m?.name||'')){o.material=m.clone();truck.beacons.push(o.material);}}});
+  truck.model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const m=o.material;if(/beacon|warning|LED strip|red.*lens|emergency.*lens|red.*flasher/i.test(m?.name||'')){o.material=m.clone();truck.beacons.push(o.material);}}});
+ // 方案 A：載入時把車輪零件重組到輪軸中心（不修改車型檔），靜止外觀與原車型相同。
+ truck.rig=rigWheels(truck.model);
  scene.add(truck.root);
  const head=new T.SpotLight('#fff4dc',0,60,.45,.5,1.2);head.position.set(0,1.3,-3.6);head.target.position.set(0,0,-20);truck.root.add(head,head.target);truck.headlight=head;
 }
@@ -173,6 +175,7 @@ function updateDrive(dt){
  truck.x+=-Math.sin(truck.heading)*truck.v*dt;truck.z+=-Math.cos(truck.heading)*truck.v*dt;
  let hit=false;for(const c of truckCircles()){const p=colliders.resolve(c[0],c[1],c[2]);if(p.hit){hit=true;truck.x+=p.x-c[0];truck.z+=p.z-c[1];}}
  if(hit){if(Math.abs(truck.v)>3)truck.v*=-.25;else truck.v*=.5;for(const c of truckCircles())if(colliders.resolve(c[0],c[1],c[2]).hit){truck.x=old.x;truck.z=old.z;truck.heading=old.h;break;}}
+ truck.rig?.update(truck.v*dt,truck.steer);
  state.x=truck.x;state.z=truck.z;$('kmh').textContent=Math.round(Math.abs(truck.v)*3.6);$('prompt').hidden=true;
 }
 function frame(){
