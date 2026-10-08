@@ -18,28 +18,60 @@
   <button id="enter" title="E">上車</button>
   <button id="siren" title="Q" hidden>警示燈</button>
   <button id="reset" title="R">回出生點</button>
-  <button id="help" title="H">說明</button>
+  <button id="help" title="Esc">選單</button>
  </div>
 </header>
 <canvas id="minimap" width="220" height="220" aria-label="小地圖"></canvas>
 <div id="speed" hidden><b id="kmh">0</b><small>km/h</small></div>
 <div id="prompt" hidden></div>
-<aside id="info" hidden>
- <h2>操作</h2>
- <p><b>步行</b>：WASD／方向鍵移動，Shift 跑步，滑鼠拖曳轉視角，滾輪縮放。</p>
- <p><b>消防車</b>：靠近消防車按 E 上車；W/S 油門與倒車，A/D 轉向，空白鍵煞車，Q 開關警示燈，E 下車。</p>
- <p><b>手機</b>：左下搖桿移動，右半螢幕拖曳轉視角。</p>
- <h2>街道生活層（示意）</h2>
- <p class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 車流與機車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 車道標線</label><label><input type="checkbox" id="lifeTrees" checked> 補植行道樹</label></p>
- <p>以上皆為<b>示意</b>，非實際店家、車流、樹位或已核對標線；店名為通用類別。標線依 OSM 車道數或路寬估計，路口內中斷；松智路已核對樣板仍以 GIS 頁為準。微風南山、ATT 相鄰外牆與第一批信義建物候選量體不加店面，保留原研究外觀。N 鍵切換下午／黃昏／夜間。</p>
+<div id="menu" hidden role="dialog" aria-label="暫停選單">
+ <div class="menu-card">
+  <nav class="menu-nav">
+   <div class="menu-title"><span class="badge">119</span><div><strong>暫停</strong><small>PAUSED</small></div></div>
+   <button id="resume" class="primary">▶ 繼續</button>
+   <button data-page="settings" class="active">設定</button>
+   <button data-page="controls">操作說明</button>
+   <button data-page="sources">資料來源</button>
+   <a href="index.html">回消防演練首頁</a>
+   <a href="taipei-map.html?place=xinyi">臺北真實圖資（GIS）</a>
+  </nav>
+  <div class="menu-body">
+   <section data-page="settings">
+    <h2>畫面</h2>
+    <div class="row"><span>畫質<small id="qualityNote">自動依裝置與實際幀率調整</small></span><div class="seg" id="quality"><button data-v="auto">自動</button><button data-v="low">低</button><button data-v="medium">中</button><button data-v="high">高</button></div></div>
+    <div class="row"><span>畫面更新率<small>30 FPS 較省電</small></span><div class="seg" id="fpsCap"><button data-v="60">60 FPS</button><button data-v="30">30 省電</button></div></div>
+    <div class="row"><span>顯示 FPS</span><label class="switch"><input type="checkbox" id="showFps"><i></i></label></div>
+    <div class="row"><span>時段</span><div class="seg" id="timeSeg"><button data-v="afternoon">下午</button><button data-v="dusk">黃昏</button><button data-v="night">夜間</button></div></div>
+    <h2>操作</h2>
+    <div class="row"><span>視角靈敏度 <b id="sensValue">1.0×</b></span><input type="range" id="sens" min="0.4" max="2" step="0.1" value="1"></div>
+    <div class="row"><span>反轉上下視角</span><label class="switch"><input type="checkbox" id="invertY"><i></i></label></div>
+    <h2>街道生活層（示意）</h2>
+    <div class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 車流與機車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 車道標線</label><label><input type="checkbox" id="lifeTrees" checked> 補植行道樹</label></div>
+    <p class="note">以上皆為示意，非實際店家、車流、樹位或已核對標線。設定會記在這台裝置的瀏覽器。</p>
+    <p class="note" id="qualityDetail"></p>
+   </section>
+   <section data-page="controls" hidden>
+    <h2>步行</h2>
+    <table class="keys"><tr><td>移動</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或方向鍵</td></tr><tr><td>跑步</td><td><kbd>Shift</kbd></td></tr><tr><td>上消防車</td><td><kbd>E</kbd>（靠近時）</td></tr><tr><td>視角</td><td>滑鼠拖曳；滾輪縮放</td></tr></table>
+    <h2>駕駛消防車</h2>
+    <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
+    <h2>共通</h2>
+    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <h2>手機觸控</h2>
+    <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「選單」開啟本頁。</p>
+   </section>
+   <section data-page="sources" hidden>
  <h2>資料來源與限制</h2>
  <p>本頁與「臺北真實圖資」信義預設畫面共用同一套建構程式與資料：建物外觀（中心約 250 m 精修石材／玻璃、其餘整區配色窗格）、OSM 路面寬度與配色、中心鋪面材質、OSM 已標記 zebra 斑馬線、市府路燈（含桿高）、OSM 路樹、市府號誌設施桿位。</p>
  <p>建物位置與高度：臺北市都發局 2024 LOD1 官方量體。外牆、窗格、鋪面為<b>示意外觀</b>，非實景；窗格不代表實際樓層或救援開口。道路寬度多為估算，不可據此量測支腿空間。GIS 頁的核對樣板（雙黃線、停等框、騎樓試作、ATT 外牆）預設關閉，本頁同樣不顯示。</p>
  <p>差異：GIS 頁地形為 world-elevation，本頁無法離線取得，改由官方牆腳高程內插示意地面。消防車輪的轉動與前輪轉向，是載入時把原車型的車輪零件重組到輪軸中心而成，車型檔未修改，靜止外觀與原車型相同。</p>
  <p>風格參考 taipei-gta，但未使用該網站的地圖、程式或素材。</p>
  <p><a href="index.html">回消防演練首頁</a>　<a href="taipei-map.html?place=xinyi">臺北真實圖資（GIS部署）</a></p>
- <button id="closeInfo">關閉</button>
-</aside>
+   </section>
+  </div>
+ </div>
+</div>
+<div id="fps" hidden>— FPS</div>
 <div id="stick" aria-hidden="true"><i></i></div>
 <div id="touchButtons"><button id="tRun">跑</button><button id="tEnter">上／下車</button></div>
 <script type="module" src="xinyi-street.js"></script>
