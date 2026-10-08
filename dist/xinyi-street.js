@@ -5,6 +5,9 @@ import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
 import {rigWheels} from './wheel-rig.js';
 import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js';
+import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js';
+import {createBigMap} from './xinyi-street-map.js';
+import {createAudio} from './xinyi-street-audio.js';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
@@ -97,13 +100,17 @@ step('建立車流、行人與店面');
 const exclude=new Set([357399,265936,266115,266138]);(function collect(o){if(Array.isArray(o))o.forEach(collect);else if(o&&typeof o==='object')for(const [k,v] of Object.entries(o)){if(k==='officialVolumeCandidates'&&Array.isArray(v))v.forEach(id=>exclude.add(+id));else collect(v);}})(firstBatch);
 const life=createStreetLife(scene,{features:streets.features,buildings:district.buildings,ground,colliders,fixtures,exclude,spawn});
 const sky=createSky();scene.add(sky);
+const audio=createAudio();
+// 導航：步行用全部路徑、駕駛只用車道並遵守單行道。重點建物取第一批信義建物清單（OSM 名稱；量體對應仍為候選）。
+const routeGraphs={walk:buildRouteGraph(streets.features),drive:buildRouteGraph(streets.features,{vehicle:true})};
+const pois=(firstBatch.sites??[]).filter(s=>s.name&&s.polygon?.length).map(s=>{const pts=s.polygon.map(p=>project(p[0],p[1]));return {name:s.name,x:pts.reduce((a,p)=>a+p[0],0)/pts.length,z:pts.reduce((a,p)=>a+p[1],0)/pts.length};});
 const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',paused:false,keys:new Set(),stick:[0,0],run:false,walkT:0};
 function placeTruck(){const f=[-Math.sin(spawn.heading),-Math.cos(spawn.heading)],r=[Math.cos(spawn.heading),-Math.sin(spawn.heading)];truck.x=spawn.x+f[0]*14+r[0]*1.5;truck.z=spawn.z+f[1]*14+r[1]*1.5;truck.heading=spawn.heading;truck.v=0;}
 function resetAll(){state.mode='walk';state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();player.visible=true;syncUi();}
 placeTruck();
 
 // 輸入
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();if(k==='escape'||k==='p'){setPaused(!state.paused);e.preventDefault();return;}if(k==='h'){setPaused(true,'controls');return;}if(state.paused)return;state.keys.add(k);if(k==='e')toggleVehicle();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();audio.unlock();if(bigmap.open){if(k==='m'||k==='escape')closeMap();return;}if(k==='m'&&!state.paused){openMap();return;}if(k==='escape'||k==='p'){setPaused(!state.paused);e.preventDefault();return;}if(k==='h'){setPaused(true,'controls');return;}if(state.paused)return;state.keys.add(k);if(k==='e')toggleVehicle();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
 addEventListener('keyup',e=>state.keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>state.keys.clear());
 let drag=null;
 canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&e.clientX<innerWidth*.45)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
@@ -147,12 +154,31 @@ const mini=$('minimap'),mctx=mini.getContext('2d'),MAP=2048,mapScale=MAP/1100,ma
   for(const path of f.paths){g.beginPath();path.forEach((p,i)=>{const [x,y]=P(...project(p[0],p[1]));i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();}}
  g.strokeStyle='#c9a77b';g.lineWidth=2;g.beginPath();for(const [ax,az,bx,bz] of colliders.segs){g.moveTo(...P(ax,az));g.lineTo(...P(bx,bz));}g.stroke();
 }
+const bigmap=createBigMap({overlay:$('bigmap'),canvas:$('mapCanvas'),mapImg,MAP,mapScale,labels:roadLabels(streets.features),pois,
+ getView:()=>({x:state.x,z:state.z,facing:state.mode==='drive'?truck.heading:state.facing,driving:state.mode==='drive',truck,waypoint:state.waypoint,route:state.route}),
+ onPick:(x,z)=>setWaypoint(x,z,'地圖標記')});
+function openMap(){state.keys.clear();state.stick=[0,0];audio.suspend();$('mapStreet').textContent=$('street').textContent;bigmap.show();}
+function closeMap(){bigmap.hide();if(!state.paused)audio.resume();}
+function setWaypoint(x,z,label){state.waypoint={x,z,label};state.routeTimer=0;updateNavigation(0);}
+function clearWaypoint(){state.waypoint=null;state.route=null;$('waypoint').hidden=true;}
+function updateNavigation(dt){
+ if(!state.waypoint)return;const remain=Math.hypot(state.waypoint.x-state.x,state.waypoint.z-state.z);
+ if(remain<12){clearWaypoint();$('prompt').hidden=false;$('prompt').textContent='已抵達目標';setTimeout(()=>{if($('prompt').textContent==='已抵達目標')$('prompt').hidden=true;},2500);return;}
+ state.routeTimer=(state.routeTimer??0)-dt;
+ if(state.routeTimer<=0){state.routeTimer=1;const r=findRoute(routeGraphs[state.mode==='drive'?'drive':'walk'],state.x,state.z,state.waypoint.x,state.waypoint.z);state.route=r?.points??null;state.routeLength=r?.length??remain;}
+ const d=state.routeLength??remain;$('waypoint').hidden=false;$('wpText').textContent=`${state.waypoint.label} · ${d>=1000?(d/1000).toFixed(1)+' km':Math.round(d)+' m'}`+(state.route?'':'（無可行路線，直線距離）');
+}
+$('mapBtn').onclick=()=>openMap();$('mapClose').onclick=()=>closeMap();$('mapIn').onclick=()=>bigmap.zoom(1.3);$('mapOut').onclick=()=>bigmap.zoom(1/1.3);$('mapMe').onclick=()=>bigmap.center();
+$('mapClear').onclick=()=>clearWaypoint();$('mapTruckWp').onclick=()=>setWaypoint(truck.x,truck.z,'消防車');
+$('menuMap').onclick=()=>{setPaused(false);openMap();};
 function drawMinimap(){
  const s=mini.width,zoom=state.mode==='drive'?.55:.9;mctx.save();mctx.clearRect(0,0,s,s);mctx.beginPath();mctx.arc(s/2,s/2,s/2,0,Math.PI*2);mctx.clip();
  mctx.fillStyle='#1c252b';mctx.fillRect(0,0,s,s);mctx.translate(s/2,s/2);mctx.rotate(state.yaw);mctx.scale(zoom,zoom);
  const cx=MAP/2+state.camX*mapScale,cz=MAP/2+state.camZ*mapScale;mctx.drawImage(mapImg,-cx,-cz);
  const tx=(truck.x-state.camX)*mapScale,tz=(truck.z-state.camZ)*mapScale;
  if(state.mode==='walk'){mctx.fillStyle='#e8303a';mctx.fillRect(tx-6,tz-6,12,12);}
+ if(state.route?.length>1){mctx.strokeStyle='rgba(255,211,107,.95)';mctx.lineWidth=7;mctx.lineJoin=mctx.lineCap='round';mctx.beginPath();state.route.forEach(([x,z],i)=>{const px=(x-state.camX)*mapScale,pz=(z-state.camZ)*mapScale;i?mctx.lineTo(px,pz):mctx.moveTo(px,pz);});mctx.stroke();}
+ if(state.waypoint){const px=(state.waypoint.x-state.camX)*mapScale,pz=(state.waypoint.z-state.camZ)*mapScale;mctx.fillStyle='#ffd36b';mctx.strokeStyle='#111';mctx.lineWidth=3;mctx.beginPath();mctx.arc(px,pz,11,0,Math.PI*2);mctx.fill();mctx.stroke();}
  mctx.restore();mctx.save();mctx.translate(s/2,s/2);const facing=(state.mode==='drive'?truck.heading:state.facing)-state.yaw;mctx.rotate(-facing);
  mctx.fillStyle=state.mode==='drive'?'#ff4a4a':'#ffd36b';mctx.strokeStyle='#111';mctx.lineWidth=2;mctx.beginPath();mctx.moveTo(0,-10);mctx.lineTo(7,8);mctx.lineTo(0,4);mctx.lineTo(-7,8);mctx.closePath();mctx.fill();mctx.stroke();mctx.restore();
  mctx.fillStyle='#fff';mctx.font='bold 13px sans-serif';mctx.textAlign='center';const north=state.yaw;mctx.fillText('N',s/2+Math.sin(north)*(s/2-12),s/2-Math.cos(north)*(s/2-12)+5);
@@ -195,7 +221,7 @@ function frame(now){
  requestAnimationFrame(frame);
  // 30 FPS 省電：未到間隔就跳過這一幀；暫停時停止模擬與繪製。
  if(settings.fps===30&&now-lastFrame<1000/30-2)return;lastFrame=now;
- if(state.paused){clock.update();return;}
+ if(state.paused||bigmap.open){clock.update();return;}
  clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();quality.sample(dt);
  state.mode==='walk'?updateWalk(dt):updateDrive(dt);
  life.update(dt,t,state.mode==='drive'?truckCircles():[[state.x,state.z,.5],...truckCircles()]);
@@ -210,14 +236,16 @@ function frame(now){
  const d=state.dist+(state.mode==='drive'?Math.abs(truck.v)*.22:0),cx=tx+Math.sin(state.yaw)*Math.cos(state.pitch)*d,cz=tz+Math.cos(state.yaw)*Math.cos(state.pitch)*d;
  camera.position.set(cx,Math.max(ty+Math.sin(state.pitch)*d,ground.at(cx,cz)+.6),cz);camera.lookAt(tx,ty,tz);sky.position.copy(camera.position);
  sun.position.set(tx+sunDir.x*250,ground.at(tx,tz)+sunDir.y*250,tz+sunDir.z*250);sun.target.position.set(tx,ground.at(tx,tz),tz);
+ updateNavigation(dt);
+ {const dTruck=Math.hypot(state.x-truck.x,state.z-truck.z),driving=state.mode==='drive';audio.update({t,siren:truck.siren?(driving?1:1/(1+dTruck/25)):0,speed:truck.v,driving,ambient:state.time==='night'?.6:1});}
  streetTimer-=dt;if(streetTimer<0){streetTimer=.4;$('street').textContent=nearestStreet(streets.features,state.x,state.z)??'信義區（無道路名稱）';}
  drawMinimap();renderer.render(scene,camera);
 }
 function resize(){renderer.setPixelRatio(quality.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const s=innerWidth<=640?140:220;mini.width=mini.height=s*Math.min(devicePixelRatio,2);}
 // ---------- 設定與暫停選單 ----------
 // 設定只存在本機瀏覽器（localStorage）；無法存取時仍以預設值運作。
-const SETTINGS_KEY='xinyiStreetSettings',DEFAULTS={quality:'auto',fps:60,showFps:false,sens:1,invertY:false,life:{traffic:true,people:true,shops:true,markings:true,trees:true}};
-const settings=(()=>{try{const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');return {...DEFAULTS,...v,life:{...DEFAULTS.life,...v.life}};}catch{return structuredClone(DEFAULTS);}})();
+const SETTINGS_KEY='xinyiStreetSettings',DEFAULTS={quality:'auto',fps:60,showFps:false,sens:1,invertY:false,life:{traffic:true,people:true,shops:true,markings:true,trees:true},audio:{muted:false,master:.8,siren:.7,engine:.6,ambient:.5}};
+const settings=(()=>{try{const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');return {...DEFAULTS,...v,life:{...DEFAULTS.life,...v.life},audio:{...DEFAULTS.audio,...v.audio}};}catch{return structuredClone(DEFAULTS);}})();
 const saveSettings=()=>{try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch{}};
 // 畫質：解析度倍率、陰影、NPC 密度、可視距離。自動模式依裝置起始，實測平均幀率過低時逐級降低。
 const QUALITY={low:{label:'低',pr:.75,shadow:0,density:.35,far:.7},medium:{label:'中',pr:1.25,shadow:1024,density:.7,far:.85},high:{label:'高',pr:2,shadow:2048,density:1,far:1}};
@@ -230,7 +258,7 @@ const quality={level:'medium',auto:matchMedia('(pointer:coarse)').matches||Math.
   $('qualityDetail').textContent=`目前：${q.label}（解析度 ${Math.round(this.pixelRatio()*100)}%、陰影${q.shadow?q.shadow+' px':'關閉'}、車流行人 ${Math.round(q.density*100)}%）`+(settings.quality==='auto'?'，自動模式':'');},
  sample(dt){this.frames++;this.time+=dt;if(this.time<4)return;const fps=this.frames/this.time;this.frames=0;this.time=0;$('fps').textContent=Math.round(fps)+' FPS · '+QUALITY[this.level].label;
   const target=settings.fps===30?24:40;if(settings.quality==='auto'&&fps<target&&this.auto!=='low'){this.auto=this.auto==='high'?'medium':'low';this.apply();}}};
-function setPaused(on,page){state.paused=on;$('menu').hidden=!on;state.keys.clear();state.stick=[0,0];if(on)showPage(page??'settings');}
+function setPaused(on,page){state.paused=on;on?audio.suspend():audio.resume();$('menu').hidden=!on;state.keys.clear();state.stick=[0,0];if(on)showPage(page??'settings');}
 function showPage(page){for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.classList.toggle('active',b.dataset.page===page);for(const sec of document.querySelectorAll('.menu-body [data-page]'))sec.hidden=sec.dataset.page!==page;}
 for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.onclick=()=>showPage(b.dataset.page);
 $('resume').onclick=()=>setPaused(false);$('help').onclick=()=>setPaused(!state.paused);
@@ -244,8 +272,12 @@ $('sens').value=settings.sens;$('sensValue').textContent=(+settings.sens).toFixe
 $('invertY').checked=settings.invertY;$('invertY').onchange=()=>{settings.invertY=$('invertY').checked;saveSettings();};
 for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);box.checked=settings.life[group];life.groups[group].visible=box.checked;box.onchange=()=>{life.groups[group].visible=box.checked;settings.life[group]=box.checked;saveSettings();};}
 addEventListener('resize',resize);applyTime('afternoon');quality.apply();resize();
-addEventListener('blur',()=>{if(!state.paused)setPaused(true);});
+addEventListener('blur',()=>{if(bigmap.open)closeMap();if(!state.paused)setPaused(true);});
+// 音效設定
+$('muted').checked=settings.audio.muted;audio.setMuted(settings.audio.muted);$('muted').onchange=()=>{settings.audio.muted=$('muted').checked;audio.setMuted(settings.audio.muted);saveSettings();};
+for(const name of ['master','siren','engine','ambient']){const el=$('vol-'+name),out=$('vol-'+name+'Value'),show=()=>out.textContent=Math.round(settings.audio[name]*100)+'%';el.value=settings.audio[name];show();audio.setVolume(name,settings.audio[name]);el.oninput=()=>{settings.audio[name]=+el.value;audio.setVolume(name,+el.value);show();saveSettings();};}
+addEventListener('pointerdown',()=>audio.unlock());
 $('loading').hidden=true;
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,tick(dt,n=1){for(let i=0;i<n;i++)state.mode==='walk'?updateWalk(dt):updateDrive(dt);}};
+window.__xinyiStreet={state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,tick(dt,n=1){for(let i=0;i<n;i++)state.mode==='walk'?updateWalk(dt):updateDrive(dt);}};
 requestAnimationFrame(frame);
