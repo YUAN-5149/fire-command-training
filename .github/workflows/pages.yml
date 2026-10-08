@@ -1,0 +1,51 @@
+# 將 dist/ 靜態網站部署到 GitHub Pages。
+# 推送到 main 時自動執行；也可在 Actions 頁手動執行。
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 語法檢查
+        run: for f in dist/*.js; do node --check "$f"; done
+      - name: GIS 回歸測試
+        run: |
+          for t in geo-field-review geo-xinyi-detail geo-deployment geo-streets geo-target geo-district geo-arcade geo-street-detail geo-street-fixtures; do
+            echo "== $t"
+            node --no-warnings --experimental-loader ./tests/three-loader.mjs "tests/$t.mjs"
+          done
+
+  deploy:
+    needs: check
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
