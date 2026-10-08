@@ -7,7 +7,8 @@ const mix = (a,b,q) => a+(b-a)*smooth(q);
 // Scene geometry limits, not a manufacturer's operating envelope. Both street
 // facades are treated as solid, including the projecting front balconies.
 const FRONT_LIMIT=5.15, REAR_LIMIT=20.95, GROUND_LIMIT=-.066;
-export function createAerialMotion(source,{slew,elevation,level,floor,extensions,anchor}) {
+// envelope：可選的作業空間判斷（例如信義街景依真實立面避碰）；未提供時沿用首頁街景界限，行為不變。
+export function createAerialMotion(source,{slew,elevation,level,floor,extensions,anchor},{envelope=null}={}) {
  const restYaw=slew.rotation.y, restPitch=elevation.rotation.z, restLevel=level.rotation.z;
  const extRest=extensions.map(o=>o.position.x);
  const rams=['','001'].map(suffix=>{
@@ -36,7 +37,10 @@ export function createAerialMotion(source,{slew,elevation,level,floor,extensions
  let pose=[restYaw,restPitch,0];
  const rest=place(pose),origin=elevation.getWorldPosition(new T.Vector3());
  const base=elevation.worldToLocal(level.getWorldPosition(new T.Vector3()));
- const tip=rest.clone().sub(level.getWorldPosition(new T.Vector3())).applyAxisAngle(new T.Vector3(0,1,0),-restYaw);
+ // 以轉台父座標計算（車輛可任意朝向）；首頁車輛與世界座標同向時結果與原本相同。
+ const frame=slew.parent,toFrame=v=>frame.worldToLocal(v.clone());
+ const tip=toFrame(rest).sub(toFrame(level.getWorldPosition(new T.Vector3()))).applyAxisAngle(new T.Vector3(0,1,0),-restYaw);
+ const originLocal=toFrame(origin);
  const meshes=[];
  slew.traverse(o=>{if(o.isMesh){o.geometry.computeBoundingBox();meshes.push({mesh:o,box:o.geometry.boundingBox.clone()});}});
  // Solid body envelopes exclude designed bearing/cradle contact surfaces.
@@ -72,11 +76,12 @@ export function createAerialMotion(source,{slew,elevation,level,floor,extensions
   const position=place(candidate);let minZ=Infinity,maxZ=-Infinity,minY=Infinity;
   for(const {mesh,box} of meshes){bounds.copy(box).applyMatrix4(mesh.matrixWorld);minZ=Math.min(minZ,bounds.min.z);maxZ=Math.max(maxZ,bounds.max.z);minY=Math.min(minY,bounds.min.y);}
   const chassisHit=chassisCollision();
-  return {safe:!chassisHit&&minZ>=FRONT_LIMIT&&maxZ<=REAR_LIMIT&&minY>=GROUND_LIMIT,position,minZ,maxZ,minY,chassisHit};
+  const inside=envelope?envelope({position,minY,origin:elevation.getWorldPosition(new T.Vector3()),level,floor}):(minZ>=FRONT_LIMIT&&maxZ<=REAR_LIMIT&&minY>=GROUND_LIMIT);
+  return {safe:!chassisHit&&inside,position,minZ,maxZ,minY,chassisHit};
  }
  function solve(target) {
-  const dx=target.x-origin.x,dz=target.z-origin.z,r=Math.hypot(dx,dz);
-  const x=-r-tip.x,y=target.y-origin.y-tip.y;
+  const t=toFrame(target),dx=t.x-originLocal.x,dz=t.z-originLocal.z,r=Math.hypot(dx,dz);
+  const x=-r-tip.x,y=t.y-originLocal.y-tip.y;
   const squared=x*x+y*y-base.y*base.y;
   if(squared<0)return null;
   const reach=Math.sqrt(squared),extension=(reach+base.x)/extensions.length;
