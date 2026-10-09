@@ -26,6 +26,7 @@
 <canvas id="minimap" width="220" height="220" aria-label="小地圖"></canvas>
 <div id="speed" hidden><b id="kmh">0</b><small>km/h</small></div>
 <div id="prompt" hidden></div>
+<div id="notice" hidden role="status"></div>
 <aside id="mission" hidden>
  <div class="mission-head"><span class="badge">119</span><div><strong id="missionTitle">火警派遣</strong><small id="missionWhere">—</small></div><b id="missionClock">00:00</b></div>
  <div class="fire-bar"><span>火勢</span><i><b id="fireLevel"></b></i></div>
@@ -53,7 +54,9 @@
    <button data-page="controls">操作說明</button>
    <button data-page="sources">資料來源</button>
    <a href="index.html">回消防演練首頁</a>
-   <a href="taipei-map.html?place=xinyi">臺北真實圖資（GIS）</a>
+   <a id="gisLink" href="taipei-map.html?place=xinyi">臺北真實圖資（GIS，目前位置）</a>
+   <button id="gisSave">存回 GIS 部署</button>
+   <small id="gisSaveNote" class="menu-note">把水箱車（第一車組）與雲梯車位置寫入 GIS 頁的部署試用。</small>
   </nav>
   <div class="menu-body">
    <section data-page="settings">
@@ -87,6 +90,8 @@
     <h2>遊戲手把</h2>
     <table class="keys"><tr><td>移動／轉向</td><td>左搖桿（按下左搖桿或 <kbd>LB</kbd> 跑步）</td></tr><tr><td>視角</td><td>右搖桿；按下右搖桿視角回正；十字鍵 ←／→ 拉近／拉遠</td></tr><tr><td>上／下車</td><td><kbd>A</kbd>（PS：✕）</td></tr><tr><td>油門／倒車</td><td><kbd>RT</kbd>／<kbd>LT</kbd>（亦可用左搖桿上下）</td></tr><tr><td>煞車</td><td>按住 <kbd>B</kbd>（PS：○）</td></tr><tr><td>警示燈</td><td><kbd>Y</kbd>（PS：△）</td></tr><tr><td>佈設／收回水線</td><td><kbd>X</kbd>（PS：□）</td></tr><tr><td>雲梯車配置／確認／收梯</td><td><kbd>RB</kbd>（PS：R1）</td></tr><tr><td>出水</td><td>按住 <kbd>RT</kbd>（步行持水線時）</td></tr><tr><td>派遣火警／切換時段</td><td>十字鍵 ↑／↓</td></tr><tr><td>地圖／暫停選單</td><td><kbd>Back</kbd>（View）／<kbd>Start</kbd>（Menu）；<kbd>B</kbd> 關閉</td></tr></table>
     <p class="note">依瀏覽器 Gamepad API 的標準配置（Xbox、PlayStation、Switch Pro 等經 USB／藍牙連線）；按任一鍵後才會被瀏覽器偵測。非標準配置的手把按鍵位置可能不同。撞擊時若手把支援會短暫震動。</p>
+    <h2>與 GIS 部署頁整合</h2>
+    <p>在「臺北真實圖資」信義的部署試用中選搶救建物、第一正面入口並放置車組後，按「在信義街景開啟此部署」：街景會顯示各車組（GIS 頁同一批車型）與人員，第一車組就是可駕駛的水箱車，「🔥 任務」會以該搶救建物起火、起火面取最靠近第一正面入口的牆面。暫停選單「存回 GIS 部署」把水箱車與雲梯車位置寫回 GIS 頁；兩頁同時開啟時會自動同步。資料只存在這台裝置的瀏覽器。</p>
     <h2>手機觸控</h2>
     <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「地圖」開啟全區地圖（點地圖設定目標、雙指縮放）；「選單」開啟本頁。</p>
    </section>

@@ -8,9 +8,12 @@ import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street
 import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s12';
 import {createBigMap} from './xinyi-street-map.js?v=s12';
 import {createAudio} from './xinyi-street-audio.js?v=s12';
-import {RULES,pickFireSite,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s12';
+import {RULES,pickFireSite,siteFromBuilding,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s12';
 import {readPad,pickPad,rumble,BUTTONS} from './xinyi-street-gamepad.js?v=s12';
 import {createXinyiAerial,buildObstacleIndex,fromFrameXZ} from './xinyi-street-aerial.js?v=s12';
+import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s12';
+import {storeKey} from './deployment-store.js?v=s12';
+import {unproject} from './xinyi-street-world.js?v=s12';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
@@ -91,7 +94,7 @@ const spawn=spawnPoint(streets.features),player=new T.Group(),actionKit=createAc
 person.body.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(player);
 // 消防車：既有 GIS 車型，紅色警示燈保持紅色。
 const truck={root:new T.Group(),model:null,x:0,z:0,heading:0,v:0,steer:0,beacons:[],siren:false};
-{const gltf=await new GLTFLoader().loadAsync('assets/geo-fire-engine.glb');truck.model=gltf.scene;truck.model.rotation.y=-Math.PI/2;truck.root.add(truck.model);
+{const gltf=await new GLTFLoader().loadAsync('assets/geo-fire-engine.glb');truck.template=gltf.scene.clone(true);truck.model=gltf.scene;truck.model.rotation.y=-Math.PI/2;truck.root.add(truck.model);
   truck.model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const m=o.material;if(/beacon|warning|LED strip|red.*lens|emergency.*lens|red.*flasher/i.test(m?.name||'')){o.material=m.clone();truck.beacons.push(o.material);}}});
  // 方案 A：載入時把車輪零件重組到輪軸中心（不修改車型檔），靜止外觀與原車型相同。
  truck.rig=rigWheels(truck.model);
@@ -108,9 +111,24 @@ const audio=createAudio();
 const routeGraphs={walk:buildRouteGraph(streets.features),drive:buildRouteGraph(streets.features,{vehicle:true})};
 const pois=(firstBatch.sites??[]).filter(s=>s.name&&s.polygon?.length).map(s=>{const pts=s.polygon.map(p=>project(p[0],p[1]));return {name:s.name,x:pts.reduce((a,p)=>a+p[0],0)/pts.length,z:pts.reduce((a,p)=>a+p[1],0)/pts.length};});
 const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',paused:false,keys:new Set(),stick:[0,0],run:false,walkT:0,pad:readPad(null),padPrev:[]};
-function placeTruck(){const f=[-Math.sin(spawn.heading),-Math.cos(spawn.heading)],r=[Math.cos(spawn.heading),-Math.sin(spawn.heading)];truck.x=spawn.x+f[0]*14+r[0]*1.5;truck.z=spawn.z+f[1]*14+r[1]*1.5;truck.heading=spawn.heading;truck.v=0;}
-function resetAll(){state.mode='walk';state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();player.visible=true;syncUi();}
-placeTruck();
+function placeTruck(){const g=gisEngine();if(g){truck.x=g.x;truck.z=g.z;truck.heading=g.heading;truck.v=0;return;}const f=[-Math.sin(spawn.heading),-Math.cos(spawn.heading)],r=[Math.cos(spawn.heading),-Math.sin(spawn.heading)];truck.x=spawn.x+f[0]*14+r[0]*1.5;truck.z=spawn.z+f[1]*14+r[1]*1.5;truck.heading=spawn.heading;truck.v=0;}
+function resetAll(){state.mode='walk';state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();standBesideTruck();player.visible=true;syncUi();}
+// GIS 部署頁的配置（同一瀏覽器）：車組、人員、搶救建物與第一正面入口。第一車組＝可駕駛的水箱車。
+const geoModels=await fetch('assets/geo-models.json').then(r=>r.ok?r.json():null).catch(()=>null);
+const gis=geoModels?createGisLayer(scene,{ground,createPerson:actionKit.createPerson,models:geoModels,preloaded:{engine:truck.template}}):null;
+let gisDep=gis?.load()??null;
+function gisEngine(){const it=gisDep?.items?.engine1;if(!it?.point)return null;return gis.data?.vehicles.find(v=>v.unitId==='engine1')??null;}
+function standBesideTruck(){if(!gisEngine())return;const r=[Math.cos(truck.heading),-Math.sin(truck.heading)],p=colliders.resolve(truck.x-r[0]*3,truck.z-r[1]*3,.4);state.x=p.x;state.z=p.z;state.facing=state.yaw=truck.heading;}
+let aerialActive=()=>false;// 街景雲梯車已配置時隱藏 GIS 配置的同一部雲梯車
+async function applyGis(){if(!gis)return;await gis.apply(gisDep,{skip:['engine1','commander']});if(aerialActive())gis.hide('aerial');}
+function gisSummary(){const d=gis?.data;if(!d||(!d.vehicles.length&&!d.target))return '';const n=d.vehicles.filter(v=>v.unitId!=='commander').length;return `已載入 GIS 部署：車組 ${n}、人員 ${d.crew.length}`+(d.target?'、搶救建物':'')+(d.entrance?'、第一正面入口':'');}
+await applyGis();
+placeTruck();standBesideTruck();
+// 頂端通知列（與「按 E 上車」提示分開，避免被覆蓋）。
+let noticeTimer=0;function showNotice(text,ms=5000){$('notice').textContent=text;$('notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>{$('notice').hidden=true;},ms);}
+if(gisSummary())showNotice(gisSummary()+(gisEngine()?'；第一車組位置即可駕駛的水箱車':''),7000);
+// 另一個分頁（GIS 頁）更新部署時即時同步（不移動正在駕駛的水箱車）。
+addEventListener('storage',async e=>{if(e.key!==storeKey('xinyi'))return;gisDep=gis?.load()??null;await applyGis();showNotice('已同步 GIS 部署頁的更新'+(gisSummary()?'：'+gisSummary().replace('已載入 GIS 部署：',''):''));});
 
 // 輸入
 addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();audio.unlock();if(bigmap.open){if(k==='m'||k==='escape')closeMap();return;}if(k==='m'&&!state.paused){openMap();return;}if(k==='escape'||k==='p'){setPaused(!state.paused);e.preventDefault();return;}if(k==='h'){setPaused(true,'controls');return;}if(state.paused)return;state.keys.add(k);if(k==='e')toggleVehicle();if(k==='t')startMission();if(k==='f')toggleHose();if(k==='l')aerialAction();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
@@ -178,13 +196,15 @@ const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%
 function flashHint(text){$('missionHint').textContent=text;}
 function startMission(){
  if(mission&&mission.phase<6&&!confirm('目前任務尚未完成，要改派新的火警嗎？'))return;
- const site=pickFireSite(district.buildings,streets.features,ground,Math.random,{exclude,colliders});if(!site)return;
+ const target=gisDep?.target,fromGis=target?siteFromBuilding(district.buildings,streets.features,ground,{id:target.id,point:target.point,entrance:gisDep.entrance}):null;
+ const site=fromGis??pickFireSite(district.buildings,streets.features,ground,Math.random,{exclude,colliders});if(!site)return;
+ if(target&&!fromGis)flashHint('GIS 指定的搶救建物不在本頁量體範圍內，改為隨機派遣');
  aerial?.stow();setAerialMode(null);
  mission={site,phase:0,elapsed:0,times:{},intensity:.55,hose:false,spraying:false,parking:null};fireFx.setSite(site);
- $('missionTitle').textContent='建物火警';$('missionWhere').textContent=`${site.street||'信義區'} 一帶・${site.floor} 樓冒煙（示意）`;$('mission').hidden=false;$('missionReport').hidden=true;
+ $('missionTitle').textContent='建物火警';$('missionWhere').textContent=`${site.street||'信義區'} 一帶・${site.floor} 樓冒煙（示意）`+(site.fromGis?'・GIS 指定搶救建物'+(gisDep?.entrance?'，起火面取第一正面':''):'');$('mission').hidden=false;$('missionReport').hidden=true;
  setWaypoint(site.x+site.nx*16,site.z+site.nz*16,'火警現場');renderMission();flashHint(state.mode==='drive'?'按 Q 開警示燈，依地圖黃線前往':'先走到消防車按 E 上車');
 }
-function endMission(){aerial?.stow();setAerialMode(null);mission=null;fireFx.setSite(null);$('mission').hidden=true;clearWaypoint();person.nozzle.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
+function endMission(){aerial?.stow();gis?.hide('aerial',false);setAerialMode(null);mission=null;fireFx.setSite(null);$('mission').hidden=true;clearWaypoint();person.nozzle.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
 // 各步驟以實際紀錄時間判定完成；以雲梯出水等方式越過的步驟標示為略過，不顯示為已完成。
 const STEP_TIMES=['depart','arrive','parked','hose','water','done'];
 function renderMission(){if(!mission)return;$('missionSteps').innerHTML=STEPS.map((s,i)=>{const done=mission.times[STEP_TIMES[i]]!==undefined,skip=!done&&i<mission.phase;return `<li class="${done?'done':skip?'skip':i===mission.phase?'now':''}">${s}${skip?'（略過）':''}</li>`;}).join('');$('fireLevel').style.width=Math.round(Math.max(0,mission.intensity)*100)+'%';}
@@ -236,6 +256,7 @@ function showReport(){
 // 第一次使用才下載車型（約 7 MB）。中隊長站在預定車輛中心位置，車身自動與起火面平行、右側面向建物（順向）。
 // 預覽只核對作業距離；按確認後再以真實量體核對升梯路徑。車輛直接到位，未模擬行駛。
 let aerial=null,aerialLoading=null,aerialMode=null,aerialPreview=null,aerialTimer=0;
+aerialActive=()=>!!aerial&&aerial.state.phase!=='idle';
 const firePoint=site=>new T.Vector3(site.x-site.nx*.5,site.y,site.z-site.nz*.5);
 const previewGroup=new T.Group();previewGroup.visible=false;scene.add(previewGroup);
 const previewMat=[new T.MeshBasicMaterial({color:'#36d17a',transparent:true,opacity:.45,depthWrite:false,side:T.DoubleSide}),new T.MeshBasicMaterial({color:'#ff4d4d',transparent:true,opacity:.45,depthWrite:false,side:T.DoubleSide})];
@@ -260,7 +281,7 @@ async function aerialAction(){
  }
  const r=aerial.check(site,state.x,state.z,{engine:truck,features:streets.features});
  if(!r.ok){flashHint('無法在此配置：'+r.issues.join('、'));return;}
- aerial.deploy(r,site);setAerialMode(null);
+ aerial.deploy(r,site);setAerialMode(null);gis?.hide('aerial');
  mission.times.aerialStart=mission.elapsed;
  // 中隊長移到車尾外側，避免與車身重疊。
  const [ox,oz]=fromFrameXZ(r.frame,8,3.2),p=colliders.resolve(ox,oz,.4);state.x=p.x;state.z=p.z;
@@ -288,7 +309,7 @@ function updateAerial(dt){
  if(e)syncAerialUi();
 }
 $('aerialBtn').onclick=()=>aerialAction();
-$('aerialCancel').onclick=()=>{if(aerialMode==='preview'){setAerialMode(null);flashHint('已取消雲梯配置');}else if(aerial?.dismiss()){flashHint('雲梯車已撤離');syncAerialUi();}};
+$('aerialCancel').onclick=()=>{if(aerialMode==='preview'){setAerialMode(null);flashHint('已取消雲梯配置');}else if(aerial?.dismiss()){gis?.hide('aerial',false);flashHint('雲梯車已撤離');syncAerialUi();}};
 $('missionBtn').onclick=()=>startMission();$('missionAbort').onclick=()=>{if(confirm('取消目前任務？'))endMission();};
 $('reportAgain').onclick=()=>{endMission();startMission();};$('reportClose').onclick=()=>{$('missionReport').hidden=true;};
 $('tHose').onclick=()=>toggleHose();
@@ -302,6 +323,7 @@ function drawMinimap(){
  const cx=MAP/2+state.camX*mapScale,cz=MAP/2+state.camZ*mapScale;mctx.drawImage(mapImg,-cx,-cz);
  const tx=(truck.x-state.camX)*mapScale,tz=(truck.z-state.camZ)*mapScale;
  if(state.mode==='walk'){mctx.fillStyle='#e8303a';mctx.fillRect(tx-6,tz-6,12,12);}
+ for(const v of gis?.data?.vehicles??[]){if(v.unitId==='engine1'||v.unitId==='commander')continue;mctx.fillStyle=v.unitId==='aerial'?'#ffb34e':v.unitId==='ambulance'?'#f5f5f5':'#ff7a7a';const px=(v.x-state.camX)*mapScale,pz=(v.z-state.camZ)*mapScale;mctx.fillRect(px-5,pz-5,10,10);}
  if(state.route?.length>1){mctx.strokeStyle='rgba(255,211,107,.95)';mctx.lineWidth=7;mctx.lineJoin=mctx.lineCap='round';mctx.beginPath();state.route.forEach(([x,z],i)=>{const px=(x-state.camX)*mapScale,pz=(z-state.camZ)*mapScale;i?mctx.lineTo(px,pz):mctx.moveTo(px,pz);});mctx.stroke();}
  if(mission?.site&&mission.phase!=='done'){const px=(mission.site.x-state.camX)*mapScale,pz=(mission.site.z-state.camZ)*mapScale;mctx.fillStyle='#ff3b2f';mctx.strokeStyle='#fff';mctx.lineWidth=3;mctx.beginPath();mctx.arc(px,pz,13,0,Math.PI*2);mctx.fill();mctx.stroke();}
  if(state.waypoint){const px=(state.waypoint.x-state.camX)*mapScale,pz=(state.waypoint.z-state.camZ)*mapScale;mctx.fillStyle='#ffd36b';mctx.strokeStyle='#111';mctx.lineWidth=3;mctx.beginPath();mctx.arc(px,pz,11,0,Math.PI*2);mctx.fill();mctx.stroke();}
@@ -319,6 +341,7 @@ function updateWalk(dt){
   let p=colliders.resolve(state.x+dx*speed*dt,state.z+dz*speed*dt,.38);
   // 消防車車身也視為障礙（三個圓近似）。
   for(const c of truckCircles()){const ex=p.x-c[0],ez=p.z-c[1],d=Math.hypot(ex,ez);if(d<c[2]+.38&&d>1e-6){p={x:c[0]+ex/d*(c[2]+.38),z:c[1]+ez/d*(c[2]+.38)};}}
+  for(const c of gis?.circles()??[]){const ex=p.x-c[0],ez=p.z-c[1],d=Math.hypot(ex,ez);if(d<c[2]+.38&&d>1e-6)p={x:c[0]+ex/d*(c[2]+.38),z:c[1]+ez/d*(c[2]+.38)};}
   for(const c of aerial?.circles()??[]){const ex=p.x-c[0],ez=p.z-c[1],d=Math.hypot(ex,ez);if(d<c[2]+.38&&d>1e-6)p={x:c[0]+ex/d*(c[2]+.38),z:c[1]+ez/d*(c[2]+.38)};}
   for(const c of life.circles()){const ex=p.x-c[0],ez=p.z-c[1],d=Math.hypot(ex,ez);if(d<c[2]+.38&&d>1e-6)p={x:c[0]+ex/d*(c[2]+.38),z:c[1]+ez/d*(c[2]+.38)};}
   state.x=p.x;state.z=p.z;const target=Math.atan2(-dx,-dz);state.facing+=Math.atan2(Math.sin(target-state.facing),Math.cos(target-state.facing))*Math.min(1,dt*12);state.walkT+=dt*speed*2.2;
@@ -341,7 +364,7 @@ function updateDrive(dt){
  // NPC 車輛：與消防車重疊時退回原位並減速（NPC 會在前方自動停車）。
  for(const c of truckCircles())if(life.circles().some(o=>Math.hypot(o[0]-c[0],o[1]-c[1])<o[2]+c[2]*.8)){truck.x=old.x;truck.z=old.z;truck.heading=old.h;truck.v*=Math.abs(truck.v)>3?-.2:0;break;}
  // 已配置的雲梯車（含支腿）視為障礙。
- for(const c of truckCircles())if((aerial?.circles()??[]).some(o=>Math.hypot(o[0]-c[0],o[1]-c[1])<o[2]+c[2]*.85)){truck.x=old.x;truck.z=old.z;truck.heading=old.h;truck.v=0;break;}
+  for(const c of truckCircles())if([...(aerial?.circles()??[]),...(gis?.circles()??[])].some(o=>Math.hypot(o[0]-c[0],o[1]-c[1])<o[2]+c[2]*.85)){truck.x=old.x;truck.z=old.z;truck.heading=old.h;truck.v=0;break;}
  truck.rig?.update(truck.v*dt,truck.steer);
  state.x=truck.x;state.z=truck.z;$('kmh').textContent=Math.round(Math.abs(truck.v)*3.6);$('prompt').hidden=true;
 }
@@ -373,7 +396,7 @@ function frame(now){
  clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();quality.sample(dt);
  lookPad(dt);
  state.mode==='walk'?updateWalk(dt):updateDrive(dt);
- life.update(dt,t,[...(state.mode==='drive'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[])],{siren:truck.siren?{x:truck.x,z:truck.z}:null});
+ life.update(dt,t,[...(state.mode==='drive'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[])],{siren:truck.siren?{x:truck.x,z:truck.z}:null});
  updateAerial(dt);
  updateMission(dt,t);
  // 消防車貼地，依前後輪地面高差俯仰。
@@ -412,9 +435,16 @@ const quality={level:'medium',auto:matchMedia('(pointer:coarse)').matches||Math.
   $('qualityDetail').textContent=`目前：${q.label}（解析度 ${Math.round(this.pixelRatio()*100)}%、陰影${q.shadow?q.shadow+' px':'關閉'}、車流行人 ${Math.round(q.density*100)}%）`+(settings.quality==='auto'?'，自動模式':'');},
  sample(dt){this.frames++;this.time+=dt;if(this.time<4)return;const fps=this.frames/this.time;this.frames=0;this.time=0;$('fps').textContent=Math.round(fps)+' FPS · '+QUALITY[this.level].label;
   const target=settings.fps===30?24:40;if(settings.quality==='auto'&&fps<target&&this.auto!=='low'){this.auto=this.auto==='high'?'medium':'low';this.apply();}}};
-function setPaused(on,page){state.paused=on;on?audio.suspend():audio.resume();$('menu').hidden=!on;state.keys.clear();state.stick=[0,0];if(on)showPage(page??'settings');}
+function setPaused(on,page){if(on)syncGisLink();state.paused=on;on?audio.suspend():audio.resume();$('menu').hidden=!on;state.keys.clear();state.stick=[0,0];if(on)showPage(page??'settings');}
 function showPage(page){for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.classList.toggle('active',b.dataset.page===page);for(const sec of document.querySelectorAll('.menu-body [data-page]'))sec.hidden=sec.dataset.page!==page;}
 for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.onclick=()=>showPage(b.dataset.page);
+// 暫停選單：以目前位置開啟 GIS 頁；把水箱車（第一車組）與雲梯車位置存回 GIS 部署。
+function syncGisLink(){const [lon,lat]=unproject(state.x,state.z),h=Math.round(((-state.yaw*180/Math.PI)%360+360)%360);$('gisLink').href=`taipei-map.html?place=xinyi&lon=${lon.toFixed(6)}&lat=${lat.toFixed(6)}&heading=${h}`;}
+$('gisSave').onclick=()=>{if(!geoModels){$('gisSaveNote').textContent='車型清單未載入，無法存回。';return;}
+ const ap=aerial&&aerial.state.phase!=='idle'&&aerial.state.frame?{x:aerial.state.frame.x,z:aerial.state.frame.z,heading:aerial.state.frame.heading+Math.PI/2}:null;
+ const saved=writeBack(gis?.load(),{engine:{x:truck.x,z:truck.z,heading:truck.heading},aerial:ap},geoModels);
+ if(!saved){$('gisSaveNote').textContent='無法存入這台裝置的瀏覽器（可能停用了網站資料）。';return;}
+ gisDep=saved;applyGis();$('gisSaveNote').textContent='已存回：第一車組'+(ap?'與雲梯車':'')+'位置。開啟 GIS 頁的部署試用即可看到（同一瀏覽器）。';};
 $('resume').onclick=()=>setPaused(false);$('help').onclick=()=>setPaused(!state.paused);
 $('menu').addEventListener('pointerdown',e=>{if(e.target===$('menu'))setPaused(false);});
 function bindSeg(id,get,set){const seg=$(id),sync=()=>{for(const b of seg.children)b.classList.toggle('on',b.dataset.v===String(get()));};for(const b of seg.children)b.onclick=()=>{set(b.dataset.v);sync();saveSettings();};sync();return sync;}
@@ -433,5 +463,5 @@ for(const name of ['master','siren','engine','ambient']){const el=$('vol-'+name)
 addEventListener('pointerdown',()=>audio.unlock());
 $('loading').hidden=true;
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){state.mode==='walk'?updateWalk(dt):updateDrive(dt);updateAerial(dt);updateMission(dt,i*dt);}}};
+window.__xinyiStreet={gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){state.mode==='walk'?updateWalk(dt):updateDrive(dt);updateAerial(dt);updateMission(dt,i*dt);}}};
 requestAnimationFrame(frame);

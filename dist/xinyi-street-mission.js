@@ -23,6 +23,27 @@ export function pickFireSite(buildings,features,ground,rand=Math.random,{exclude
  return {...c,floor,y:c.base+(floor-.5)*3.4,ground:ground.at(c.x+c.nx*6,c.z+c.nz*6)};
 }
 
+// 由 GIS 部署頁指定的搶救建物與第一正面入口產生起火點：取該量體落地、寬 ≥ 4 m 的牆面，
+// 有入口時選最靠近入口且面向入口的牆面（第一正面），否則選最靠近車道的牆面。起火樓層為示意。
+export function siteFromBuilding(buildings,features,ground,{id=null,point=null,entrance=null,rand=Math.random}={}){
+ const inside=(b,x,z)=>{const r=b.roofs??[];for(let i=0;i+2<r.length;i+=3){const [a,c,d]=[r[i],r[i+1],r[i+2]].map(v=>project(v[0],v[1])),s1=(c[0]-a[0])*(z-a[1])-(c[1]-a[1])*(x-a[0]),s2=(d[0]-c[0])*(z-c[1])-(d[1]-c[1])*(x-c[0]),s3=(a[0]-d[0])*(z-d[1])-(a[1]-d[1])*(x-d[0]);if((s1>=0&&s2>=0&&s3>=0)||(s1<=0&&s2<=0&&s3<=0))return true;}return false;};
+ let b=id!=null?buildings.find(v=>String(v.id)===String(id)):null;
+ if(!b&&point){const [px,pz]=project(point.longitude,point.latitude);b=buildings.find(v=>inside(v,px,pz));}
+ if(!b)return null;
+ const roads=[];for(const f of features){if(f.kind!=='road')continue;for(const path of f.paths)for(let i=1;i<path.length;i++){const [ax,az]=project(...path[i-1]),[bx,bz]=project(...path[i]);roads.push([ax,az,bx,bz,(f.width||6)/2,f.tags?.name??'']);}}
+ const near=(x,z)=>{let best=null,bd=Infinity;for(const [ax,az,bx,bz,h,name] of roads){const dx=bx-ax,dz=bz-az,l2=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/l2)),d=Math.hypot(x-ax-dx*t,z-az-dz*t)-h;if(d<bd){bd=d;best=name;}}return {d:bd,name:best};};
+ let base=Infinity,top=0;for(const w of b.walls){base=Math.min(base,w.a[2],w.b[2]);top=Math.max(top,w.h);}
+ const [ex,ez]=entrance?project(entrance.longitude,entrance.latitude):[null,null];
+ let best=null;
+ for(const w of b.walls){if(w.w<4||Math.max(w.a[2],w.b[2])>base+.4)continue;const [ax,az]=project(w.a[0],w.a[1]),[bx,bz]=project(w.b[0],w.b[1]),mx=(ax+bx)/2,mz=(az+bz)/2,l=Math.hypot(w.n[0],w.n[1])||1,nx=w.n[0]/l,nz=-w.n[1]/l;
+  let score;if(entrance){const dx=bx-ax,dz=bz-az,l2=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((ex-ax)*dx+(ez-az)*dz)/l2)),d=Math.hypot(ex-ax-dx*t,ez-az-dz*t),facing=(ex-mx)*nx+(ez-mz)*nz;score=d+(facing<0?50:0);}
+  else score=near(mx+nx*6,mz+nz*6).d;
+  if(!best||score<best.score)best={score,wall:[ax,az,bx,bz],x:mx,z:mz,nx,nz,height:Math.min(top,w.h)};}
+ if(!best)return null;
+ const floors=Math.max(1,Math.floor(best.height/3.4)),floor=floors>=2?2+Math.floor(rand()*Math.min(4,Math.max(1,floors-1))):1;
+ return {buildingId:b.id,x:best.x,z:best.z,nx:best.nx,nz:best.nz,base,height:best.height,wall:best.wall,street:near(best.x+best.nx*6,best.z+best.nz*6).name,floor,y:base+(floor-.5)*3.4,ground:ground.at(best.x+best.nx*6,best.z+best.nz*6),fromGis:true};
+}
+
 // 停車評估：靜止、位於起火面外側、與牆面距離 8–30 m（保留作業與救援空間，示意值）、車身四角不壓建物。
 export function evaluateParking(truck,site,colliders,{speed=0}={}){
  const dx=truck.x-site.x,dz=truck.z-site.z,front=dx*site.nx+dz*site.nz,dist=Math.hypot(dx,dz);

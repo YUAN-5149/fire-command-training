@@ -131,3 +131,6 @@ button.primary{background:#c8202b;border-color:#ff6b6b}
 .aerial-actions button:disabled{opacity:.5;cursor:default}
 #missionSteps li.skip{color:#a39472}
 #missionSteps li.skip::marker{content:"– "}
+.menu-note{display:block;color:#9fb0b8;font-size:12px;line-height:1.4;margin:-2px 2px 4px}
+#notice{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:6;max-width:min(560px,calc(100vw - 32px));background:rgba(16,40,52,.9);border:1px solid #60d6be;color:#e6fffa;padding:8px 16px;border-radius:8px;font-size:14px;text-align:center}
+#notice[hidden]{display:none}
