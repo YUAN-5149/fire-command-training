@@ -134,3 +134,6 @@ button.primary{background:#c8202b;border-color:#ff6b6b}
 .menu-note{display:block;color:#9fb0b8;font-size:12px;line-height:1.4;margin:-2px 2px 4px}
 #notice{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:6;max-width:min(560px,calc(100vw - 32px));background:rgba(16,40,52,.9);border:1px solid #60d6be;color:#e6fffa;padding:8px 16px;border-radius:8px;font-size:14px;text-align:center}
 #notice[hidden]{display:none}
+#victimLine{margin:6px 0 0;padding:5px 8px;border-radius:6px;background:rgba(115,158,197,.18);border:1px solid rgba(115,158,197,.6);font-size:13px;color:#dbe9f5}
+#victimLine.done{background:rgba(127,211,138,.15);border-color:#7fd38a;color:#c9f0cf}
+#victimLine[hidden]{display:none}

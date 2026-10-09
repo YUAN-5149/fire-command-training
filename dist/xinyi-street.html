@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s12">
+<link rel="stylesheet" href="xinyi-street.css?v=s13">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -31,6 +31,7 @@
  <div class="mission-head"><span class="badge">119</span><div><strong id="missionTitle">火警派遣</strong><small id="missionWhere">—</small></div><b id="missionClock">00:00</b></div>
  <div class="fire-bar"><span>火勢</span><i><b id="fireLevel"></b></i></div>
  <ol id="missionSteps"></ol>
+ <p id="victimLine" hidden></p>
  <div id="aerialPanel"><div><b>雲梯車</b> <span id="aerialStatus">未配置</span></div><div class="aerial-actions"><button id="aerialBtn">配置雲梯（L）</button><button id="aerialCancel" hidden>取消</button></div></div>
  <p id="missionHint"></p>
  <button id="missionAbort">取消任務</button>
@@ -86,7 +87,7 @@
     <h2>駕駛消防車</h2>
     <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
     <h2>共通</h2>
-    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>雲梯車：配置／確認車位／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>雲梯車：配置／確認車位／升梯出水／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置。有受困者時先以籃架救人）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
     <h2>遊戲手把</h2>
     <table class="keys"><tr><td>移動／轉向</td><td>左搖桿（按下左搖桿或 <kbd>LB</kbd> 跑步）</td></tr><tr><td>視角</td><td>右搖桿；按下右搖桿視角回正；十字鍵 ←／→ 拉近／拉遠</td></tr><tr><td>上／下車</td><td><kbd>A</kbd>（PS：✕）</td></tr><tr><td>油門／倒車</td><td><kbd>RT</kbd>／<kbd>LT</kbd>（亦可用左搖桿上下）</td></tr><tr><td>煞車</td><td>按住 <kbd>B</kbd>（PS：○）</td></tr><tr><td>警示燈</td><td><kbd>Y</kbd>（PS：△）</td></tr><tr><td>佈設／收回水線</td><td><kbd>X</kbd>（PS：□）</td></tr><tr><td>雲梯車配置／確認／收梯</td><td><kbd>RB</kbd>（PS：R1）</td></tr><tr><td>出水</td><td>按住 <kbd>RT</kbd>（步行持水線時）</td></tr><tr><td>派遣火警／切換時段</td><td>十字鍵 ↑／↓</td></tr><tr><td>地圖／暫停選單</td><td><kbd>Back</kbd>（View）／<kbd>Start</kbd>（Menu）；<kbd>B</kbd> 關閉</td></tr></table>
     <p class="note">依瀏覽器 Gamepad API 的標準配置（Xbox、PlayStation、Switch Pro 等經 USB／藍牙連線）；按任一鍵後才會被瀏覽器偵測。非標準配置的手把按鍵位置可能不同。撞擊時若手把支援會短暫震動。</p>
@@ -117,6 +118,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s12"></script>
+<script type="module" src="xinyi-street.js?v=s13"></script>
 </body>
 </html>

@@ -3,22 +3,22 @@
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
-import {rigWheels} from './wheel-rig.js?v=s12';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s12';
-import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s12';
-import {createBigMap} from './xinyi-street-map.js?v=s12';
-import {createAudio} from './xinyi-street-audio.js?v=s12';
-import {RULES,pickFireSite,siteFromBuilding,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s12';
-import {readPad,pickPad,rumble,BUTTONS} from './xinyi-street-gamepad.js?v=s12';
-import {createXinyiAerial,buildObstacleIndex,fromFrameXZ} from './xinyi-street-aerial.js?v=s12';
-import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s12';
-import {storeKey} from './deployment-store.js?v=s12';
-import {unproject} from './xinyi-street-world.js?v=s12';
+import {rigWheels} from './wheel-rig.js?v=s13';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s13';
+import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s13';
+import {createBigMap} from './xinyi-street-map.js?v=s13';
+import {createAudio} from './xinyi-street-audio.js?v=s13';
+import {RULES,pickFireSite,siteFromBuilding,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s13';
+import {readPad,pickPad,rumble,BUTTONS} from './xinyi-street-gamepad.js?v=s13';
+import {createXinyiAerial,buildObstacleIndex,fromFrameXZ,createCivilian} from './xinyi-street-aerial.js?v=s13';
+import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s13';
+import {storeKey} from './deployment-store.js?v=s13';
+import {unproject} from './xinyi-street-world.js?v=s13';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
-import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s12';
+import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s13';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
 const canvas=$('view');let renderer;
@@ -194,17 +194,25 @@ const fireFx=createFireFX(scene);let mission=null;
 const STEPS=['上消防車並開警示燈前往','抵達火場','於起火面外側 8–30 m 停妥後下車','在消防車旁按 F 佈設水線','按住 Space 對準火點出水','火勢控制'];
 const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 function flashHint(text){$('missionHint').textContent=text;}
+// 受困者（示意）：起火樓層、同一立面，起火窗口旁約 3 m 的窗口（牆面太短時在同一窗口）。只能由雲梯籃架救出。
+function makeVictim(site){
+ const tx=-site.nz,tz=site.nx,half=Math.hypot(site.wall[2]-site.wall[0],site.wall[3]-site.wall[1])/2,off=half>4.5?3*(Math.random()<.5?-1:1):0;
+ const x=site.x+tx*off,z=site.z+tz*off,slab=site.base+(site.floor-1)*3.4,figure=createCivilian(scene),window=new T.Vector3(x+site.nx*.25,slab,z+site.nz*.25);
+ figure.root.position.copy(window);figure.root.rotation.y=Math.atan2(-site.nx,-site.nz);return {figure,window,x,z,state:'waiting',floor:site.floor};
+}
+function renderVictim(){const v=mission?.victim;$('victimLine').hidden=!v;if(!v)return;$('victimLine').textContent='受困者 1 人：'+({waiting:`${v.floor} 樓窗口待救（需雲梯籃架）`,boarding:'進入籃架中',basket:'在籃內',unloading:'離籃中',rescued:'已救出交接'}[v.state]);$('victimLine').classList.toggle('done',v.state==='rescued');}
+function gisVehicles(){return (gis?.data?.vehicles??[]).filter(v=>v.unitId!=='engine1'&&v.unitId!=='commander'&&v.unitId!=='aerial').map(v=>({id:v.unitId,x:v.x,z:v.z,heading:v.heading,length:geoModels[v.model].length,width:geoModels[v.model].span,height:geoModels[v.model].height}));}
 function startMission(){
  if(mission&&mission.phase<6&&!confirm('目前任務尚未完成，要改派新的火警嗎？'))return;
  const target=gisDep?.target,fromGis=target?siteFromBuilding(district.buildings,streets.features,ground,{id:target.id,point:target.point,entrance:gisDep.entrance}):null;
  const site=fromGis??pickFireSite(district.buildings,streets.features,ground,Math.random,{exclude,colliders});if(!site)return;
  if(target&&!fromGis)flashHint('GIS 指定的搶救建物不在本頁量體範圍內，改為隨機派遣');
- aerial?.stow();setAerialMode(null);
- mission={site,phase:0,elapsed:0,times:{},intensity:.55,hose:false,spraying:false,parking:null};fireFx.setSite(site);
+ aerial?.stow();setAerialMode(null);if(mission?.victim)scene.remove(mission.victim.figure.root);
+ mission={site,phase:0,elapsed:0,times:{},intensity:.55,hose:false,spraying:false,parking:null,victim:makeVictim(site)};fireFx.setSite(site);renderVictim();
  $('missionTitle').textContent='建物火警';$('missionWhere').textContent=`${site.street||'信義區'} 一帶・${site.floor} 樓冒煙（示意）`+(site.fromGis?'・GIS 指定搶救建物'+(gisDep?.entrance?'，起火面取第一正面':''):'');$('mission').hidden=false;$('missionReport').hidden=true;
  setWaypoint(site.x+site.nx*16,site.z+site.nz*16,'火警現場');renderMission();flashHint(state.mode==='drive'?'按 Q 開警示燈，依地圖黃線前往':'先走到消防車按 E 上車');
 }
-function endMission(){aerial?.stow();gis?.hide('aerial',false);setAerialMode(null);mission=null;fireFx.setSite(null);$('mission').hidden=true;clearWaypoint();person.nozzle.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
+function endMission(){aerial?.stow();if(mission?.victim)scene.remove(mission.victim.figure.root);gis?.hide('aerial',false);setAerialMode(null);mission=null;fireFx.setSite(null);$('mission').hidden=true;clearWaypoint();person.nozzle.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
 // 各步驟以實際紀錄時間判定完成；以雲梯出水等方式越過的步驟標示為略過，不顯示為已完成。
 const STEP_TIMES=['depart','arrive','parked','hose','water','done'];
 function renderMission(){if(!mission)return;$('missionSteps').innerHTML=STEPS.map((s,i)=>{const done=mission.times[STEP_TIMES[i]]!==undefined,skip=!done&&i<mission.phase;return `<li class="${done?'done':skip?'skip':i===mission.phase?'now':''}">${s}${skip?'（略過）':''}</li>`;}).join('');$('fireLevel').style.width=Math.round(Math.max(0,mission.intensity)*100)+'%';}
@@ -218,6 +226,8 @@ function toggleHose(){
 function updateMission(dt,t){
  if(!mission){fireFx.update(dt,0);return;}
  const m=mission,site=m.site;
+ if(m.victim?.state==='waiting'){const a=m.victim.figure.arms;a[0].rotation.z=-2.6-Math.sin(t*6)*.35;a[1].rotation.z=2.6+Math.sin(t*6+1)*.35;}else if(m.victim){m.victim.figure.arms.forEach(a=>a.rotation.z=0);}
+ if(m.victim&&m.victim.state!==m.victimShown){m.victimShown=m.victim.state;renderVictim();}
  if(m.phase<6){m.elapsed+=dt;$('missionClock').textContent=fmt(m.elapsed);if(!m.spraying)m.intensity=Math.min(1,m.intensity+RULES.growth*dt);}
  const truckDist=Math.hypot(truck.x-site.x,truck.z-site.z);
  if(m.phase===0&&state.mode==='drive'){m.phase=1;m.times.depart=m.elapsed;}
@@ -249,7 +259,7 @@ function updateMission(dt,t){
 }
 function showReport(){
  const m=mission,T0=m.times,row=(a,b)=>`<tr><td>${a}</td><td>${b}</td></tr>`,span=(a,b)=>a!==undefined&&b!==undefined?fmt(b-a):'—';
- $('reportBody').innerHTML='<table>'+row('派遣地點',`${m.site.street||'信義區'}・${m.site.floor} 樓（示意）`)+row('派遣 → 上車出發',span(0,T0.depart))+row('出發 → 抵達',span(T0.depart,T0.arrive))+row('抵達 → 停妥下車',span(T0.arrive,T0.parked))+row('停妥 → 佈設水線',span(T0.parked,T0.hose))+row('佈線 → 開始射水',span(T0.hose,T0.water))+row('射水 → 火勢控制',span(T0.water,T0.done))+(T0.aerialStart!==undefined?row('雲梯：配置 → 籃架到位',span(T0.aerialStart,T0.aerialReady)):'')+row('總時間',fmt(T0.done))+row('停車距起火面',m.parkDist?m.parkDist.toFixed(1)+' m':'—')+'</table>';
+ $('reportBody').innerHTML='<table>'+row('派遣地點',`${m.site.street||'信義區'}・${m.site.floor} 樓（示意）`)+row('派遣 → 上車出發',span(0,T0.depart))+row('出發 → 抵達',span(T0.depart,T0.arrive))+row('抵達 → 停妥下車',span(T0.arrive,T0.parked))+row('停妥 → 佈設水線',span(T0.parked,T0.hose))+row('佈線 → 開始射水',span(T0.hose,T0.water))+row('射水 → 火勢控制',span(T0.water,T0.done))+(T0.aerialStart!==undefined?row('雲梯：配置 → 籃架到位',span(T0.aerialStart,T0.aerialReady)):'')+row('受困者（雲梯籃架）',T0.rescued!==undefined?'派遣後 '+fmt(T0.rescued)+' 救出':'未救出')+row('總時間',fmt(T0.done))+row('停車距起火面',m.parkDist?m.parkDist.toFixed(1)+' m':'—')+'</table>';
  $('missionReport').hidden=false;$('missionTitle').textContent='火勢已控制';flashHint('任務完成，可按 F 收回水線');renderMission();
 }
 // ---------- 雲梯車作業（訓練示意） ----------
@@ -273,43 +283,50 @@ async function aerialAction(){
  const site=aerialSite();
  if(!site){flashHint(mission?'火勢已控制，不需再配置雲梯':'雲梯作業需先派遣火警（T）');return;}
  if(state.mode!=='walk'){flashHint('請下車，站在預定的雲梯車中心位置再按 L');return;}
- if(aerial?.state.phase==='ready'||(aerial?.state.blocked&&aerial.state.phase==='deploying')){if(aerial.retract())flashHint('收梯中：依原路徑收回，再收支腿');syncAerialUi();return;}
- if(aerial&&['deploying','retracting'].includes(aerial.state.phase))return;
+ if(aerial?.state.phase==='ground'){const r=aerial.raiseToFire();flashHint(r.ok?`升梯前往起火窗口（籃架距外牆 ${r.standoff} m）出水`:'無法升梯出水：'+r.reason+'；可按「收梯」');syncAerialUi();return;}
+ if(aerial?.canRetract()){if(aerial.retract())flashHint('收梯中：收回梯架，人員下車，再收支腿');syncAerialUi();return;}
+ if(aerial&&!['idle','parked'].includes(aerial.state.phase))return;
  if(aerialMode!=='preview'){
   if(!aerial){$('aerialStatus').textContent='載入雲梯車型…';try{await loadAerial();}catch(e){flashHint('雲梯車型無法載入：'+e.message);syncAerialUi();return;}}
   setAerialMode('preview');flashHint('走到預定的雲梯車中心位置（車身會與起火面平行），綠色表示作業距離符合，再按 L 確認');return;
  }
- const r=aerial.check(site,state.x,state.z,{engine:truck,features:streets.features});
+ // 有受困者待救時先救人（籃架到受困者窗口），否則到起火窗口出水。
+ const victim=mission.victim?.state==='waiting'?mission.victim:null;
+ const r=aerial.check(site,state.x,state.z,{engine:truck,vehicles:gisVehicles(),features:streets.features,window:victim?{x:victim.x,z:victim.z}:undefined});
  if(!r.ok){flashHint('無法在此配置：'+r.issues.join('、'));return;}
- aerial.deploy(r,site);setAerialMode(null);gis?.hide('aerial');
+ aerial.deploy(r,site,{task:victim?'rescue':'fire',victim});setAerialMode(null);gis?.hide('aerial');
  mission.times.aerialStart=mission.elapsed;
  // 中隊長移到車尾外側，避免與車身重疊。
  const [ox,oz]=fromFrameXZ(r.frame,8,3.2),p=colliders.resolve(ox,oz,.4);state.x=p.x;state.z=p.z;
- flashHint(`雲梯車到位（距外牆 ${r.dist.toFixed(1)} m、籃架距窗口外 ${r.standoff} m）：支腿展開→人員登車→升梯`+(r.warnings.length?'。注意：'+r.warnings.join('、'):''));
+ flashHint(`雲梯車到位（距外牆 ${r.dist.toFixed(1)} m、籃架距窗口外 ${r.standoff} m）：支腿展開→人員登車→升梯`+(victim?'→救出受困者':'→出水')+(r.warnings.length?'。注意：'+r.warnings.join('、'):''));
  syncAerialUi();
 }
 function syncAerialUi(){
  const ph=aerial?.state.phase??'idle',btn=$('aerialBtn'),cancel=$('aerialCancel');
- $('aerialStatus').textContent=aerialMode==='preview'?'選擇車位中':{idle:'未配置',deploying:aerial?.state.blocked?'動作已停止':'支腿展開・登車・升梯中',ready:'籃架到位・出水',retracting:'收梯中',parked:'已收梯'}[ph];
- btn.textContent=aerialMode==='preview'?'確認車位（L）':ph==='ready'||(ph==='deploying'&&aerial?.state.blocked)?'收梯（L）':ph==='parked'?'重新配置（L）':'配置雲梯（L）';
- btn.disabled=(ph==='deploying'&&!aerial?.state.blocked)||ph==='retracting';
- cancel.hidden=!(aerialMode==='preview'||ph==='parked');cancel.textContent=aerialMode==='preview'?'取消':'撤離';
+ $('aerialStatus').textContent=aerialMode==='preview'?'選擇車位中':(aerial?.state.blocked?'動作已停止':{idle:'未配置',deploying:'支腿展開・登車・升梯中',rescue:'籃架到位・協助受困者進籃',lowering:'載人緩慢下降',unloading:'引導受困者離籃',ground:'籃架在地面・受困者已救出',raising:'升梯前往起火窗口',ready:'籃架到位・出水',retracting:'收梯中',parked:'已收梯'}[ph]);
+ const retractable=!!aerial?.canRetract();
+ btn.textContent=aerialMode==='preview'?'確認車位（L）':ph==='ground'?'升梯出水（L）':retractable?'收梯（L）':ph==='parked'?'重新配置（L）':ph==='idle'?'配置雲梯（L）':'作業中';
+ btn.disabled=aerialMode!=='preview'&&!['idle','parked','ground'].includes(ph)&&!retractable;
+ cancel.hidden=!(aerialMode==='preview'||ph==='parked'||ph==='ground');cancel.textContent=aerialMode==='preview'?'取消':ph==='ground'?'收梯':'撤離';
 }
 function updateAerial(dt){
  if(aerialMode==='preview'&&aerial){const site=aerialSite();if(!site){setAerialMode(null);return;}
   aerialTimer-=dt;if(aerialTimer<=0){aerialTimer=.2;const r=aerialPreview=aerial.preview(site,state.x,state.z,{engine:truck,features:streets.features});
    aerial.outline(r.frame).forEach((poly,i)=>{const a=previewQuads[i].geometry.attributes.position;poly.forEach(([x,z],k)=>a.setXYZ(k,x,ground.at(x,z)+.12,z));a.needsUpdate=true;previewQuads[i].material=previewMat[r.ok?0:1];});
-   windowMark.position.copy(firePoint(site)).add(new T.Vector3(site.nx*1.5,-site.y+site.base+(site.floor-1)*3.4+1.2,site.nz*1.5));windowMark.rotation.set(0,Math.atan2(site.nx,site.nz),0);
+   {const v=mission.victim?.state==='waiting'?mission.victim:null;windowMark.position.set((v?v.x:site.x)+site.nx*1,site.base+(site.floor-1)*3.4+1.2,(v?v.z:site.z)+site.nz*1);}windowMark.rotation.set(0,Math.atan2(site.nx,site.nz),0);
    flashHint((r.ok?'✓ 作業距離符合（按 L 核對升梯路徑）':'✗ '+r.issues.join('、'))+`・車身中心距外牆 ${r.dist.toFixed(1)} m`+(r.warnings.length?'・'+r.warnings.join('、'):''));}}
  if(!aerial)return;
  const site=mission?.site,e=aerial.update(dt,{fire:site?firePoint(site):null,fireActive:!!mission&&mission.phase<6});
  if(e?.blocked)flashHint('雲梯已停止：'+e.reason+'（按 L 收梯）');
- if(e?.arrived){if(mission)mission.times.aerialReady=mission.elapsed;flashHint('籃架到位，砲塔對準起火點出水（大水霧）');}
+ if(e?.arrived){if(mission&&mission.times.aerialReady===undefined)mission.times.aerialReady=mission.elapsed;flashHint(e.rescue?'籃架到位受困者窗口：開籃門，協助受困者跨窗台進籃':'籃架到位，砲塔對準起火點出水（大水霧）');}
+ if(e?.aboard)flashHint('受困者已進籃、籃門關妥：載人緩慢下降到車外地面');
+ if(e?.landed)flashHint('籃架落地：開籃門，引導受困者離籃');
+ if(e?.rescued){if(mission){mission.times.rescued=mission.elapsed;renderVictim();}flashHint('受困者已救出並交接（示意）；按 L 升梯到起火窗口出水，或按「收梯」');}
  if(e?.parked)flashHint('已收梯並收回支腿；可按 L 重新配置或「撤離」');
  if(e)syncAerialUi();
 }
 $('aerialBtn').onclick=()=>aerialAction();
-$('aerialCancel').onclick=()=>{if(aerialMode==='preview'){setAerialMode(null);flashHint('已取消雲梯配置');}else if(aerial?.dismiss()){gis?.hide('aerial',false);flashHint('雲梯車已撤離');syncAerialUi();}};
+$('aerialCancel').onclick=()=>{if(aerialMode==='preview'){setAerialMode(null);flashHint('已取消雲梯配置');}else if(aerial?.state.phase==='ground'){if(aerial.retract())flashHint('收梯中：收回梯架，人員下車，再收支腿');syncAerialUi();}else if(aerial?.dismiss()){gis?.hide('aerial',false);flashHint('雲梯車已撤離');syncAerialUi();}};
 $('missionBtn').onclick=()=>startMission();$('missionAbort').onclick=()=>{if(confirm('取消目前任務？'))endMission();};
 $('reportAgain').onclick=()=>{endMission();startMission();};$('reportClose').onclick=()=>{$('missionReport').hidden=true;};
 $('tHose').onclick=()=>toggleHose();

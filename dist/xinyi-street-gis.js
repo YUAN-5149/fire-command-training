@@ -3,8 +3,8 @@
 // 車輛使用 GIS 頁同一批模型（geo-*.glb）；人員使用街景既有角色造型與制服階級。
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
-import {project,unproject} from './xinyi-street-world.js?v=s12';
-import {GEO_UNITS,CREW_RANK,loadDeployment,saveDeployment,gisToStreetHeading,streetToGisHeading,crewOffsets} from './deployment-store.js?v=s12';
+import {project,unproject} from './xinyi-street-world.js?v=s13';
+import {GEO_UNITS,CREW_RANK,loadDeployment,saveDeployment,gisToStreetHeading,streetToGisHeading,crewOffsets} from './deployment-store.js?v=s13';
 
 const PLACE='xinyi';
 // 純函式：GIS 部署 → 街景座標（x 東、z 南，公尺；heading 為街景弧度）。

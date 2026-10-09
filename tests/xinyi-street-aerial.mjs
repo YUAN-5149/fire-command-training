@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import * as T from 'three';
 import {load} from './load-aerial.mjs';
 import {createAerialMotion} from '../dist/aerial-motion.js';
-import {createXinyiAerial,buildObstacleIndex,rectTri,aerialFrame,toFrameXZ,fromFrameXZ,TIMELINE,AERIAL} from '../dist/xinyi-street-aerial.js';
+import {createXinyiAerial,buildObstacleIndex,rectTri,aerialFrame,toFrameXZ,fromFrameXZ,TIMELINE,AERIAL,createCivilian,legPath,legAt} from '../dist/xinyi-street-aerial.js';
 import {buildHeightField} from '../dist/xinyi-street-world.js';
 import {pickFireSite} from '../dist/xinyi-street-mission.js';
 
@@ -67,13 +67,43 @@ function runTimeline(ac,s,result,fire){
 }
 {const s=site(3),r=a.check(s,4,6),fire={x:0,y:s.y,z:-.5};const feet=runTimeline(a,s,r,fire);for(const y of feet)assert(Math.abs(y)<.02,"支腿落在平地："+y);}
 
+// 4b. 籃架載人救出：開門 → 待救者跨窗台進籃 → 關門 → 緩慢下降到車外地面 → 下籃交接 → 再升梯到起火窗口出水 → 收梯。
+function runRescue(ac,s,result,win,fire){
+ const victim={figure:createCivilian(new T.Group()),window:new T.Vector3(win.x+s.nx*.25,s.base+(s.floor-1)*AERIAL.floorHeight,win.z+s.nz*.25),state:'waiting'};
+ assert(ac.deploy(result,s,{task:'rescue',victim}));const seen=new Set(),dt=1/20;let sprayedWhileRescue=false,minClear=Infinity;
+ for(let t=0;t<400&&ac.state.phase!=='ground';t+=dt){const e=ac.update(dt,{fire,fireActive:true});assert(!e?.blocked,e?.reason);if(e)Object.keys(e).forEach(k=>seen.add(k));
+  if(ac.state.spraying)sprayedWhileRescue=true;
+  if(victim.state==='basket'){const p=victim.figure.root.position,q=ac.state.actual,w=ac.frame.localToWorld(q.clone());assert(p.distanceTo(w)<.45,'待救者在籃內隨籃架移動');}
+  if(ac.state.phase==='lowering'){assert(ac.motion.clearance().safe);}}
+ for(const k of ['arrived','rescue','aboard','landed','rescued'])assert(seen.has(k),'事件 '+k);
+ assert(!sprayedWhileRescue,'救人時不出水');assert.equal(victim.state,'rescued');
+ const h=victim.handover,[lx,lz]=toFrameXZ(result.frame,h.x,h.z);assert(Math.abs(h.y-ac.state.y-(0))<1.5,'交接位置在地面');
+ assert(Math.hypot(lx,lz)>5,'交接位置在車身外');
+ assert(lz>-0.5,'交接位置不在建物側');
+ // 籃架在地面高度（距地 0.2 m）
+ const bp=ac.frame.localToWorld(ac.state.actual.clone());assert(Math.abs(bp.y-.2-ground0(bp.x,bp.z))<.06,'籃架降到地面上方');
+ const up=ac.raiseToFire();assert(up.ok,up.reason);
+ for(let t=0;t<120&&ac.state.phase!=='ready';t+=dt){const e=ac.update(dt,{fire,fireActive:true});assert(!e?.blocked,e?.reason);}
+ assert.equal(ac.state.phase,'ready');for(let i=0;i<5;i++)ac.update(dt,{fire,fireActive:true});assert(ac.state.spraying,'升梯後出水');
+ assert(ac.retract());for(let t=0;t<120&&ac.state.phase!=='parked';t+=dt){const e=ac.update(dt,{});assert(!e?.blocked,e?.reason);}
+ assert.equal(ac.state.phase,'parked');assert(ac.motion.clearance().position.distanceTo(ac.motion.rest)<1e-6,'收回到收梯位置');
+}
+let ground0=()=>0;
+{const s=site(3),win={x:-3,z:0},r=a.check(s,4,6,{window:win});assert(r.ok,JSON.stringify(r.issues));runRescue(a,s,r,win,{x:0,y:s.y,z:-.5});a.dismiss();}
+// 路徑分段計時：各段依軸速度、慢速倍率
+{const p=legPath([[0,0,0],[.5,0,0],[.5,-.3,2]],2);assert(Math.abs(p.total-(.5/.25*2+Math.max(.3/.15,2/.6)*2))<1e-9);assert.deepEqual(legAt(p,0),[0,0,0]);assert.deepEqual(legAt(p,99),[.5,-.3,2]);}
+// 救援窗口附近若無可降落地面，於核對時即拒絕（四周都是量體的天井）
+{const box=createXinyiAerial({scene:new T.Scene(),source:await load(),createPerson:person,ground:flat,obstacleIndex:[...block('B',-40,-30,40,0,60),...block('R',-10,9.2,30,30,60),...block('L',-30,0,-8.2,30,60),...block('E',17.5,0,30,30,60)]});
+ assert(box.preview(site(3),4,6).ok,'車位本身可停');const r=box.check(site(3),4,6,{window:{x:-3,z:0}});assert(!r.ok&&r.issues[0].includes('降落'),JSON.stringify(r.issues));
+ const fireOnly=box.check(site(3),4,6);assert(fireOnly.ok,'只出水時不需降落點');}
+
 // 5. 真實量體：隨機起火點，在起火面前方搜尋可行車位；找到時跑完整時間軸。
 const district=JSON.parse(await readFile(new URL('../dist/assets/district-xinyi.json',import.meta.url)));
 const streets=JSON.parse(await readFile(new URL('../dist/assets/streets-xinyi.json',import.meta.url)));
 const ground=buildHeightField(district.buildings,district.bbox),index=buildObstacleIndex(district.buildings);
 const real=createXinyiAerial({scene:new T.Scene(),source:await load(),createPerson:person,ground,obstacleIndex:index});
 let seed=7;const rand=()=>(seed=(seed*16807)%2147483647)/2147483647;
-let tried=0,found=0,firstShown=false;const t0=Date.now();
+let tried=0,found=0,firstShown=false,rescued=0;ground0=(x,z)=>ground.at(x,z);const t0=Date.now();
 while(tried<12){const s=pickFireSite(district.buildings,streets.features,ground,rand);if(!s)continue;tried++;s.floor=Math.min(s.floor,4);s.y=s.base+(s.floor-.5)*3.4;
  let ok=null;
  search:for(const d of [6,8,10,12,15])for(const along of [4,6,8,2,10,-4,0]){const x=s.x+s.nx*d-s.nz*along,z=s.z+s.nz*d+s.nx*along;const r=real.check(s,x,z,{features:streets.features});if(r.ok){ok=r;break search;}}
@@ -82,8 +112,11 @@ while(tried<12){const s=pickFireSite(district.buildings,streets.features,ground,
  const feet=runTimeline(real,s,ok,{x:s.x-s.nx*.5,y:s.y,z:s.z-s.nz*.5});
  ok.frame&&feet.forEach((y,i)=>{const [lx,lz]=real.layout.feet[i],g=ground.at(...fromFrameXZ(ok.frame,lx,lz));assert(y>=g-.02,'支腿不穿地');});
  real.dismiss();
+ // 同一車位：受困者在起火窗口旁 3 m（同一立面、同一樓層）
+ if(rescued<3){const tx=-s.nz,tz=s.nx,half=Math.hypot(s.wall[2]-s.wall[0],s.wall[3]-s.wall[1])/2;if(half>4){const win={x:s.x+tx*3,z:s.z+tz*3},x=ok.frame.x,z=ok.frame.z,r=real.check(s,x,z,{window:win,features:streets.features});if(r.ok){runRescue(real,s,r,win,{x:s.x-s.nx*.5,y:s.y,z:s.z-s.nz*.5});real.dismiss();rescued++;}}}
  if(!firstShown){firstShown=true;console.log('example',{building:s.buildingId,floor:s.floor,dist:+ok.dist.toFixed(1),standoff:ok.standoff,warnings:ok.warnings});}
 }
-console.log({tried,found,seconds:(Date.now()-t0)/1000});
+console.log({tried,found,rescued,seconds:(Date.now()-t0)/1000});
+assert(rescued>=1,'真實量體上至少完成一次載人救出');
 assert(found>=tried*.5,'至少一半的隨機起火面可找到雲梯車位');
 console.log('xinyi-street-aerial: ok');

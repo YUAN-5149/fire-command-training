@@ -1,6 +1,6 @@
 // 信義街景導航：以 OSM 路網建圖並求最短路徑（示意導航，非即時路況、未考慮轉向限制與號誌）。
 // 步行可走所有道路與人行路徑；駕駛只走車道道路，並遵守 OSM 單行道方向。
-import {project} from './xinyi-street-world.js?v=s12';
+import {project} from './xinyi-street-world.js?v=s13';
 
 const key=p=>p[0].toFixed(7)+','+p[1].toFixed(7);
 const DRIVE=new Set(['primary','secondary','tertiary','trunk','unclassified','residential','service']);
