@@ -3,21 +3,25 @@
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
-import {rigWheels} from './wheel-rig.js?v=s11';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s11';
-import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s11';
-import {createBigMap} from './xinyi-street-map.js?v=s11';
-import {createAudio} from './xinyi-street-audio.js?v=s11';
-import {AERIAL,buildFacadeIndex,createXinyiAerial} from './xinyi-aerial.js?v=s11';
-import {RULES,pickFireSite,pickRescueSite,jointCandidates,driveRoads,stagingPoses,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s11';
-import {PAD,createGamepad} from './xinyi-street-pad.js?v=s11';
+import {rigWheels} from './wheel-rig.js?v=s12';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s12';
+import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s12';
+import {createBigMap} from './xinyi-street-map.js?v=s12';
+import {createAudio} from './xinyi-street-audio.js?v=s12';
+import {AERIAL,buildFacadeIndex,createXinyiAerial} from './xinyi-aerial.js?v=s12';
+import {RULES,pickFireSite,pickRescueSite,jointCandidates,driveRoads,stagingPoses,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s12';
+import {PAD,createGamepad} from './xinyi-street-pad.js?v=s12';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
-import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s11';
+import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s12';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
+// 手機（觸控）：版面另套 body.touch，提示文字的鍵盤按鍵改成畫面按鈕名稱。
+const TOUCH=matchMedia('(pointer:coarse)').matches;document.body.classList.toggle('touch',TOUCH);
+const KEY_BTN={E:'上／下車',Q:'警示燈',F:'水線',O:'支腿',L:'升梯',T:'任務'};
+const tt=text=>!TOUCH||!text?text:text.replace(/按住 Space ?/g,'按住「出水」').replace(/・Space /g,'・按住「出水」').replace(/按 ([EQFOLT])(?![A-Za-z]) ?/g,(m,k)=>`點「${KEY_BTN[k]}」`).replace(/（Space）/g,'（「出水」）').replace(/(^|[^A-Za-z「 ]) ?([OL]) (?=[一-鿿])/g,(m,p,k)=>`${p}點「${KEY_BTN[k]}」`).replace(/「(支腿|升梯|出水)」\1/g,'「$1」');
 const canvas=$('view');let renderer;
 try{renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});}catch(e){$('loading').hidden=true;$('error').hidden=false;throw e;}
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;
@@ -123,7 +127,11 @@ placeTruck();
 addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();audio.unlock();if(bigmap.open){if(k==='m'||k==='escape')closeMap();return;}if(k==='m'&&!state.paused){openMap();return;}if((k==='escape'||k==='p')&&!pickerOpen()){setPaused(!state.paused);e.preventDefault();return;}if(k==='h'){setPaused(true,'controls');return;}if(pickerOpen()){const i='1234'.indexOf(k);if(i>=0)pickButtons[i].click();else if(k==='escape'||k==='t')closePicker();else if(k==='arrowdown'||k==='arrowup'){pickIdx=(pickIdx+(k==='arrowdown'?1:pickButtons.length-1))%pickButtons.length;syncPick();}else if(k==='enter')pickButtons[pickIdx].click();e.preventDefault();return;}if(state.paused)return;state.keys.add(k);if(k==='e')toggleVehicle();if(k==='t')openPicker();if(k==='o')aerialJacks();if(k==='l')aerialLadder();if(k==='f')toggleHose();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
 addEventListener('keyup',e=>state.keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>state.keys.clear());
 let drag=null;
-canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&e.clientX<innerWidth*.45)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
+// 觸控：單指拖曳轉視角（搖桿是獨立元件，不會被當成拖曳）；雙指捏合縮放。
+const touches=new Map();let pinch=null;
+canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){touches.set(e.pointerId,[e.clientX,e.clientY]);if(touches.size===2){const [a,b]=[...touches.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),dist:state.dist};drag=null;return;}}drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(!touches.has(e.pointerId))return;touches.set(e.pointerId,[e.clientX,e.clientY]);if(pinch&&touches.size===2){const [a,b]=[...touches.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);state.dist=Math.min(40,Math.max(3,pinch.dist*pinch.d/Math.max(20,d)));}});
+for(const ev of ['pointerup','pointercancel'])canvas.addEventListener(ev,e=>{touches.delete(e.pointerId);if(touches.size<2)pinch=null;});
 canvas.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const k=settings.sens;state.yaw-=(e.clientX-drag.x)*.006*k;state.pitch=Math.min(1.25,Math.max(.05,state.pitch+(e.clientY-drag.y)*.004*k*(settings.invertY?-1:1)));drag.x=e.clientX;drag.y=e.clientY;state.camHold=1.5;});
 canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
 canvas.addEventListener('wheel',e=>{state.dist=Math.min(40,Math.max(3,state.dist*(1+Math.sign(e.deltaY)*.1)));e.preventDefault();},{passive:false});
@@ -131,15 +139,17 @@ canvas.addEventListener('wheel',e=>{state.dist=Math.min(40,Math.max(3,state.dist
  const move=e=>{const r=stick.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,l=Math.min(1,Math.hypot(dx,dy)/(r.width/2))/(Math.hypot(dx,dy)||1);state.stick=[dx*l,-dy*l];knob.style.transform=`translate(${dx*l*r.width/2}px,${dy*l*r.width/2}px)`;};
  stick.addEventListener('pointerdown',e=>{id=e.pointerId;stick.setPointerCapture(id);move(e);});stick.addEventListener('pointermove',e=>{if(e.pointerId===id)move(e);});
  const end=()=>{id=null;state.stick=[0,0];knob.style.transform='';};stick.addEventListener('pointerup',end);stick.addEventListener('pointercancel',end);
- $('tRun').addEventListener('pointerdown',()=>{state.run=!state.run;$('tRun').classList.toggle('on',state.run);});$('tEnter').addEventListener('click',()=>toggleVehicle());
+ $('tRun').addEventListener('pointerdown',()=>{state.run=!state.run;$('tRun').classList.toggle('on',state.run);});$('tEnter').addEventListener('click',()=>toggleVehicle());$('tSiren').addEventListener('click',()=>toggleSiren());
+ $('tBrake').addEventListener('pointerdown',()=>{state.touchBrake=true;});for(const ev of ['pointerup','pointercancel','pointerleave'])$('tBrake').addEventListener(ev,()=>{state.touchBrake=false;});
+ $('mission').addEventListener('click',e=>{if(TOUCH&&e.target.id!=='missionAbort')$('mission').classList.toggle('open');});
 }
 $('enter').onclick=()=>toggleVehicle();$('siren').onclick=()=>toggleSiren();$('night').onclick=()=>cycleTime();$('reset').onclick=()=>resetAll();
 
 function nearestVehicle(max=6.5){let best=null,bd=max;for(const v of fleet){const d=Math.min(...vehicleCircles(v).map(([x,z,r])=>Math.hypot(state.x-x,state.z-z)-r))+1.45;if(d<bd){bd=d;best=v;}}return best;}
 function nearTruck(){return !!nearestVehicle();}
 function toggleVehicle(){
- if(state.mode==='walk'){const v=nearestVehicle();if(!v)return;if(mission?.hose){flashHint('請先按 F 收回水線再上車');return;}if(v.aerial?.busy){flashHint('雲梯車支腿／梯架作業中，需先收梯並收回支腿才能駕駛');return;}if(v.auto){flashHint(v.label+'自動前往中');return;}truck=v;state.mode='drive';player.visible=false;state.dist=Math.max(state.dist,13);}
- else{if(Math.abs(truck.v)>1.5)return;state.mode='walk';const r=[Math.cos(truck.heading),-Math.sin(truck.heading)];const p=colliders.resolve(truck.x-r[0]*2.6,truck.z-r[1]*2.6,.4);state.x=p.x;state.z=p.z;state.facing=truck.heading;player.visible=true;state.dist=7;}
+ if(state.mode==='walk'){const v=nearestVehicle();if(!v)return;if(mission?.hose){flashHint('請先按 F 收回水線再上車');return;}if(v.aerial?.busy){flashHint('雲梯車支腿／梯架作業中，需先收梯並收回支腿才能駕駛');return;}if(v.auto){flashHint(v.label+'自動前往中');return;}truck=v;state.mode='drive';player.visible=false;state.dist=Math.max(state.dist,portrait()?17:13);}
+ else{if(Math.abs(truck.v)>1.5)return;state.mode='walk';const r=[Math.cos(truck.heading),-Math.sin(truck.heading)];const p=colliders.resolve(truck.x-r[0]*2.6,truck.z-r[1]*2.6,.4);state.x=p.x;state.z=p.z;state.facing=truck.heading;player.visible=true;state.dist=portrait()?9:7;}
  syncUi();
 }
 function toggleSiren(){if(state.mode!=='drive')return;truck.siren=!truck.siren;syncUi();}
@@ -155,6 +165,7 @@ function applyTime(name){
 function syncUi(){
  $('enter').textContent=state.mode==='drive'?'下車':'上車';$('siren').hidden=state.mode!=='drive';$('siren').classList.toggle('on',truck.siren);$('night').textContent='時段：'+TIME_PRESETS[state.time].label;
  $('speed').hidden=state.mode!=='drive';
+ const d=state.mode==='drive';$('tRun').hidden=d;$('tBrake').hidden=$('tSiren').hidden=!d;$('tSiren').classList.toggle('on',truck.siren);$('tEnter').textContent=d?'下車':'上車';
 }
 
 // 小地圖：預先繪製路網與牆線，執行時依視角旋轉。
@@ -184,7 +195,7 @@ const fireFx=createFireFX(scene);let mission=null;
 const roads=driveRoads(streets.features),AERIAL_RANGE=[AERIAL.parkMin,AERIAL.parkMax],LADDER_HALF=5.1;
 const MISSION_TITLE={fire:'建物火警',rescue:'受困救援（雲梯車）',joint:'協同出勤：起火＋另一面受困'};
 const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-function flashHint(text){$('missionHint').textContent=text;}
+function flashHint(text){$('missionHint').textContent=tt(text);}
 // 受困民眾（示意人形）：在窗口揮手，救出後隨籃架移動。
 const victim=(()=>{const g=new T.Group(),m=c=>new T.MeshStandardMaterial({color:c,roughness:.7}),part=(geo,c,y)=>{const o=new T.Mesh(geo,m(c));o.position.y=y;o.castShadow=true;g.add(o);return o;};
  part(new T.CapsuleGeometry(.2,.5,4,10),'#3d7bd9',1.0);part(new T.SphereGeometry(.15,12,10),'#e0b48f',1.55);part(new T.CapsuleGeometry(.16,.5,4,8),'#2d3140',.45);
@@ -270,7 +281,7 @@ async function startMission(type='fire'){
 }
 function endMission(){mission=null;fireFx.setSite(null);$('mission').hidden=true;$('missionReport').hidden=true;clearWaypoint();person.nozzle.visible=false;victim.root.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
 function renderMission(){if(!mission)return;const m=mission;
- $('missionSteps').innerHTML=m.steps.map(s=>{const done=m.done[s.id]!==undefined,ready=!(s.need??[]).some(n=>m.done[n]===undefined);return `<li class="${done?'done':ready?'now':''}">${s.label}</li>`;}).join('');
+ $('missionSteps').innerHTML=m.steps.map(s=>{const done=m.done[s.id]!==undefined,ready=!(s.need??[]).some(n=>m.done[n]===undefined);return `<li class="${done?'done':ready?'now':''}">${tt(s.label)}</li>`;}).join('');
  $('fireBar').hidden=!m.fire;$('fireLevel').style.width=Math.round(Math.max(0,m.intensity)*100)+'%';}
 function nearVehicle(v,max=6.5){return Math.min(...vehicleCircles(v).map(([x,z,r])=>Math.hypot(state.x-x,state.z-z)-r))+1.45<max;}
 function toggleHose(){
@@ -388,14 +399,14 @@ function updateWalk(dt){
  }
  const stride=len>.05?Math.sin(state.walkT)*.6:0;person.legs[0].rotation.x=stride;person.legs[1].rotation.x=-stride;person.arms[0].rotation.x=-stride*.8;person.arms[1].rotation.x=stride*.8;
  player.position.set(state.x,ground.at(state.x,state.z)+(len>.05?Math.abs(Math.sin(state.walkT))*.04:0),state.z);player.rotation.y=state.facing;
- {const v=nearestVehicle();$('prompt').hidden=!v;if(v)$('prompt').textContent=(matchMedia('(pointer:coarse)').matches?'點「上／下車」駕駛':'按 E 駕駛')+v.label+(v.kind==='aerial'?'（停妥後 O 支腿、L 升梯）':'');
-  const nl=nearLadder();$('tJack').hidden=$('tLadder').hidden=!nl;if(nl&&ladder.aerial.busy){$('prompt').hidden=false;$('prompt').textContent='雲梯車：'+({spreading:'支腿展開中','lowering-jacks':'腳座落地中',down:'支腿已落地・L 升梯／O 收回支腿',raising:'升梯中',raised:'梯架作業中・L 收梯'+(mission?.fire?'・Space 籃架水砲出水':''),lowering:'收梯中',lifting:'腳座升起中',retracting:'支腿收回中'}[ladder.aerial.state.phase]??'');}}
+ {const v=nearestVehicle();$('prompt').hidden=!v;if(v)$('prompt').textContent=(matchMedia('(pointer:coarse)').matches?'點「上／下車」駕駛':'按 E 駕駛')+v.label+(v.kind==='aerial'?tt('（停妥後 O 支腿、L 升梯）'):'');
+  const nl=nearLadder();$('tJack').hidden=$('tLadder').hidden=!nl;if(nl&&ladder.aerial.busy){$('prompt').hidden=false;$('prompt').textContent='雲梯車：'+tt({spreading:'支腿展開中','lowering-jacks':'腳座落地中',down:'支腿已落地・L 升梯／O 收回支腿',raising:'升梯中',raised:'梯架作業中・L 收梯'+(mission?.fire?'・Space 籃架水砲出水':''),lowering:'收梯中',lifting:'腳座升起中',retracting:'支腿收回中'}[ladder.aerial.state.phase]??'');}}
 }
 function vehicleCircles(v){const f=[-Math.sin(v.heading),-Math.cos(v.heading)];return v.offsets.map(o=>[v.x+f[0]*o,v.z+f[1]*o,v.radius]);}
 function truckCircles(){return vehicleCircles(truck);}
 function fleetCircles(except=null){return fleet.filter(v=>v!==except).flatMap(vehicleCircles);}
 function updateDrive(dt){
- const [f,r]=input(),brake=state.keys.has(' ')||state.padBrake;
+ const [f,r]=input(),brake=state.keys.has(' ')||state.padBrake||state.touchBrake;
  // 遊戲式操控：極速約 120 km/h，非實車性能。
  if(brake)truck.v*=Math.max(0,1-dt*3.5);else if(f>0)truck.v+=(truck.v<0?14:8.5-truck.v*.12)*f*dt;else if(f<0)truck.v+=(truck.v>0?14:4)*f*dt;else truck.v*=Math.max(0,1-dt*.45);
  truck.v=Math.max(-8,Math.min(33.4,truck.v));if(Math.abs(truck.v)<.05&&!f)truck.v=0;
@@ -440,7 +451,9 @@ function frame(now){
  streetTimer-=dt;if(streetTimer<0){streetTimer=.4;$('street').textContent=nearestStreet(streets.features,state.x,state.z)??'信義區（無道路名稱）';}
  drawMinimap();renderer.render(scene,camera);
 }
-function resize(){renderer.setPixelRatio(quality.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const s=innerWidth<=640?140:220;mini.width=mini.height=s*Math.min(devicePixelRatio,2);}
+// 直式手機：垂直視角放大（60°→最多 80°），左右才看得到街道兩側。
+const portrait=()=>innerWidth<innerHeight;
+function resize(){renderer.setPixelRatio(quality.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);const a=innerWidth/innerHeight;camera.aspect=a;camera.fov=a<1?Math.min(80,Math.max(60,2*Math.atan(Math.tan(35*Math.PI/180)/a)*180/Math.PI)):60;camera.updateProjectionMatrix();const s=TOUCH?120:innerWidth<=640?140:220;mini.width=mini.height=s*Math.min(devicePixelRatio,2);}
 // ---------- 設定與暫停選單 ----------
 // 設定只存在本機瀏覽器（localStorage）；無法存取時仍以預設值運作。
 const SETTINGS_KEY='xinyiStreetSettings',DEFAULTS={quality:'auto',fps:60,showFps:false,sens:1,invertY:false,life:{traffic:true,people:true,shops:true,markings:true,trees:true},audio:{muted:false,master:.8,siren:.7,engine:.6,ambient:.5}};
@@ -460,7 +473,7 @@ const quality={level:'medium',auto:matchMedia('(pointer:coarse)').matches||Math.
 function setPaused(on,page){state.paused=on;on?audio.suspend():audio.resume();$('menu').hidden=!on;state.keys.clear();state.stick=[0,0];if(on)showPage(page??'settings');}
 function showPage(page){for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.classList.toggle('active',b.dataset.page===page);for(const sec of document.querySelectorAll('.menu-body [data-page]'))sec.hidden=sec.dataset.page!==page;}
 for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.onclick=()=>showPage(b.dataset.page);
-$('resume').onclick=()=>setPaused(false);$('help').onclick=()=>setPaused(!state.paused);
+$('resume').onclick=()=>setPaused(false);$('menuReset').onclick=()=>{setPaused(false);resetAll();};$('help').onclick=()=>setPaused(!state.paused);
 $('menu').addEventListener('pointerdown',e=>{if(e.target===$('menu'))setPaused(false);});
 function bindSeg(id,get,set){const seg=$(id),sync=()=>{for(const b of seg.children)b.classList.toggle('on',b.dataset.v===String(get()));};for(const b of seg.children)b.onclick=()=>{set(b.dataset.v);sync();saveSettings();};sync();return sync;}
 bindSeg('quality',()=>settings.quality,v=>{settings.quality=v;quality.apply();});

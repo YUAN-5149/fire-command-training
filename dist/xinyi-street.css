@@ -133,3 +133,39 @@ button.primary{background:#c8202b;border-color:#ff6b6b}
 #missionPick [data-type] small{display:block;opacity:.75;margin-left:1.6em;font-size:12px}
 #missionPick [data-type].focus{outline:2px solid #ffd36b;background:rgba(255,211,107,.12)}
 .fire-bar[hidden]{display:none}
+
+/* ---------- 手機（觸控）版面：body.touch 由程式依觸控裝置加上 ---------- */
+body.touch .brand{padding:6px 10px 6px 6px}
+body.touch .brand strong{white-space:nowrap;font-size:14px}
+body.touch .brand small{font-size:12px;white-space:nowrap;max-width:42vw;overflow:hidden;text-overflow:ellipsis}
+body.touch #night,body.touch #reset,body.touch #enter{display:none}
+body.touch .actions{flex-wrap:nowrap;gap:5px}
+body.touch .actions button{padding:7px 9px;font-size:13px;white-space:nowrap}
+body.touch #minimap{width:120px;height:120px;right:10px;bottom:10px}
+body.touch #speed{left:50%;right:auto;transform:translateX(-50%);bottom:10px;padding:4px 12px}
+body.touch #speed b{font-size:22px}
+body.touch #stick{left:16px;bottom:16px;width:124px;height:124px}
+body.touch #touchButtons{display:grid;grid-template-columns:repeat(2,70px);grid-auto-flow:row;direction:rtl;right:10px;bottom:142px;gap:8px}
+body.touch #touchButtons button{width:70px;height:48px;padding:0;font-size:14px;direction:ltr;background:rgba(10,16,22,.72)}
+body.touch #touchButtons button[hidden]{display:none}
+body.touch #touchButtons button.on{background:#c8202b}
+body.touch #prompt{bottom:150px;max-width:calc(100% - 32px);font-size:13px;text-align:center}
+body.touch #waypoint{top:auto;bottom:190px;font-size:12px;padding:4px 12px}
+body.touch #mission{left:8px;right:auto;top:56px;width:min(300px,calc(100% - 16px));padding:7px 10px;font-size:12px;line-height:1.4}
+body.touch #mission ol{display:none}
+body.touch #mission.open ol{display:block;max-height:38vh;overflow:auto;margin:4px 0}
+body.touch #mission .fire-bar{margin:4px 0 2px}
+body.touch #missionHint{margin:2px 0 4px}
+body.touch #missionAbort{padding:4px 8px;font-size:12px}
+body.touch #mission::after{content:'點此展開／收合步驟';display:block;font-size:11px;color:#8d9aa1;margin-top:2px}
+body.touch #mission.open::after{content:'點此收合'}
+@media (orientation:portrait){body.touch .brand strong{display:none}}
+@media (orientation:landscape){
+ body.touch .top{padding:6px 10px}
+ body.touch #mission{width:280px;top:52px}
+ body.touch #mission.open ol{max-height:28vh}
+ body.touch #touchButtons{bottom:10px;right:140px}
+ body.touch #prompt{bottom:70px}
+ body.touch #waypoint{bottom:auto;top:52px;left:auto;right:10px;transform:none}
+}
+@media (orientation:portrait){body.touch #prompt{bottom:268px}body.touch #waypoint{bottom:312px}}

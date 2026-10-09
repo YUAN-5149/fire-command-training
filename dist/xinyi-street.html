@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s11">
+<link rel="stylesheet" href="xinyi-street.css?v=s12">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -56,6 +56,7 @@
    <button id="resume" class="primary">▶ 繼續</button>
    <button data-page="settings" class="active">設定</button>
    <button id="menuMap">地圖</button>
+   <button id="menuReset">回出生點</button>
    <button data-page="controls">操作說明</button>
    <button data-page="sources">資料來源</button>
    <a href="index.html">回消防演練首頁</a>
@@ -96,7 +97,7 @@
     <h2>手把（Xbox／PlayStation 標準配置）</h2>
     <table class="keys"><tr><td>移動／轉向</td><td>左搖桿</td></tr><tr><td>視角</td><td>右搖桿；按下左／右搖桿拉遠／拉近</td></tr><tr><td>油門／倒車</td><td>RT ／ LT</td></tr><tr><td>上下車</td><td>A（✕）</td></tr><tr><td>跑步（步行）／煞車（駕駛）</td><td>按住 B（○）</td></tr><tr><td>水線</td><td>X（□）</td></tr><tr><td>警示燈</td><td>Y（△）</td></tr><tr><td>出水</td><td>按住 RB（R1）</td></tr><tr><td>雲梯支腿</td><td>LB（L1）</td></tr><tr><td>雲梯升梯／收梯</td><td>十字鍵 ↑</td></tr><tr><td>切換時段</td><td>十字鍵 ←</td></tr><tr><td>任務選單</td><td>十字鍵 →（↑↓ 選擇、A 確定、B 取消）</td></tr><tr><td>全區地圖</td><td>Back／View（Share）</td></tr><tr><td>暫停選單</td><td>Start／Menu（Options）</td></tr></table>
     <h2>手機觸控</h2>
-    <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「地圖」開啟全區地圖（點地圖設定目標、雙指縮放）；「選單」開啟本頁。</p>
+    <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；單指拖曳畫面轉視角、雙指開合縮放。右下按鈕依狀態顯示：步行時「上車」「跑」，靠近雲梯車時「支腿」「升梯」，拿水線時「水線」「出水」；駕駛時「下車」「煞車」（按住）「警示燈」。上方「任務」「地圖」「選單」；時段與回出生點在「選單」內。任務面板點一下可展開／收合步驟。直式手機會自動放寬視角，看得到街道兩側。</p>
    </section>
    <section data-page="sources" hidden>
  <h2>資料來源與限制</h2>
@@ -111,7 +112,7 @@
 </div>
 <div id="fps" hidden>— FPS</div>
 <div id="stick" aria-hidden="true"><i></i></div>
-<div id="touchButtons"><button id="tSpray" hidden>出水</button><button id="tHose" hidden>水線</button><button id="tJack" hidden>支腿</button><button id="tLadder" hidden>升梯</button><button id="tRun">跑</button><button id="tEnter">上／下車</button></div>
+<div id="touchButtons"><button id="tSpray" hidden>出水</button><button id="tHose" hidden>水線</button><button id="tJack" hidden>支腿</button><button id="tLadder" hidden>升梯</button><button id="tBrake" hidden>煞車</button><button id="tSiren" hidden>警示燈</button><button id="tRun">跑</button><button id="tEnter">上車</button></div>
 <script>
 // 載入失敗時顯示原因，而不是一直停在「載入中」。版本號 ?v= 讓每次更新整套檔案一起重新下載，避免新舊檔案混用。
 (function(){var shown=false;function fail(msg){if(shown||document.getElementById('loading').hidden)return;shown=true;var e=document.getElementById('error');e.hidden=false;e.innerHTML='<b>街景載入失敗</b><span>'+String(msg).replace(/[<>&]/g,'')+'</span><span>請按 Ctrl+Shift+R（手機請關閉分頁後重新開啟）再試一次；若仍失敗，請截圖這個畫面。</span><button onclick="location.reload()">重新載入</button>';document.getElementById('loading').hidden=true;}
@@ -119,6 +120,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s11"></script>
+<script type="module" src="xinyi-street.js?v=s12"></script>
 </body>
 </html>
