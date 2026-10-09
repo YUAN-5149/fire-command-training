@@ -2,7 +2,7 @@
 // 只把手把狀態轉成與鍵盤相同的動作；不含任何遊戲或廠商素材。純函式，可在 Node 測試。
 export const BUTTONS={a:0,b:1,x:2,y:3,lb:4,rb:5,lt:6,rt:7,back:8,start:9,ls:10,rs:11,up:12,down:13,left:14,right:15};
 // 單次觸發的動作（按下瞬間）：對應鍵盤 E/F/Q/T/N/R/M/Esc 與鏡頭遠近。
-export const PRESS_ACTIONS={a:'vehicle',x:'hose',y:'siren',up:'mission',down:'time',back:'map',start:'pause',left:'zoomIn',right:'zoomOut',rs:'resetCam'};
+export const PRESS_ACTIONS={a:'vehicle',x:'hose',y:'siren',up:'mission',down:'time',back:'map',start:'pause',left:'zoomIn',right:'zoomOut',rs:'resetCam',rb:'aerial'};
 export const DEADZONE=.18;
 
 // 徑向死區：小於死區歸零，其餘重新縮放到 0–1，避免搖桿回中時鏡頭或角色漂移。

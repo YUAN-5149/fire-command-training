@@ -19,7 +19,7 @@ assert.deepEqual(deadzone(.1,-.1),[0,0]);
 {const first=readPad(pad([0,0,0,0],[BUTTONS.a,BUTTONS.y]));assert.deepEqual(first.pressed.sort(),['siren','vehicle']);
  const again=readPad(pad([0,0,0,0],[BUTTONS.a,BUTTONS.y]),first.buttons);assert.deepEqual(again.pressed,[]);
  const release=readPad(pad(),again.buttons),re=readPad(pad([0,0,0,0],[BUTTONS.a]),release.buttons);assert.deepEqual(re.pressed,['vehicle']);}
-for(const [b,a] of [['x','hose'],['up','mission'],['down','time'],['back','map'],['start','pause'],['left','zoomIn'],['right','zoomOut'],['rs','resetCam']])
+for(const [b,a] of [['rb','aerial'],['x','hose'],['up','mission'],['down','time'],['back','map'],['start','pause'],['left','zoomIn'],['right','zoomOut'],['rs','resetCam']])
  assert.deepEqual(readPad(pad([0,0,0,0],[BUTTONS[b]])).pressed,[a],b);
 
 // 扳機：類比值為油門／倒車，極小值歸零；RT 同時是出水按住、B 為煞車、LB／左搖桿按下為跑步。

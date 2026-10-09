@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s11">
+<link rel="stylesheet" href="xinyi-street.css?v=s12">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -30,6 +30,7 @@
  <div class="mission-head"><span class="badge">119</span><div><strong id="missionTitle">火警派遣</strong><small id="missionWhere">—</small></div><b id="missionClock">00:00</b></div>
  <div class="fire-bar"><span>火勢</span><i><b id="fireLevel"></b></i></div>
  <ol id="missionSteps"></ol>
+ <div id="aerialPanel"><div><b>雲梯車</b> <span id="aerialStatus">未配置</span></div><div class="aerial-actions"><button id="aerialBtn">配置雲梯（L）</button><button id="aerialCancel" hidden>取消</button></div></div>
  <p id="missionHint"></p>
  <button id="missionAbort">取消任務</button>
 </aside>
@@ -82,9 +83,9 @@
     <h2>駕駛消防車</h2>
     <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
     <h2>共通</h2>
-    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>雲梯車：配置／確認車位／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
     <h2>遊戲手把</h2>
-    <table class="keys"><tr><td>移動／轉向</td><td>左搖桿（按下左搖桿或 <kbd>LB</kbd> 跑步）</td></tr><tr><td>視角</td><td>右搖桿；按下右搖桿視角回正；十字鍵 ←／→ 拉近／拉遠</td></tr><tr><td>上／下車</td><td><kbd>A</kbd>（PS：✕）</td></tr><tr><td>油門／倒車</td><td><kbd>RT</kbd>／<kbd>LT</kbd>（亦可用左搖桿上下）</td></tr><tr><td>煞車</td><td>按住 <kbd>B</kbd>（PS：○）</td></tr><tr><td>警示燈</td><td><kbd>Y</kbd>（PS：△）</td></tr><tr><td>佈設／收回水線</td><td><kbd>X</kbd>（PS：□）</td></tr><tr><td>出水</td><td>按住 <kbd>RT</kbd>（步行持水線時）</td></tr><tr><td>派遣火警／切換時段</td><td>十字鍵 ↑／↓</td></tr><tr><td>地圖／暫停選單</td><td><kbd>Back</kbd>（View）／<kbd>Start</kbd>（Menu）；<kbd>B</kbd> 關閉</td></tr></table>
+    <table class="keys"><tr><td>移動／轉向</td><td>左搖桿（按下左搖桿或 <kbd>LB</kbd> 跑步）</td></tr><tr><td>視角</td><td>右搖桿；按下右搖桿視角回正；十字鍵 ←／→ 拉近／拉遠</td></tr><tr><td>上／下車</td><td><kbd>A</kbd>（PS：✕）</td></tr><tr><td>油門／倒車</td><td><kbd>RT</kbd>／<kbd>LT</kbd>（亦可用左搖桿上下）</td></tr><tr><td>煞車</td><td>按住 <kbd>B</kbd>（PS：○）</td></tr><tr><td>警示燈</td><td><kbd>Y</kbd>（PS：△）</td></tr><tr><td>佈設／收回水線</td><td><kbd>X</kbd>（PS：□）</td></tr><tr><td>雲梯車配置／確認／收梯</td><td><kbd>RB</kbd>（PS：R1）</td></tr><tr><td>出水</td><td>按住 <kbd>RT</kbd>（步行持水線時）</td></tr><tr><td>派遣火警／切換時段</td><td>十字鍵 ↑／↓</td></tr><tr><td>地圖／暫停選單</td><td><kbd>Back</kbd>（View）／<kbd>Start</kbd>（Menu）；<kbd>B</kbd> 關閉</td></tr></table>
     <p class="note">依瀏覽器 Gamepad API 的標準配置（Xbox、PlayStation、Switch Pro 等經 USB／藍牙連線）；按任一鍵後才會被瀏覽器偵測。非標準配置的手把按鍵位置可能不同。撞擊時若手把支援會短暫震動。</p>
     <h2>手機觸控</h2>
     <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「地圖」開啟全區地圖（點地圖設定目標、雙指縮放）；「選單」開啟本頁。</p>
@@ -94,6 +95,7 @@
  <p>本頁與「臺北真實圖資」信義預設畫面共用同一套建構程式與資料：建物外觀（中心約 250 m 精修石材／玻璃、其餘整區配色窗格）、OSM 路面寬度與配色、中心鋪面材質、OSM 已標記 zebra 斑馬線、市府路燈（含桿高）、OSM 路樹、市府號誌設施桿位。</p>
  <p>建物位置與高度：臺北市都發局 2024 LOD1 官方量體。外牆、窗格、鋪面為<b>示意外觀</b>，非實景；窗格不代表實際樓層或救援開口。道路寬度多為估算，不可據此量測支腿空間。GIS 頁的核對樣板（雙黃線、停等框、騎樓試作、ATT 外牆）預設關閉，本頁同樣不顯示。</p>
  <p>差異：GIS 頁地形為 world-elevation，本頁無法離線取得，改由官方牆腳高程內插示意地面。消防車輪的轉動與前輪轉向，是載入時把原車型的車輪零件重組到輪軸中心而成，車型檔未修改，靜止外觀與原車型相同。</p>
+ <p><b>雲梯車作業</b>：沿用首頁已確認的雲梯車型、支腿機構、籃架與砲塔及升梯運動程式；避碰邊界改用信義官方 LOD1 量體（屋頂三角形到牆腳的實心柱體）、水箱車與示意地面，梯架與籃架各零件外接框需與量體保持 0.3 m 以上。車位核對：車身與起火面平行、右側面向建物，支腿墊板外緣距外牆 ≥ 0.5 m，車身與支腿不得壓到建物或水箱車，四支腿處地面高差 ≤ 0.25 m（以墊板補足）。以上皆為模型幾何示意，<b>非原廠作業曲線、支腿反力或地盤承載核定</b>；LOD1 量體沒有陽臺、雨遮、招牌、騎樓、電線與行道樹，現場仍須逐項確認。</p>
  <p>風格參考 taipei-gta，但未使用該網站的地圖、程式或素材。</p>
  <p><a href="index.html">回消防演練首頁</a>　<a href="taipei-map.html?place=xinyi">臺北真實圖資（GIS部署）</a></p>
    </section>
@@ -110,6 +112,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s11"></script>
+<script type="module" src="xinyi-street.js?v=s12"></script>
 </body>
 </html>

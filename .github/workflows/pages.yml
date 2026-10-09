@@ -29,7 +29,7 @@ jobs:
         run: for f in dist/*.js; do node --check "$f"; done
       - name: GIS 回歸測試
         run: |
-          for t in geo-field-review geo-xinyi-detail geo-deployment geo-streets geo-target geo-district geo-arcade geo-street-detail geo-street-fixtures xinyi-street wheel-rig xinyi-street-life xinyi-street-nav xinyi-street-mission xinyi-street-gamepad; do
+          for t in geo-field-review geo-xinyi-detail geo-deployment geo-streets geo-target geo-district geo-arcade geo-street-detail geo-street-fixtures xinyi-street wheel-rig xinyi-street-life xinyi-street-nav xinyi-street-mission xinyi-street-gamepad xinyi-street-aerial aerial-motion aerial-rescue aerial-fog; do
             echo "== $t"
             node --no-warnings --experimental-loader ./tests/three-loader.mjs "tests/$t.mjs"
           done

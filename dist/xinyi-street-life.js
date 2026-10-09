@@ -2,7 +2,7 @@
 // 車道標線、一樓店面招牌、補植行道樹、NPC 車流與行人、時段光影。
 // 只加在本頁；不改動 GIS 頁的官方量體、道路寬度與既有樣板。
 import * as T from 'three';
-import {project} from './xinyi-street-world.js?v=s11';
+import {project} from './xinyi-street-world.js?v=s12';
 
 const key=p=>p[0].toFixed(7)+','+p[1].toFixed(7);
 const isOneway=t=>['yes','1','-1'].includes(t?.oneway);

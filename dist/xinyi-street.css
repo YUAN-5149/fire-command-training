@@ -123,3 +123,11 @@ kbd{display:inline-block;min-width:24px;padding:1px 7px;margin:0 2px;border-radi
 .report-actions{display:flex;gap:8px;justify-content:flex-end}
 button.primary{background:#c8202b;border-color:#ff6b6b}
 @media (max-width:640px){#mission{left:8px;right:8px;width:auto;top:62px;font-size:12px;padding:8px 10px}#mission ol{display:none}}
+#aerialPanel{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0;padding:6px 8px;border:1px solid rgba(255,179,78,.45);border-radius:8px;background:rgba(255,179,78,.08);font-size:13px}
+#aerialPanel b{color:#ffb34e}
+#aerialStatus{color:#dfe7ea}
+.aerial-actions{display:flex;gap:6px}
+.aerial-actions button{font-size:12px;padding:4px 9px}
+.aerial-actions button:disabled{opacity:.5;cursor:default}
+#missionSteps li.skip{color:#a39472}
+#missionSteps li.skip::marker{content:"– "}

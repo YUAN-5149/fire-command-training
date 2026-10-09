@@ -1,7 +1,7 @@
 // 信義街景・消防任務模式（訓練示意）：隨機派遣火警 → 駕駛消防車到場 → 安全位置停車 → 佈水線出水 → 火勢控制。
 // 火勢、水量、射程與時間皆為遊戲化示意，非火場物理預測或戰術評分；紀錄只列時間與位置供教官講評。
 import * as T from 'three';
-import {project} from './xinyi-street-world.js?v=s11';
+import {project} from './xinyi-street-world.js?v=s12';
 
 export const RULES={parkMin:8,parkMax:30,hoseLength:45,reach:22,aimCone:.30,knockdown:.075,growth:.004,arriveRadius:45};
 
@@ -54,13 +54,19 @@ export function createFireFX(scene){
  const flames=mk(N,spriteTexture('rgba(255,236,160,1)','rgba(255,90,10,0)'),4,T.AdditiveBlending,.95);
  const smoke=mk(S,spriteTexture('rgba(70,70,74,.85)','rgba(60,60,64,0)'),7,T.NormalBlending,.55);
  const water=mk(W,spriteTexture('rgba(220,240,255,.95)','rgba(180,220,255,0)'),.9,T.NormalBlending,.8);
+ // 雲梯籃架砲塔：大水霧（寬錐角），由噴嘴口射出。
+ const F=320,fog=mk(F,spriteTexture('rgba(235,246,255,.85)','rgba(200,230,255,0)'),1.6,T.NormalBlending,.55),fg=[...Array(F)].map((_,i)=>({t:i/F,u:Math.random()*2-1,v:Math.random()*2-1}));
  const glow=new T.PointLight('#ff7a2a',0,40,1.6);scene.add(glow);
  const hose=new T.Mesh(new T.BufferGeometry(),new T.MeshStandardMaterial({color:'#d8c27a',roughness:.7}));hose.castShadow=true;scene.add(hose);
  const fl=[...Array(N)].map(()=>({t:Math.random(),u:Math.random()-.5,v:Math.random()-.5})),sm=[...Array(S)].map(()=>({t:Math.random(),u:Math.random()-.5,v:Math.random()-.5})),wa=[...Array(W)].map((_,i)=>({t:i/W}));
  let site=null;
+ const side=new T.Vector3(),up=new T.Vector3();
+ function updateFog(dt,s){fog.visible=!!s;if(!s)return;const a=fog.geometry.attributes.position,{origin:o,dir:d,range}=s;side.crossVectors(d,Math.abs(d.y)>.95?new T.Vector3(1,0,0):new T.Vector3(0,1,0)).normalize();up.crossVectors(side,d).normalize();
+  fg.forEach((f,i)=>{f.t+=dt*1.3;if(f.t>1){f.t-=1;f.u=Math.random()*2-1;f.v=Math.random()*2-1;}const r=f.t*range,w=.08+f.t*range*.32;a.setXYZ(i,o.x+d.x*r+(side.x*f.u+up.x*f.v)*w,o.y+d.y*r+(side.y*f.u+up.y*f.v)*w-r*r*.012,o.z+d.z*r+(side.z*f.u+up.z*f.v)*w);});a.needsUpdate=true;fog.material.size=.6+range*.05;}
  const fx={
-  setSite(s){site=s;const show=!!s;flames.visible=smoke.visible=show;glow.visible=show;if(!show){water.visible=false;hose.visible=false;}},
-  update(dt,intensity,{spray=null,hoseFrom=null,hoseTo=null}={}){
+  setSite(s){site=s;const show=!!s;flames.visible=smoke.visible=show;glow.visible=show;if(!show){water.visible=false;hose.visible=false;fog.visible=false;}},
+  update(dt,intensity,{spray=null,hoseFrom=null,hoseTo=null,fogSpray=null}={}){
+   updateFog(dt,fogSpray);
    if(!site)return;const p=flames.geometry.attributes.position,q=smoke.geometry.attributes.position,k=Math.max(0,intensity);
    const cx=site.x+site.nx*.6,cz=site.z+site.nz*.6,tx=-site.nz,tz=site.nx;// 沿牆方向
    fl.forEach((f,i)=>{f.t+=dt*(1.2+Math.random()*.6);if(f.t>1){f.t=0;f.u=Math.random()-.5;f.v=Math.random()-.5;}const w=4.5*k,h=f.t*6*k;p.setXYZ(i,cx+tx*f.u*w*(1-f.t*.6)+site.nx*f.v*.8,site.y-1+h,cz+tz*f.u*w*(1-f.t*.6)+site.nz*f.v*.8);});
@@ -74,5 +80,5 @@ export function createFireFX(scene){
    hose.visible=!!(hoseFrom&&hoseTo);if(hose.visible){const curve=new T.CatmullRomCurve3([hoseFrom,hoseFrom.clone().lerp(hoseTo,.33).setY(hoseTo.y-.95),hoseFrom.clone().lerp(hoseTo,.66).setY(hoseTo.y-.95),hoseTo]);hose.geometry.dispose();hose.geometry=new T.TubeGeometry(curve,24,.045,6,false);}
   },
  };
- fx.points={flames,smoke,water};fx.setSite(null);return fx;
+ fx.points={flames,smoke,water,fog};fx.setSite(null);return fx;
 }
