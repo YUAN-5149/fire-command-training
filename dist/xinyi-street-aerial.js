@@ -3,8 +3,8 @@
 // 及升梯運動（aerial-motion）；只把避碰邊界由首頁街景的兩道立面換成信義的真實量體。
 // 幾何皆為模型示意，非原廠作業曲線、支腿反力或地盤承載核定；LOD1 量體不含陽臺、雨遮、招牌與騎樓等突出物。
 import * as T from 'three';
-import {project} from './xinyi-street-world.js?v=s13';
-import {createAerialMotion} from './aerial-motion.js?v=s13';
+import {project} from './xinyi-street-world.js?v=s14';
+import {createAerialMotion} from './aerial-motion.js?v=s14';
 import {createGrounding,walkBoarding} from './aerial-grounding.js';
 import {createCageSwivel,createNativeMonitor} from './native-cage.js';
 
@@ -104,21 +104,40 @@ export function basketTarget(site,frame,standoff,y,win=site){
 const smooth=x=>{x=T.MathUtils.clamp(x,0,1);return x*x*(3-2*x);};
 // 時間軸（秒）：與首頁相同——人員走到車側 0–5、支腿伸出 5–9、落地 9–12、登車 12–19、升梯 19–38，之後籃架出水。
 export const TIMELINE={spread:[5,9],down:[9,12],board:[12,19],raise:[19,38],retract:17,crewDown:7,legsUp:3,legsIn:4,
- gate:1,boardVictim:5,gateClose:1.5,lowerSlow:2,unload:4};
+ gate:1,boardVictim:5,gateClose:1.5,lowerSlow:2,unload:4,transfer:6,secure:3,carry:6,crewBack:4};
 // 已驗證路徑（雲梯姿態 [迴轉, 仰角, 伸梯] 的折線）依各軸速度分段計時；載人下降以 lowerSlow 倍時間緩慢進行（示意速度，非原廠規格）。
 export function legPath(waypoints,slow=1){const segs=[];let total=0;for(let i=1;i<waypoints.length;i++){const a=waypoints[i-1],b=waypoints[i],d=Math.max(Math.abs(b[0]-a[0])/.25,Math.abs(b[1]-a[1])/.15,Math.abs(b[2]-a[2])/.6,.4)*slow;segs.push({a,b,t0:total,d});total+=d;}return {segs,total,waypoints};}
 export function legAt(path,t){for(const s of path.segs)if(t<s.t0+s.d){const q=smooth((t-s.t0)/s.d);return s.a.map((v,j)=>v+(s.b[j]-v)*q);}return [...path.waypoints.at(-1)];}
 // 籃架降落點（框架座標，車尾、街側、車頭外側的空地），不在車頂上方下降（與首頁相同原則）。
 // 本模型梯架降到地面需距轉台水平約 10 m 以上（較近時仰角下限或車體干涉），故候選點在車尾後方或街側較遠處。
 export const LANDING=[[15,2],[15,5],[16,0],[14,8],[8,12],[0,12],[-14,10],[-14,12]];
-// 待救者（示意造型，與首頁相同：淺藍上衣、深色長褲）。
-export function createCivilian(parent){
- const root=new T.Group(),blue=new T.MeshStandardMaterial({color:'#739ec5'}),dark=new T.MeshStandardMaterial({color:'#202b32'}),skin=new T.MeshStandardMaterial({color:'#d6a276'});
+// 待救者／傷患（與首頁住戶／患者相同造型：男性藍上衣、女性紫上衣加裙裝與長髮）。
+// condition：well 可自行行動、serious 重傷（癱坐）、unconscious 昏迷（倒臥）。重傷與昏迷需以擔架搬運。
+export const CONDITION_LABEL={well:'可自行行動',serious:'重傷',unconscious:'昏迷'};
+export const needsStretcher=condition=>condition==='serious'||condition==='unconscious';
+export function createPatient(parent,{sex='male',condition='well'}={}){
+ const mat=c=>new T.MeshStandardMaterial({color:c,roughness:.8}),skin=mat('#b98c70'),pants=mat('#303947'),hair=mat('#252626'),shirt=mat(sex==='male'?'#497bad':'#a46a99');
+ const root=new T.Group(),body=new T.Group();root.add(body);
  const box=(p,w,h,d,x,y,z,m)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;p.add(o);return o;};
- box(root,.38,.6,.25,0,1.05,0,blue);const legs=[-.12,.12].map(x=>{const g=new T.Group();g.position.set(x,.75,0);root.add(g);box(g,.14,.75,.18,0,-.375,0,dark);return g;});
- const head=new T.Mesh(new T.SphereGeometry(.17,12,8),skin);head.position.set(0,1.54,0);head.castShadow=true;root.add(head);
- const arms=[-1,1].map(side=>{const g=new T.Group();g.position.set(side*.24,1.32,0);root.add(g);box(g,.1,.55,.1,0,-.27,0,blue);return g;});
- parent.add(root);return {root,legs,arms};
+ box(body,.38,.58,.25,0,1.04,0,shirt);
+ const legs=[-.12,.12].map(x=>{const g=new T.Group();g.position.set(x,.74,0);body.add(g);box(g,.15,.72,.18,0,-.36,0,sex==='female'?skin:pants);box(g,.18,.1,.29,0,-.69,-.05,pants);return g;});
+ const head=new T.Mesh(new T.SphereGeometry(.17,12,8),skin);head.position.y=1.52;head.castShadow=true;body.add(head);box(body,.31,.12,.28,0,1.65,.025,hair);
+ if(sex==='female'){const skirt=new T.Mesh(new T.CylinderGeometry(.23,.39,.55,20),shirt);skirt.position.y=.72;skirt.name='女性裙裝';body.add(skirt);box(body,.34,.42,.18,0,1.4,.13,hair).name='女性髮型';}
+ const arms=[-1,1].map(side=>{const g=new T.Group();g.position.set(side*.27,1.3,0);body.add(g);box(g,.13,.58,.15,0,-.28,0,shirt);return g;});
+ parent.add(root);
+ const f={root,body,legs,arms,sex,condition};f.setPose=pose=>setPatientPose(f,pose);f.setPose(condition==='unconscious'?'lying':condition==='serious'?'slumped':'standing');return f;
+}
+// 倒臥：仰躺、身體沿 root 的 +z（腳在 −z、頭在 +z），中心在 root 原點；癱坐：與首頁重傷姿勢相同。
+export function setPatientPose(f,pose){
+ f.pose=pose;f.body.rotation.set(0,0,0);f.body.position.set(0,0,0);f.body.scale.set(1,1,1);f.arms.forEach(a=>a.rotation.set(0,0,0));f.legs.forEach(l=>l.rotation.set(0,0,0));
+ if(pose==='lying'){f.body.rotation.x=Math.PI/2;f.body.position.set(0,.14,-.85);}
+ if(pose==='slumped'){f.body.scale.y=.62;f.body.rotation.x=.35;f.arms[0].rotation.z=-.6;}
+}
+export function createCivilian(parent){return createPatient(parent,{sex:'male',condition:'well'});}
+// 籃內載重（與首頁載重試算相同算法：各項合計，與輸入的容許籃載重比較）。數值為使用者輸入或示意預設，非實車核定。
+export function basketLoad({firefighters=1,firefighter,gear,equipment=0,victim=0,stretcher=0,capacity}){
+ const parts=[['消防員',firefighters*firefighter],['消防衣與 SCBA',firefighters*gear],['籃內器材',equipment],['待救者（估計）',victim],['擔架',stretcher]].filter(([,v])=>v>0);
+ const total=parts.reduce((a,[,v])=>a+v,0);return {parts,total,capacity,over:Number.isFinite(capacity)&&total>capacity};
 }
 
 export function createXinyiAerial({scene,source,createPerson,ground,obstacleIndex}){
@@ -132,6 +151,15 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
  // 籃門：與首頁相同，以門框角為鉸鏈開關（只在籃架靜止時開啟）。
  const nativeGate=get('Cage_gate');let hinge=null;if(nativeGate){const b=new T.Box3().setFromObject(nativeGate);hinge=new T.Group();hinge.position.copy(swivel.worldToLocal(new T.Vector3(b.min.x,b.min.y,b.min.z)));swivel.add(hinge);hinge.updateWorldMatrix(true,false);hinge.attach(nativeGate);}
  const setGate=open=>{if(hinge)hinge.rotation.y=-(Math.PI/2)*T.MathUtils.clamp(open,0,1);};
+ // 籃架擔架架（示意）：橫掛於籃架前緣、地板下方，長 2.1 m、寬 0.62 m。只有裝上時（顯示）才計入避碰。
+ const litter=new T.Group();litter.name='Basket_stretcher_mount';swivel.add(litter);
+ {const orange=new T.MeshStandardMaterial({color:'#e8701a',roughness:.6}),steel=new T.MeshStandardMaterial({color:'#9aa4a9',metalness:.7,roughness:.35});
+  const box=(w,h,d,x,y,z,m)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;litter.add(o);return o;};
+  box(.62,.1,2.1,-.95,-.2,0,orange);for(const x of [-.66,-1.24])box(.04,.08,2.1,x,-.12,0,steel);for(const z of [-.6,.6])box(.1,.05,.06,-.63,-.13,z,steel);
+  for(const z of [-.5,0,.5])box(.64,.02,.06,-.95,-.07,z,steel);}
+ const groundLitter=litter.clone(true);groundLitter.visible=false;scene.add(groundLitter);
+ const setLitter=on=>litter.traverse(o=>{if(o.isMesh)o.visible=on;});setLitter(false);
+ const LITTER_TOP=new T.Vector3(-.95,-.15,0);
  const beacons=[];source.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;if(/beacon|warning|LED strip/i.test(o.material?.name||'')){o.material=o.material.clone();o.material.color.set('#c61f16');o.material.emissive.set('#ff180a');beacons.push(o.material);}});
  const grounding=createGrounding(source);
  let envelope=createEnvelope([]);
@@ -173,33 +201,36 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
   if(st.phase!=='idle'&&st.phase!=='parked')return {ok:false,issues:['雲梯作業中，請先收梯'],warnings:[]};
   const r=preview(site,x,z,opts);if(!r.ok)return r;
   const restore=()=>{if(st.frame&&st.phase==='parked'){setFrame(st.frame,st.y);envelope=envFor(st.frame,st.y,st.result.obstacles);}else envelope=createEnvelope([]);};
-  setFrame(r.frame,r.y);envelope=envFor(r.frame,r.y,r.obstacles);
+  if(opts.load?.over)return {...r,ok:false,issues:[`籃內載重 ${Math.round(opts.load.total)} kg 超過容許籃載重 ${opts.load.capacity} kg（請減少籃內人員或器材，或確認原廠該工況資料）`]};
+  setFrame(r.frame,r.y);envelope=envFor(r.frame,r.y,r.obstacles);setLitter(!!opts.stretcher);
   const win=opts.window??site,w=planWindow(site,r.frame,r.y,win);
   // 救人：確認從救援窗口載人下降時有可安全降落的地面位置（暫時沿已核對路徑移到窗口後再規劃，之後退回）。
   let landing=true;
   if(w.plan&&opts.window){const prev={frame:st.frame,y:st.y},path=legPath(w.plan.waypoints),saveFrame=st.frame;st.frame=r.frame;st.y=r.y;
-   for(let t=0;t<=path.total+.05;t+=.05)motion.move(legAt(path,t));landing=!!planLanding();
+   for(let t=0;t<=path.total+.05;t+=.05)motion.move(legAt(path,t));landing=!!planLanding(!!opts.stretcher);
    const back=legPath([...w.plan.waypoints].reverse());for(let t=0;t<=back.total+.05;t+=.05)motion.move(legAt(back,t));motion.move(restPose);st.frame=saveFrame;st.y=prev.y;}
-  restore();
+  setLitter(false);restore();
   if(w.plan&&!landing)return {...r,ok:false,issues:['可到達受困者窗口，但載人下降時找不到可安全降落的地面位置（車尾、街側、車頭外側皆會碰到建物或車輛）']};
-  if(w.plan)return {...r,ok:true,plan:w.plan,target:w.target,standoff:w.standoff,floor:site.floor,window:win,targetHeight:w.target.y,radius:Math.hypot(w.target.x-motion.origin.x,w.target.z-motion.origin.z)};
-  const what=opts.window?'受困者窗口':'窗口';
-  return {...r,ok:false,issues:[w.reach?`升梯掃掠會碰到建物或籃架無法貼近 ${site.floor} 樓${what}（已試籃架距外牆 ${AERIAL.standoffs.join('／')} m）`:`此位置超出雲梯模型可達範圍，無法到達 ${site.floor} 樓${what}（試著調整與外牆距離或沿街位置）`]};
+  if(w.plan)return {...r,ok:true,stretcher:!!opts.stretcher,load:opts.load??null,plan:w.plan,target:w.target,standoff:w.standoff,floor:site.floor,window:win,targetHeight:w.target.y,radius:Math.hypot(w.target.x-motion.origin.x,w.target.z-motion.origin.z)};
+  const what=opts.window?'受困者窗口':'窗口',fitted=opts.stretcher?'（已裝擔架架，籃架前緣多突出約 0.6 m）':'';
+  return {...r,ok:false,issues:[w.reach?`升梯掃掠會碰到建物或籃架無法貼近 ${site.floor} 樓${what}（已試籃架距外牆 ${AERIAL.standoffs.join('／')} m）${fitted}`:`此位置超出雲梯模型可達範圍，無法到達 ${site.floor} 樓${what}（試著調整與外牆距離或沿街位置）`]};
  }
  // task：'rescue'（先救受困者）或 'fire'（籃架出水）。victim：{figure, window(世界座標，腳底)}。
  function deploy(result,site,{task='fire',victim=null}={}){
   if(!result?.ok||!result.plan)return false;
   setFrame(result.frame,result.y);envelope=envFor(result.frame,result.y,result.obstacles);
-  Object.assign(st,{phase:'deploying',t:0,frame:result.frame,y:result.y,site,plan:result.plan,legs:[result.plan.waypoints],target:result.target,standoff:result.standoff,blocked:null,arrived:false,spraying:false,result,task:task==='rescue'&&victim?'rescue':'fire',victim:task==='rescue'?victim:null,lower:null,raise:null,landing:null});
-  frame.visible=crewRoot.visible=true;setGate(0);
+  Object.assign(st,{phase:'deploying',t:0,frame:result.frame,y:result.y,site,plan:result.plan,legs:[result.plan.waypoints],target:result.target,standoff:result.standoff,blocked:null,arrived:false,spraying:false,result,task:task==='rescue'&&victim?'rescue':'fire',victim:task==='rescue'?victim:null,lower:null,raise:null,landing:null,carry:null,stretcher:task==='rescue'&&!!result.stretcher});
+  frame.visible=crewRoot.visible=true;setGate(0);setLitter(st.stretcher);groundLitter.visible=false;if(st.victim)st.victim.windowQ=st.victim.figure.root.quaternion.clone();
   layout.feet.forEach(([lx,lz],i)=>{const [x,z]=fromFrameXZ(result.frame,lx,lz),g=ground.at(x,z),top=result.y+layout.footBottom,h=Math.max(.05,top-g);pads[i].scale.y=h;pads[i].position.set(x,g+h/2,z);});
   return true;
  }
  // 載人下降：降落點（地面上方 0.2 m）依序嘗試，路徑經同一避碰檢查。
- function planLanding(){for(const [lx,lz] of LANDING){const g=ground.at(...fromFrameXZ(st.frame,lx,lz))-st.y,target=new T.Vector3(lx,g+.2,lz),plan=motion.plan(target);if(plan)return {plan,target};}return null;}
+ // 裝擔架架時籃底需離地 0.45 m，擔架才不觸地。
+ function planLanding(stretcher=st.stretcher){const lift=stretcher?.45:.2;for(const [lx,lz] of LANDING){const g=ground.at(...fromFrameXZ(st.frame,lx,lz))-st.y,target=new T.Vector3(lx,g+lift,lz),plan=motion.plan(target);if(plan)return {plan,target};}return null;}
  // 救援完成、籃架在地面後：升梯到起火窗口出水。
- function raiseToFire(){
+ function raiseToFire(load=null){
   if(st.phase!=='ground')return {ok:false,reason:'籃架需先回到地面'};
+  if(load?.over)return {ok:false,reason:`籃內載重 ${Math.round(load.total)} kg 超過容許籃載重 ${load.capacity} kg`};
   const w=planWindow(st.site,st.frame,st.y,st.site);
   if(!w.plan)return {ok:false,reason:w.reach?'升梯掃掠會碰到建物，無法貼近起火窗口':'此車位無法到達起火窗口'};
   st.legs.push(w.plan.waypoints);st.raise=legPath(w.plan.waypoints);st.target=w.target;st.standoff=w.standoff;st.phase='raising';st.t=0;st.blocked=null;return {ok:true,standoff:w.standoff};
@@ -212,7 +243,7 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
   const direct=motion.plan(motion.rest);if(direct)return legPath([...direct.waypoints,restPose]);
   const pts=[motion.pose];for(const leg of [...st.legs].reverse())for(const w of [...leg].reverse())pts.push(w);return legPath(pts.filter((p,i)=>!i||p.some((v,j)=>Math.abs(v-pts[i-1][j])>1e-6)));}
  function retract(){if(!canRetract())return false;st.back=backPath();st.phase='retracting';st.t=0;st.spraying=false;st.arrived=false;st.blocked=null;setGate(0);return true;}
- function dismiss(){if(st.phase!=='parked'&&st.phase!=='idle')return false;st.phase='idle';frame.visible=crewRoot.visible=false;pads.forEach(p=>p.visible=false);envelope=createEnvelope([]);return true;}
+ function dismiss(){if(st.phase!=='parked'&&st.phase!=='idle')return false;st.phase='idle';setLitter(false);groundLitter.visible=false;frame.visible=crewRoot.visible=false;pads.forEach(p=>p.visible=false);envelope=createEnvelope([]);return true;}
  // 立即收回並撤離（改派任務時使用）：依原路徑倒退，每步仍做避碰檢查。
  function stow(){if(st.phase==='idle')return;if(st.legs.length&&!['parked','idle'].includes(st.phase)){const back=backPath();for(let t=0;t<=back.total+.05;t+=.05)motion.move(legAt(back,t));}
   setGate(0);grounding.update(0,0);source.updateMatrixWorld(true);st.phase='parked';dismiss();}
@@ -222,9 +253,13 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
  function crewRoutes(){const s=steps.map(W),basket=[...s,grounding.local(1.5,2.675,-.8),grounding.local(-1,2.675,-.8),W(new T.Vector3(motion.rest.x,motion.rest.y,motion.rest.z-.6)),W(motion.rest.clone().add(new T.Vector3(-.28,0,0)))];return {s,basket,operator:[...s,station()]};}
  function crewStart(i){return [W(steps[0].clone().add(new T.Vector3(-2-i,0,-1))),W(steps[0].clone().add(new T.Vector3(0,0,-i*.65)))];}
  const cageQ=()=>swivel.getWorldQuaternion(new T.Quaternion());
- function poseCrewAtWork(actual){const q=cageQ();[0,1].forEach(i=>{const p=crew[i];p.legs.forEach(l=>l.rotation.x=0);feetOf(p,i===0?W(actual).add(new T.Vector3(-.28,0,0).applyQuaternion(q)):station());p.body.rotation.y=slew.rotation.y+st.frame.heading;});}
+ function poseCrewAtWork(actual){const q=cageQ();[0,1].forEach(i=>{const p=crew[i];p.legs.forEach(l=>l.rotation.x=0);p.arms?.forEach(l=>l.rotation.x=0);feetOf(p,i===0?W(actual).add(new T.Vector3(-.28,0,0).applyQuaternion(q)):station());p.body.rotation.y=slew.rotation.y+st.frame.heading;});}
  // 待救者：腳底位置沿折線移動（跨窗台、進籃、下籃），走動時擺腿。
  const victimSpot=actual=>W(actual).add(new T.Vector3(.28,0,0).applyQuaternion(cageQ()));
+ const litterPos=()=>swivel.localToWorld(LITTER_TOP.clone());
+ function placeOnLitter(pos,q){const f=st.victim.figure;f.root.position.copy(pos);f.root.quaternion.copy(q);}
+ function walkPerson(p,points,q){const n=points.length-1,s=T.MathUtils.clamp(q,0,1)*n,i=Math.min(n-1,Math.floor(s)),pos=points[i].clone().lerp(points[i+1],smooth(s-i)),d=points[i+1].clone().sub(points[i]);
+  if(d.x*d.x+d.z*d.z>1e-4)p.body.rotation.y=Math.atan2(-d.x,-d.z);const moving=q>0&&q<1;p.legs.forEach((l,k)=>l.rotation.x=moving?Math.sin(q*30+k*Math.PI)*.3:0);feetOf(p,pos);}
  function moveVictim(points,q,walking){const v=st.victim,f=v.figure;const n=points.length-1,s=T.MathUtils.clamp(q,0,1)*n,i=Math.min(n-1,Math.floor(s));f.root.position.copy(points[i]).lerp(points[i+1],smooth(s-i));
   const d=points[i+1].clone().sub(points[i]);if(d.x*d.x+d.z*d.z>1e-4)f.root.rotation.y=Math.atan2(-d.x,-d.z);const stride=walking?Math.sin(q*40)*.3:0;f.legs[0].rotation.x=stride;f.legs[1].rotation.x=-stride;f.arms.forEach(a=>a.rotation.x=0);}
  function stepMotion(candidate){const result=motion.move(candidate);if(!result.safe&&!st.blocked){st.blocked=result.reason||'升梯路徑接近建物，已停止動作';return {result,event:{blocked:true,reason:st.blocked}};}return {result,event:null};}
@@ -244,6 +279,16 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
     else if(t<TIMELINE.raise[0])walkBoarding(p,i===0?routes.basket:routes.operator,T.MathUtils.clamp((t-TIMELINE.board[0]-i*.7)/(7-i*.7),0,1),feetOf);
     else poseCrewAtWork(actual);}
    if(t>=TIMELINE.raise[1]&&!st.blocked&&actual.distanceTo(st.target)<.05){st.arrived=true;st.t=0;if(st.task==='rescue'){st.phase='rescue';st.victim.state='boarding';event={arrived:true,rescue:true};}else{st.phase='ready';event={arrived:true};}}
+  }else if(ph==='rescue'&&st.stretcher){
+   // 擔架：開籃門 → 籃內隊員協助將傷患由窗口移到籃架前緣擔架（仰躺）→ 固定 → 關門 → 規劃載人下降路徑。
+   const G=TIMELINE.gate,X=TIMELINE.transfer,S=TIMELINE.secure,C=TIMELINE.gateClose,v=st.victim,top=litterPos(),q=cageQ();
+   setGate(t<G+X+S?smooth(t/G):1-smooth((t-G-X-S)/C));
+   if(t<G){}else if(t<G+X){const k=smooth((t-G)/X);if(v.figure.pose!=='lying')v.figure.setPose('lying');const lift=v.window.clone().add(new T.Vector3(st.site.nx*.5,.5,st.site.nz*.5));
+    const pos=k<.5?v.window.clone().lerp(lift,k*2):lift.clone().lerp(top,k*2-1);placeOnLitter(pos,v.windowQ.clone().slerp(q,k));}
+   else{v.state='basket';placeOnLitter(top,q);}
+   poseCrewAtWork(actual);if(t>=G&&t<G+X+S)crew[0].arms.forEach(a=>a.rotation.x=-1.1);
+   if(t>=G+X+S+C){const l=planLanding();if(!l){if(!st.blocked){st.blocked='找不到可安全降落的地面位置（車尾、街側、車頭外側皆會碰到建物或車輛）';event={blocked:true,reason:st.blocked};}}
+    else{st.legs.push(l.plan.waypoints);st.lower=legPath(l.plan.waypoints,TIMELINE.lowerSlow);st.landing=l.target;st.phase='lowering';st.t=0;event={aboard:true};}}
   }else if(ph==='rescue'){
    // 開籃門 → 待救者跨窗台進籃 → 關門 → 規劃載人下降路徑。
    const G=TIMELINE.gate,B=TIMELINE.boardVictim,C=TIMELINE.gateClose,v=st.victim,sill=v.window.clone().add(new T.Vector3(st.site.nx*.45,AERIAL.sill,st.site.nz*.45)),inside=victimSpot(actual);
@@ -255,8 +300,22 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
   }else if(ph==='lowering'||ph==='raising'){
    const path=ph==='lowering'?st.lower:st.raise;
    if(st.blocked)actual=motion.clearance().position;else{const r=stepMotion(legAt(path,t));actual=r.result.position;event=r.event;}
-   poseCrewAtWork(actual);if(ph==='lowering'){const sp=victimSpot(actual);moveVictim([sp,sp],1,false);}
+   poseCrewAtWork(actual);if(ph==='lowering'){if(st.stretcher)placeOnLitter(litterPos(),cageQ());else{const sp=victimSpot(actual);moveVictim([sp,sp],1,false);}}
    if(!st.blocked&&t>=path.total){if(ph==='lowering'){st.phase='unloading';st.t=0;st.victim.state='unloading';event={landed:true};}else{st.phase='ready';st.t=0;st.arrived=true;event={arrived:true};}}
+  }else if(ph==='unloading'&&st.stretcher){
+   // 擔架：開門 → 擔架自籃架卸下放到地面 → 籃內隊員下籃與擔架一同移到交接位置（遠離車身 3.5 m）→ 隊員回籃 → 關門。
+   const G=TIMELINE.gate,K=TIMELINE.carry,R=TIMELINE.crewBack,v=st.victim,[lx,lz]=[st.landing.x,st.landing.z],l=Math.hypot(lx,lz)||1,q=cageQ();
+   if(!st.carry){const mount=litterPos(),gq=new T.Quaternion();litter.getWorldQuaternion(gq);const yaw=new T.Euler().setFromQuaternion(q,'YXZ').y,lq=new T.Quaternion().setFromEuler(new T.Euler(0,yaw,0));
+    const off=(d,h)=>{const w=W(new T.Vector3(lx+lx/l*d,0,lz+lz/l*d));w.y=ground.at(w.x,w.z)+h;return w;};
+    const side=new T.Vector3(.75,0,0).applyQuaternion(lq),basketCrew=W(actual).add(new T.Vector3(-.28,0,0).applyQuaternion(q));
+    st.carry={mount,lq,litterPath:[mount,off(1.2,.35),off(3.5,.35)],crewPath:[basketCrew,off(1.0,0).add(side),off(3.3,0).add(side)]};}
+   const c=st.carry;setGate(t<G+K+R?smooth(t/G):1-smooth((t-G-K-R)/G));
+   if(t>=G&&litter.children[0].visible){setLitter(false);groundLitter.visible=true;}
+   const k=T.MathUtils.clamp((t-G)/K,0,1),n=c.litterPath.length-1,s2=k*n,i=Math.min(n-1,Math.floor(s2)),lp=c.litterPath[i].clone().lerp(c.litterPath[i+1],smooth(s2-i));
+   if(t>=G){groundLitter.position.copy(lp).sub(LITTER_TOP.clone().applyQuaternion(c.lq));groundLitter.quaternion.copy(c.lq);placeOnLitter(lp,c.lq);}
+   if(t<G)poseCrewAtWork(actual);else if(t<G+K)walkPerson(crew[0],c.crewPath,k);else if(t<G+K+R)walkPerson(crew[0],[...c.crewPath].reverse(),(t-G-K)/R);else poseCrewAtWork(actual);
+   {const p=crew[1];p.legs.forEach(x=>x.rotation.x=0);feetOf(p,station());p.body.rotation.y=slew.rotation.y+st.frame.heading;}
+   if(t>=G+K+R+G){v.state='rescued';v.handover=c.litterPath.at(-1).clone();st.carry=null;st.stretcher=false;st.phase='ground';st.t=0;event={rescued:true};}
   }else if(ph==='unloading'){
    // 開門 → 待救者下籃走到交接位置（遠離車身 3 m）→ 關門。
    const G=TIMELINE.gate,U=TIMELINE.unload,v=st.victim,inside=victimSpot(actual),[lx,lz]=[st.landing.x,st.landing.z],l=Math.hypot(lx,lz)||1;
@@ -288,5 +347,5 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
  function nozzle(){return {origin:monitor.muzzle.getWorldPosition(new T.Vector3()),dir:monitor.direction().normalize()};}
  // 步行／行車碰撞：車身三個圓；支腿展開後加上四個墊板。
  function circles(){if(st.phase==='idle')return [];const f=st.frame,out=[-3.2,0,3.2].map(o=>[...fromFrameXZ(f,o,0),1.4]);if(st.phase!=='deploying'||st.t>TIMELINE.spread[0])layout.feet.forEach(([lx,lz])=>out.push([...fromFrameXZ(f,lx,lz),.45]));return out;}
- return {frame,source,motion,monitor,grounding,layout,state:st,crew,preview,check,deploy,retract,canRetract,raiseToFire,dismiss,stow,outline,update,nozzle,circles,envelope:()=>envelope};
+ return {litter,groundLitter,setLitter,frame,source,motion,monitor,grounding,layout,state:st,crew,preview,check,deploy,retract,canRetract,raiseToFire,dismiss,stow,outline,update,nozzle,circles,envelope:()=>envelope};
 }

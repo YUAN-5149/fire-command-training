@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s13">
+<link rel="stylesheet" href="xinyi-street.css?v=s14">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -32,7 +32,7 @@
  <div class="fire-bar"><span>火勢</span><i><b id="fireLevel"></b></i></div>
  <ol id="missionSteps"></ol>
  <p id="victimLine" hidden></p>
- <div id="aerialPanel"><div><b>雲梯車</b> <span id="aerialStatus">未配置</span></div><div class="aerial-actions"><button id="aerialBtn">配置雲梯（L）</button><button id="aerialCancel" hidden>取消</button></div></div>
+ <div id="aerialPanel"><div><div><b>雲梯車</b> <span id="aerialStatus">未配置</span></div><small id="aerialLoad"></small></div><div class="aerial-actions"><button id="aerialBtn">配置雲梯（L）</button><button id="aerialCancel" hidden>取消</button></div></div>
  <p id="missionHint"></p>
  <button id="missionAbort">取消任務</button>
 </aside>
@@ -76,6 +76,9 @@
     <h2>操作</h2>
     <div class="row"><span>視角靈敏度 <b id="sensValue">1.0×</b></span><input type="range" id="sens" min="0.4" max="2" step="0.1" value="1"></div>
     <div class="row"><span>反轉上下視角</span><label class="switch"><input type="checkbox" id="invertY"><i></i></label></div>
+    <h2>雲梯籃架載重</h2>
+    <div class="load-grid"><label>消防員體重<input type="number" id="load-firefighter" min="0" step="1"> kg</label><label>消防衣與 SCBA<input type="number" id="load-gear" min="0" step="1"> kg</label><label>籃內器材<input type="number" id="load-equipment" min="0" step="1"> kg</label><label>擔架<input type="number" id="load-stretcher" min="0" step="1"> kg</label><label>容許籃載重<input type="number" id="load-capacity" min="0" step="1"> kg</label><button id="loadReset">回復示意預設</button></div>
+    <p class="note">籃內 1 名消防員（轉台操作員不計入籃載重）＋待救者估計體重＋擔架（昏迷、重傷時）。預設值為示意；容許籃載重預設為 Rosenbauer L32A-XS 原廠最高額定 500 kg（5 人），<b>不等於該作業半徑與仰角的可用值</b>，請依原廠作業曲線輸入。超過時不能配置救援或升梯。</p>
     <h2>街道生活層（示意）</h2>
     <div class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 車流與機車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 車道標線</label><label><input type="checkbox" id="lifeTrees" checked> 補植行道樹</label></div>
     <p class="note">以上皆為示意，非實際店家、車流、樹位或已核對標線。設定會記在這台裝置的瀏覽器。</p>
@@ -118,6 +121,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s13"></script>
+<script type="module" src="xinyi-street.js?v=s14"></script>
 </body>
 </html>

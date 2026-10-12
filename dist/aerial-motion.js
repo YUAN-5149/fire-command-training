@@ -70,6 +70,7 @@ export function createAerialMotion(source,{slew,elevation,level,floor,extensions
   // A diagonal ladder's AABB contains empty space: narrow phase uses its actual
   // triangles, so genuine clearance beside/above the roof is not rejected.
   for(const mesh of ladderMeshes){
+   if(!mesh.visible)continue;
    const matrix=frameMatrix(mesh);
    bounds.copy(mesh.geometry.boundingBox).applyMatrix4(matrix);
    for(const body of chassis){
@@ -87,8 +88,9 @@ export function createAerialMotion(source,{slew,elevation,level,floor,extensions
  }
  function clearance(candidate) {
   const position=place(candidate);
-  meshes.forEach(({mesh,box},i)=>partBounds[i].copy(box).applyMatrix4(frameMatrix(mesh)));
-  const chassisHit=chassisCollision(),outside=envelope(partBounds);
+  // Hidden parts (e.g. an optional stretcher bracket that is not fitted) are not part of the rig.
+  const parts=[];meshes.forEach(({mesh,box},i)=>{if(mesh.visible)parts.push(partBounds[i].copy(box).applyMatrix4(frameMatrix(mesh)));});
+  const chassisHit=chassisCollision(),outside=envelope(parts);
   return {...outside,safe:!chassisHit&&outside.safe,position,chassisHit};
  }
  function solve(target) {

@@ -137,3 +137,8 @@ button.primary{background:#c8202b;border-color:#ff6b6b}
 #victimLine{margin:6px 0 0;padding:5px 8px;border-radius:6px;background:rgba(115,158,197,.18);border:1px solid rgba(115,158,197,.6);font-size:13px;color:#dbe9f5}
 #victimLine.done{background:rgba(127,211,138,.15);border-color:#7fd38a;color:#c9f0cf}
 #victimLine[hidden]{display:none}
+#aerialLoad{display:block;color:#aab6bc;font-size:11px;margin-top:2px}
+#aerialLoad.over{color:#ff8a8a;font-weight:700}
+.load-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;align-items:end;margin:6px 0}
+.load-grid label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:#cfd8dc}
+.load-grid input{width:100%;font:inherit;background:#1d2a34;color:#edf1f2;border:1px solid #53636d;border-radius:6px;padding:6px}
