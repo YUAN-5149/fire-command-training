@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s15">
+<link rel="stylesheet" href="xinyi-street.css?v=s16">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -33,6 +33,8 @@
  <ol id="missionSteps"></ol>
  <p id="victimLine" hidden></p>
  <button id="triageBtn" hidden>檢傷與處置（K）</button>
+ <p id="mciLine" hidden></p>
+ <button id="transportBtn" hidden>後送管理（J）</button>
  <div id="aerialPanel"><div><div><b>雲梯車</b> <span id="aerialStatus">未配置</span></div><small id="aerialLoad"></small></div><div class="aerial-actions"><button id="aerialBtn">配置雲梯（L）</button><button id="aerialCancel" hidden>取消</button></div></div>
  <p id="missionHint"></p>
  <button id="missionAbort">取消任務</button>
@@ -45,6 +47,12 @@
 <div id="triageResult" hidden></div>
 <p class="note">生命徵象為示意值；分類參考 START 簡易檢傷分類流程，處置比對為常見做法參考，不是醫療判斷或評分，請依單位 EMT 標準與教官講評。</p>
 <div class="report-actions"><button id="triageSubmit" class="primary" disabled>完成檢傷與處置</button><button id="triageClose">關閉（Esc）</button></div></div></div>
+<div id="transport" hidden role="dialog" aria-label="後送管理"><div class="report-card transport-card"><h2>後送管理（大量傷患）</h2>
+<p id="transportInfo" class="note"></p>
+<table class="transport-table"><thead><tr><th>順序</th><th>分類</th><th>傷患</th><th>後送醫院</th><th>調整</th></tr></thead><tbody id="transportRows"></tbody></table>
+<h3>已後送</h3><ul id="transportDone"></ul>
+<p class="note">救護車抵達時依上表順序裝載：第一位可後送者（已檢傷、非黑色、已指定醫院）決定醫院，再依序補上同醫院者，每輛擔架 1、坐姿 2。抵達時間、醫院層級與載運規則皆為示意，實際後送醫院請依救護派遣與 EMOC 指示。參考比對於任務紀錄列出，不評分。</p>
+<div class="report-actions"><button id="transportDefault">依分類預設醫院（紅→A、黃→B、綠→C）</button><button id="transportClose" class="primary">關閉（Esc）</button></div></div></div>
 <div id="waypoint" hidden><span class="pin">◆</span> <span id="wpText"></span></div>
 <div id="bigmap" hidden>
  <canvas id="mapCanvas" aria-label="信義區全區地圖"></canvas>
@@ -73,6 +81,7 @@
     <div class="row"><span>畫質<small id="qualityNote">自動依裝置與實際幀率調整</small></span><div class="seg" id="quality"><button data-v="auto">自動</button><button data-v="low">低</button><button data-v="medium">中</button><button data-v="high">高</button></div></div>
     <div class="row"><span>畫面更新率<small>30 FPS 較省電</small></span><div class="seg" id="fpsCap"><button data-v="60">60 FPS</button><button data-v="30">30 省電</button></div></div>
     <div class="row"><span>顯示 FPS</span><label class="switch"><input type="checkbox" id="showFps"><i></i></label></div>
+    <div class="row"><span>派遣類型<small>大量傷患：街側另有 8–12 名傷患需檢傷與後送</small></span><div class="seg" id="missionType"><button data-v="fire">一般火警</button><button data-v="mci">大量傷患</button></div></div>
     <div class="row"><span>時段</span><div class="seg" id="timeSeg"><button data-v="afternoon">下午</button><button data-v="dusk">黃昏</button><button data-v="night">夜間</button></div></div>
     <h2>音效</h2>
     <div class="row"><span>靜音</span><label class="switch"><input type="checkbox" id="muted"><i></i></label></div>
@@ -98,7 +107,7 @@
     <h2>駕駛消防車</h2>
     <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
     <h2>共通</h2>
-    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>傷患檢傷與急救處置</td><td><kbd>K</kbd>（救出交接後，在傷患旁 5 m 內）</td></tr><tr><td>雲梯車：配置／確認車位／升梯出水／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置。有受困者時先以籃架救人）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>傷患檢傷與急救處置</td><td><kbd>K</kbd>（在傷患旁 5 m 內；窗口受困者需先救出交接）</td></tr><tr><td>後送管理（大量傷患）</td><td><kbd>J</kbd></td></tr><tr><td>雲梯車：配置／確認車位／升梯出水／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置。有受困者時先以籃架救人）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
     <h2>遊戲手把</h2>
     <table class="keys"><tr><td>移動／轉向</td><td>左搖桿（按下左搖桿或 <kbd>LB</kbd> 跑步）</td></tr><tr><td>視角</td><td>右搖桿；按下右搖桿視角回正；十字鍵 ←／→ 拉近／拉遠</td></tr><tr><td>上／下車</td><td><kbd>A</kbd>（PS：✕）</td></tr><tr><td>油門／倒車</td><td><kbd>RT</kbd>／<kbd>LT</kbd>（亦可用左搖桿上下）</td></tr><tr><td>煞車</td><td>按住 <kbd>B</kbd>（PS：○）</td></tr><tr><td>警示燈</td><td><kbd>Y</kbd>（PS：△）</td></tr><tr><td>佈設／收回水線</td><td><kbd>X</kbd>（PS：□）</td></tr><tr><td>雲梯車配置／確認／收梯</td><td><kbd>RB</kbd>（PS：R1）</td></tr><tr><td>出水</td><td>按住 <kbd>RT</kbd>（步行持水線時）</td></tr><tr><td>派遣火警／切換時段</td><td>十字鍵 ↑／↓</td></tr><tr><td>地圖／暫停選單</td><td><kbd>Back</kbd>（View）／<kbd>Start</kbd>（Menu）；<kbd>B</kbd> 關閉</td></tr></table>
     <p class="note">依瀏覽器 Gamepad API 的標準配置（Xbox、PlayStation、Switch Pro 等經 USB／藍牙連線）；按任一鍵後才會被瀏覽器偵測。非標準配置的手把按鍵位置可能不同。撞擊時若手把支援會短暫震動。</p>
@@ -129,6 +138,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s15"></script>
+<script type="module" src="xinyi-street.js?v=s16"></script>
 </body>
 </html>

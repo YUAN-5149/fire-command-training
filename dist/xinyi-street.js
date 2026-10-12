@@ -3,23 +3,24 @@
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
-import {rigWheels} from './wheel-rig.js?v=s15';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s15';
-import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s15';
-import {createBigMap} from './xinyi-street-map.js?v=s15';
-import {createAudio} from './xinyi-street-audio.js?v=s15';
-import {RULES,pickFireSite,siteFromBuilding,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s15';
-import {readPad,pickPad,rumble,BUTTONS} from './xinyi-street-gamepad.js?v=s15';
-import {createXinyiAerial,buildObstacleIndex,fromFrameXZ,createPatient,needsStretcher,basketLoad,CONDITION_LABEL} from './xinyi-street-aerial.js?v=s15';
-import {makeVitals,startTriage,aidReference,compareAid,needsCollar,FIRST_AID,TAGS,MECHANISMS} from './xinyi-street-triage.js?v=s15';
-import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s15';
-import {storeKey} from './deployment-store.js?v=s15';
-import {unproject} from './xinyi-street-world.js?v=s15';
+import {rigWheels} from './wheel-rig.js?v=s16';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s16';
+import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s16';
+import {createBigMap} from './xinyi-street-map.js?v=s16';
+import {createAudio} from './xinyi-street-audio.js?v=s16';
+import {RULES,pickFireSite,siteFromBuilding,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s16';
+import {readPad,pickPad,rumble,BUTTONS} from './xinyi-street-gamepad.js?v=s16';
+import {createXinyiAerial,buildObstacleIndex,fromFrameXZ,createPatient,needsStretcher,basketLoad,CONDITION_LABEL} from './xinyi-street-aerial.js?v=s16';
+import {makeVitals,startTriage,aidReference,compareAid,needsCollar,FIRST_AID,TAGS,MECHANISMS} from './xinyi-street-triage.js?v=s16';
+import {generateCasualties,loadAmbulance,transportReference,mciComplete,priority,HOSPITALS,AMBULANCE} from './xinyi-street-mci.js?v=s16';
+import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s16';
+import {storeKey} from './deployment-store.js?v=s16';
+import {unproject} from './xinyi-street-world.js?v=s16';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
-import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s15';
+import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s16';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
 const canvas=$('view');let renderer;
@@ -132,7 +133,7 @@ if(gisSummary())showNotice(gisSummary()+(gisEngine()?'；第一車組位置即�
 addEventListener('storage',async e=>{if(e.key!==storeKey('xinyi'))return;gisDep=gis?.load()??null;await applyGis();showNotice('已同步 GIS 部署頁的更新'+(gisSummary()?'：'+gisSummary().replace('已載入 GIS 部署：',''):''));});
 
 // 輸入
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();audio.unlock();if(!$('triage').hidden){if(k==='escape'||k==='k')closeTriage();return;}if(k==='k'&&!state.paused){openTriage();return;}if(bigmap.open){if(k==='m'||k==='escape')closeMap();return;}if(k==='m'&&!state.paused){openMap();return;}if(k==='escape'||k==='p'){setPaused(!state.paused);e.preventDefault();return;}if(k==='h'){setPaused(true,'controls');return;}if(state.paused)return;state.keys.add(k);if(k==='e')toggleVehicle();if(k==='t')startMission();if(k==='f')toggleHose();if(k==='l')aerialAction();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();audio.unlock();if(!$('triage').hidden){if(k==='escape'||k==='k')closeTriage();return;}if(!$('transport').hidden){if(k==='escape'||k==='j')closeTransport();return;}if(k==='k'&&!state.paused){openTriage();return;}if(k==='j'&&!state.paused){openTransport();return;}if(bigmap.open){if(k==='m'||k==='escape')closeMap();return;}if(k==='m'&&!state.paused){openMap();return;}if(k==='escape'||k==='p'){setPaused(!state.paused);e.preventDefault();return;}if(k==='h'){setPaused(true,'controls');return;}if(state.paused)return;state.keys.add(k);if(k==='e')toggleVehicle();if(k==='t')startMission();if(k==='f')toggleHose();if(k==='l')aerialAction();if(k==='q')toggleSiren();if(k==='n')cycleTime();if(k==='r')resetAll();if([' ','arrowup','arrowdown'].includes(k))e.preventDefault();});
 addEventListener('keyup',e=>state.keys.delete(e.key.toLowerCase()));addEventListener('blur',()=>state.keys.clear());
 let drag=null;
 canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&e.clientX<innerWidth*.45)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
@@ -198,9 +199,16 @@ function flashHint(text){$('missionHint').textContent=text;}
 // 受困者（示意）：起火樓層、同一立面，起火窗口旁約 3 m 的窗口（牆面太短時在同一窗口）。只能由雲梯籃架救出。
 // ---------- 檢傷與急救處置（訓練示意） ----------
 // 救出交接後，中隊長走到傷患旁按 K：依示意生命徵象選檢傷分類與處置，之後顯示 START 參考與常見做法參考（不評分）。
-function openTriage(){
- const v=mission?.victim;if(!v||v.state!=='rescued'){flashHint(v?'傷患救出交接後才能檢傷':'目前沒有傷患');return;}
- const near=v.handover&&Math.hypot(state.x-v.handover.x,state.z-v.handover.z)<5;if(!near&&!v.triage){flashHint('走到傷患旁（交接位置 5 m 內）再按 K 檢傷');return;}
+// 可檢傷對象：已救出交接的窗口受困者，以及大量傷患模式的現場傷患（未後送者）。取 5 m 內最近者。
+let triageTarget=null;
+function patientPos(p){return p.handover??p.figure.root.position;}
+function triageCandidates(){const list=[...(mission?.mci?.patients??[]).filter(p=>p.state!=='transported')];const v=mission?.victim;if(v?.state==='rescued'&&!list.includes(v))list.push(v);return list;}
+function openTriage(target){
+ let v=target;
+ if(!v){const c=triageCandidates().map(p=>({p,d:Math.hypot(state.x-patientPos(p).x,state.z-patientPos(p).z)})).sort((a,b)=>a.d-b.d)[0];
+  if(!c){const w=mission?.victim;flashHint(w&&w.state!=='rescued'?'傷患救出交接後才能檢傷':'目前沒有可檢傷的傷患');return;}
+  if(c.d>5&&!c.p.triage){flashHint('走到傷患旁（5 m 內）再按 K 檢傷'+(mission?.mci?'；傷患集中在起火建物前方街側':''));return;}v=c.p;}
+ triageTarget=v;$('triage').querySelector('h2').textContent='檢傷與急救處置'+(v.id?`・${v.id}`:'');
  const vt=v.vitals,yes=b=>b?'是':'否';
  $('triageWho').textContent=`${v.sex==='male'?'男性':'女性'}・估計 ${v.weight} kg・${CONDITION_LABEL[v.condition]}・${vt.mechanisms.map(m=>MECHANISMS[m]).join('、')}`;
  $('triageFindings').innerHTML=[['可自行行走',yes(vt.walks)],['自發呼吸',vt.breathing?'有':'無'+(vt.breathesAfterAirway?'（暢通呼吸道後恢復）':'（暢通呼吸道後仍無）')],['呼吸次數',vt.breathing||vt.breathesAfterAirway?vt.rr+' 次／分':'—'],['橈動脈脈搏',vt.radialPulse?'摸得到':'摸不到'],['微血管充填',vt.capRefill+' 秒'],['遵從簡單指令',yes(vt.obeys)],['頸圈',v.collar?'已於籃架固定':'未使用']].map(([a,b])=>`<tr><td>${a}</td><td>${b}</td></tr>`).join('');
@@ -212,19 +220,87 @@ function openTriage(){
  $('triageSubmit').onclick=()=>{const aid=[...$('triageAid').querySelectorAll('input:checked')].map(c=>c.value);submitTriage(chosen,aid);};
  sync();showTriageResult();$('triage').hidden=false;state.keys.clear();
 }
-function submitTriage(tag,aid){
- const v=mission?.victim;if(!v||!tag||v.triage)return false;const start=startTriage(v.vitals),reference=aidReference(v.vitals);
- v.triage={tag,aid,start,reference,compare:compareAid(aid,reference),time:mission.elapsed};mission.times.triage=mission.elapsed;
+function submitTriage(tag,aid,target=triageTarget){
+ const v=target;if(!v||!tag||v.triage)return false;const start=startTriage(v.vitals),reference=aidReference(v.vitals);
+ v.triage={tag,aid,start,reference,compare:compareAid(aid,reference),time:mission.elapsed};if(v===mission.victim)mission.times.triage=mission.elapsed;mciTagged(v);
  v.figure.setTag(TAGS[tag].color);v.figure.setMask(aid.includes('oxygen'));if(aid.includes('collar'))v.figure.setCollar(true);
  for(const c of $('triageAid').querySelectorAll('input'))c.disabled=true;$('triageSubmit').disabled=true;showTriageResult();renderVictim();flashHint(`已記錄檢傷（${TAGS[tag].label}）與處置 ${aid.length} 項；檢傷卡已繫上`);return true;
 }
 function showTriageResult(){
- const t=mission?.victim?.triage;$('triageResult').hidden=!t;if(!t)return;const label=k=>FIRST_AID.find(f=>f.id===k).label;
+ const t=triageTarget?.triage;$('triageResult').hidden=!t;if(!t)return;const label=k=>FIRST_AID.find(f=>f.id===k).label;
  $('triageResult').innerHTML=`<p><b>你的分類：</b>${TAGS[t.tag].label}　<b>START 參考：</b>${TAGS[t.start.tag].label}${t.tag===t.start.tag?'（相同）':'（不同，請討論）'}</p><p class="note">START 依據：${t.start.steps.join(' → ')}</p>`+
   `<p><b>處置比對（常見做法參考，非醫療判斷、不評分）</b></p><ul>`+(t.compare.matched.length?`<li>相同：${t.compare.matched.map(label).join('、')}</li>`:'')+t.compare.missing.map(m=>`<li>參考但未選：${label(m.id)}——${m.why}</li>`).join('')+(t.compare.extra.length?`<li>另外選擇：${t.compare.extra.map(label).join('、')}（請說明理由）</li>`:'')+`</ul>`;
 }
 function closeTriage(){$('triage').hidden=true;}
-$('triageBtn').onclick=()=>openTriage();$('triageClose').onclick=()=>closeTriage();
+$('triageBtn').onclick=()=>openTriage(mission?.mci?undefined:mission?.victim);$('triageClose').onclick=()=>closeTriage();
+
+// ---------- 大量傷患（MCI）：現場檢傷與後送順序（訓練示意） ----------
+// 派遣類型選「大量傷患」時，起火建物前方街側另有 8–12 名傷患；中隊長逐一按 K 檢傷，於「後送管理」排定順序與醫院，
+// 救護車依時間抵達後依順序裝載（擔架 1、坐姿 2、同一醫院）。窗口受困者救出後也加入後送名單。
+const TARP=[['red','#f85149'],['yellow','#e3b341'],['green','#3fb950']];
+function clearMci(){const m=mission?.mci;if(!m)return;for(const p of m.patients)if(p.figure&&p!==mission.victim)scene.remove(p.figure.root);for(const o of m.objects)scene.remove(o);closeTransport();}
+// 空地判定：不在任何量體屋頂三角形（建物投影）內，且離落地牆面有足夠距離。
+function openGround(site,radius=70){
+ const tris=[];for(const b of district.buildings){const r=b.roofs??[];if(!r.length)continue;const [x0,z0]=project(r[0][0],r[0][1]);if(Math.hypot(x0-site.x,z0-site.z)>radius+80)continue;
+  for(let i=0;i+2<r.length;i+=3)tris.push([r[i],r[i+1],r[i+2]].map(v=>project(v[0],v[1])));}
+ const inside=(x,z)=>tris.some(([a,b,c])=>{const s1=(b[0]-a[0])*(z-a[1])-(b[1]-a[1])*(x-a[0]),s2=(c[0]-b[0])*(z-b[1])-(c[1]-b[1])*(x-b[0]),s3=(a[0]-c[0])*(z-c[1])-(a[1]-c[1])*(x-c[0]);return (s1>=0&&s2>=0&&s3>=0)||(s1<=0&&s2<=0&&s3<=0);});
+ return (x,z,r)=>{if(colliders.resolve(x,z,r).hit)return false;for(let k=0;k<=8;k++){const a=k*Math.PI/4,rr=k===8?0:r;if(inside(x+Math.cos(a)*rr,z+Math.sin(a)*rr))return false;}return true;};
+}
+function setupMci(site){
+ const tx=-site.nz,tz=site.nx,side=mission.victim&&((mission.victim.x-site.x)*tx+(mission.victim.z-site.z)*tz)>0?-1:1,free=openGround(site);
+ const find=(cands,r)=>{for(const [d,a] of cands){const x=site.x+site.nx*d+tx*side*a,z=site.z+site.nz*d+tz*side*a;if(free(x,z,r))return [x,z];}return null;};
+ const grid=[];for(const a of [10,6,14,18,2,-6,-12,22])for(const d of [8,10,6,12,14,16])grid.push([d,a]);
+ const [cx,cz]=find(grid,3.5)??[site.x+site.nx*8+tx*side*10,site.z+site.nz*8+tz*side*10],n=8+Math.floor(Math.random()*5),patients=generateCasualties(n),objects=[];
+ const place=(x,z)=>{for(let k=0;k<12;k++){const a=k*2.4,rr=k*.5,px=x+Math.cos(a)*rr,pz=z+Math.sin(a)*rr;if(free(px,pz,.5))return new T.Vector3(px,ground.at(px,pz),pz);}return new T.Vector3(x,ground.at(x,z),z);};
+ const near=(x0,z0,cands,r)=>{for(const [d,a] of cands){const x=x0+site.nx*d+tx*side*a,z=z0+site.nz*d+tz*side*a;if(free(x,z,r))return new T.Vector3(x,ground.at(x,z),z);}return null;};
+ patients.forEach((p,i)=>{const col=i%4,row=Math.floor(i/4),pos=place(cx+tx*(col-1.5)*1.9+site.nx*row*2.2,cz+tz*(col-1.5)*1.9+site.nz*row*2.2);
+  p.figure=createPatient(scene,{sex:p.sex,condition:p.condition});p.figure.root.position.copy(pos);p.figure.root.rotation.y=p.condition==='unconscious'?Math.atan2(tx,tz):Math.atan2(site.nx,site.nz)+Math.PI;p.hospital=null;});
+ // 檢傷分區（紅、黃、綠示意地布）與救護車停靠點
+ // 分區沿街排在傷患區旁（遠離起火面一側），以地布半寬推離牆面。
+ const tarps={},used=[];TARP.forEach(([k,c],i)=>{const cands=[];for(const a of [9,14,19,24,-9,-14,-19,4])for(const d of [0,2,-2,4])cands.push([d,a]);
+  const pos=near(cx,cz,cands.filter(([d,a])=>!used.some(u=>Math.hypot(u[0]-a,u[1]-d)<4.6)),2.3)??place(cx+tx*side*(9+i*5),cz+tz*side*(9+i*5));const c2=cands.find(([d,a])=>{const x=cx+site.nx*d+tx*side*a,z=cz+site.nz*d+tz*side*a;return Math.hypot(x-pos.x,z-pos.z)<.01;});if(c2)used.push([c2[1],c2[0]]);
+  const m=new T.Mesh(new T.PlaneGeometry(4,4),new T.MeshBasicMaterial({color:c,transparent:true,opacity:.45,depthWrite:false,side:T.DoubleSide}));m.rotation.x=-Math.PI/2;m.position.copy(pos).add(new T.Vector3(0,.08,0));scene.add(m);objects.push(m);tarps[k]=pos;});
+ const stagingCands=[];for(const a of [0,-8,8,-14,14])for(const d of [6,4,8,10])stagingCands.push([d,a]);
+ const staging=near(cx,cz,stagingCands,3)??place(cx+site.nx*6,cz+site.nz*6),amb=new T.Group();amb.position.copy(staging);amb.rotation.y=Math.atan2(tx*side,tz*side)+Math.PI/2;amb.visible=false;scene.add(amb);objects.push(amb);
+ if(geoModels){new GLTFLoader().loadAsync(geoModels.ambulance.file).then(g=>{const m=g.scene;m.rotation.y=-Math.PI/2;amb.add(m);}).catch(()=>{});}
+ return {patients,order:[],departures:[],objects,tarps,staging,amb,next:AMBULANCE.first,count:0,loading:null,start:mission.elapsed,waitingNoted:false};
+}
+// 檢傷後加入後送順序：插在同色或更優先者之後（使用者可在後送管理調整）；可行走（綠）者走到綠區。
+function mciTagged(p){const m=mission?.mci;if(!m||p.triage.tag==='black')return renderMci();
+ if(!m.patients.includes(p))m.patients.push(p);if(!m.order.includes(p.id??(p.id='W1'))){let i=m.order.length;while(i>0&&priority(m.patients.find(q=>q.id===m.order[i-1]).triage.tag)>priority(p.triage.tag))i--;m.order.splice(i,0,p.id);}
+ if(p.vitals.walks&&m.tarps.green&&p!==mission.victim)p.walkTo=m.tarps.green.clone().add(new T.Vector3((Math.random()-.5)*2.5,0,(Math.random()-.5)*2.5));renderMci();}
+function updateMci(dt){
+ const m=mission?.mci;if(!m)return;
+ for(const p of m.patients)if(p.walkTo&&p.state!=='transported'){const f=p.figure.root,d=p.walkTo.clone().sub(f.position);d.y=0;const l=d.length();if(l<.1){p.walkTo=null;p.figure.legs.forEach(x=>x.rotation.x=0);continue;}
+  const step=Math.min(l,1.2*dt);f.position.addScaledVector(d.normalize(),step);f.position.y=ground.at(f.position.x,f.position.z);f.rotation.y=Math.atan2(-d.x,-d.z);const sw=Math.sin(mission.elapsed*7)*.35;p.figure.legs[0].rotation.x=sw;p.figure.legs[1].rotation.x=-sw;}
+ const t=mission.elapsed-m.start;
+ if(!m.amb.visible&&!m.loading&&t>=m.next&&!mciComplete(m.patients)){m.amb.visible=true;m.count++;m.waitingNoted=false;flashHint(`救護車 ${m.count} 號抵達停靠點，依後送順序裝載`);renderMci();}
+ if(m.amb.visible&&!m.loading){const queue=m.order.map(id=>m.patients.find(p=>p.id===id)).filter(Boolean),load=loadAmbulance(queue);
+  if(load.length){m.loading={load,t:0};for(const p of load){p.state='loading';p.walkTo=null;}}else if(!m.waitingNoted){m.waitingNoted=true;flashHint(`救護車 ${m.count} 號待命：尚無可後送傷患（需完成檢傷並在後送管理指定醫院）`);}}
+ if(m.loading){m.loading.t+=dt;const L=m.loading;for(const p of L.load){const f=p.figure.root;f.position.lerp(m.staging.clone().setY(ground.at(m.staging.x,m.staging.z)),Math.min(1,dt*1.5));}
+  if(L.t>=6){for(const p of L.load){p.state='transported';p.figure.root.visible=false;}m.departures.push({no:m.count,time:mission.elapsed,hospital:L.load[0].hospital,patients:L.load.map(p=>p.id)});
+   flashHint(`救護車 ${m.count} 號載 ${L.load.map(p=>p.id).join('、')} 前往 ${HOSPITALS.find(h=>h.id===L.load[0].hospital).name}`);m.loading=null;m.amb.visible=false;m.next=t+AMBULANCE.interval;renderMci();
+   if(mission.reportPending&&mciComplete(m.patients))showReport();}}
+ if(!$('transport').hidden&&Math.floor(mission.elapsed*2)!==Math.floor((mission.elapsed-dt)*2))renderTransport();
+}
+function renderMci(){const m=mission?.mci;$('mciLine').hidden=!m;$('transportBtn').hidden=!m;if(!m)return;const P=m.patients,tri=P.filter(p=>p.triage).length,gone=P.filter(p=>p.state==='transported').length,t=mission.elapsed-m.start;
+ $('mciLine').textContent=`大量傷患 ${P.length} 人・已檢傷 ${tri}・已後送 ${gone}・`+(m.loading?`救護車 ${m.count} 號裝載中`:m.amb.visible?`救護車 ${m.count} 號待命`:mciComplete(P)?'後送完成':`下一輛救護車 ${fmt(Math.max(0,m.next-t))}`);if(!$('transport').hidden)renderTransport();}
+const tagChip=tag=>tag?`<i class="chip" style="background:${TAGS[tag].color}"></i>${TAGS[tag].label.split('（')[0]}`:'未檢傷';
+function renderTransport(){const m=mission?.mci;if(!m)return;
+ const rows=m.order.map(id=>m.patients.find(p=>p.id===id)).filter(p=>p&&p.state!=='transported');
+ $('transportRows').innerHTML=rows.map((p,i)=>`<tr data-id="${p.id}"><td>${i+1}</td><td>${tagChip(p.triage.tag)}</td><td>${p.id}・${p.sex==='male'?'男':'女'}・${p.vitals.walks?'坐姿':'擔架'}${p.state==='loading'?'・裝載中':''}</td><td><select ${p.state==='loading'?'disabled':''}><option value="">選擇醫院</option>${HOSPITALS.map(h=>`<option value="${h.id}"${p.hospital===h.id?' selected':''}>${h.name}・${h.label}</option>`).join('')}</select></td><td><button data-mv="-1">↑</button><button data-mv="1">↓</button></td></tr>`).join('')||'<tr><td colspan="5">尚無已檢傷傷患（走到傷患旁按 K）</td></tr>';
+ for(const tr of $('transportRows').querySelectorAll('tr[data-id]')){const id=tr.dataset.id;tr.querySelector('select').onchange=e=>{m.patients.find(p=>p.id===id).hospital=e.target.value||null;m.waitingNoted=false;};
+  for(const b of tr.querySelectorAll('[data-mv]'))b.onclick=()=>{const i=m.order.indexOf(id),j=i+(+b.dataset.mv);if(j<0||j>=m.order.length)return;[m.order[i],m.order[j]]=[m.order[j],m.order[i]];renderTransport();};}
+ const untriaged=m.patients.filter(p=>!p.triage).length,black=m.patients.filter(p=>p.triage?.tag==='black').length,t=mission.elapsed-m.start;
+ $('transportInfo').textContent=`未檢傷 ${untriaged} 人・黑色（不後送）${black} 人・`+(m.loading?`救護車 ${m.count} 號裝載中`:m.amb.visible?`救護車 ${m.count} 號待命中`:`下一輛救護車約 ${fmt(Math.max(0,m.next-t))} 後抵達`)+`；每輛載擔架 ${AMBULANCE.stretcher}、坐姿 ${AMBULANCE.seated}，同車須同一醫院。`;
+ $('transportDone').innerHTML=m.departures.map(d=>`<li>救護車 ${d.no} 號（${fmt(d.time)}）→ ${HOSPITALS.find(h=>h.id===d.hospital).name}：${d.patients.join('、')}</li>`).join('')||'<li>尚未後送</li>';}
+function openTransport(){if(!mission?.mci){flashHint('後送管理用於「大量傷患」派遣（暫停選單 → 設定 → 派遣類型）');return;}renderTransport();$('transport').hidden=false;state.keys.clear();}
+function closeTransport(){$('transport').hidden=true;}
+$('transportBtn').onclick=()=>openTransport();$('transportClose').onclick=()=>closeTransport();
+$('transportDefault').onclick=()=>{const m=mission?.mci;if(!m)return;for(const p of m.patients)if(p.triage&&!p.hospital&&p.state!=='transported')p.hospital=p.triage.tag==='red'?'A':p.triage.tag==='yellow'?'B':'C';m.waitingNoted=false;renderTransport();};
+function mciReportRows(row){const m=mission?.mci;if(!m)return '';const r=transportReference(m.patients,m.departures);
+ return row('大量傷患：人數／已檢傷／已後送',`${m.patients.length}／${r.triaged}／${r.transported}`)+row('你的分類與 START 參考相同',`${r.agree}／${r.triaged}`)+m.departures.map(d=>row(`救護車 ${d.no} 號（${fmt(d.time)}）`,`${HOSPITALS.find(h=>h.id===d.hospital).name}：${d.patients.join('、')}`)).join('')+
+  (r.notes.length?r.notes.map(n=>row('參考比對',n.text)).join(''):row('參考比對','後送先後與醫院層級無倒置或不符'));}
 
 // 性別、狀況與體重為隨機示意：可自行行動 50%、昏迷 30%（倒臥）、重傷 20%（癱坐）；昏迷與重傷需以擔架搬運。
 function makeVictim(site){
@@ -247,12 +323,13 @@ function startMission(){
  const target=gisDep?.target,fromGis=target?siteFromBuilding(district.buildings,streets.features,ground,{id:target.id,point:target.point,entrance:gisDep.entrance}):null;
  const site=fromGis??pickFireSite(district.buildings,streets.features,ground,Math.random,{exclude,colliders});if(!site)return;
  if(target&&!fromGis)flashHint('GIS 指定的搶救建物不在本頁量體範圍內，改為隨機派遣');
- aerial?.stow();setAerialMode(null);if(mission?.victim)scene.remove(mission.victim.figure.root);
- mission={site,phase:0,elapsed:0,times:{},intensity:.55,hose:false,spraying:false,parking:null,victim:makeVictim(site)};fireFx.setSite(site);renderVictim();
- $('missionTitle').textContent='建物火警';$('missionWhere').textContent=`${site.street||'信義區'} 一帶・${site.floor} 樓冒煙（示意）`+(site.fromGis?'・GIS 指定搶救建物'+(gisDep?.entrance?'，起火面取第一正面':''):'');$('mission').hidden=false;$('missionReport').hidden=true;
+ aerial?.stow();setAerialMode(null);clearMci();if(mission?.victim)scene.remove(mission.victim.figure.root);
+ mission={site,phase:0,elapsed:0,times:{},intensity:.55,hose:false,spraying:false,parking:null,victim:makeVictim(site)};fireFx.setSite(site);
+ if(settings.missionType==='mci')mission.mci=setupMci(site);renderVictim();renderMci();
+ $('missionTitle').textContent=mission.mci?'建物火警・大量傷患':'建物火警';$('missionWhere').textContent=`${site.street||'信義區'} 一帶・${site.floor} 樓冒煙（示意）`+(site.fromGis?'・GIS 指定搶救建物'+(gisDep?.entrance?'，起火面取第一正面':''):'');$('mission').hidden=false;$('missionReport').hidden=true;
  setWaypoint(site.x+site.nx*16,site.z+site.nz*16,'火警現場');renderMission();flashHint(state.mode==='drive'?'按 Q 開警示燈，依地圖黃線前往':'先走到消防車按 E 上車');
 }
-function endMission(){closeTriage();aerial?.stow();if(mission?.victim)scene.remove(mission.victim.figure.root);gis?.hide('aerial',false);setAerialMode(null);mission=null;fireFx.setSite(null);$('mission').hidden=true;clearWaypoint();person.nozzle.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
+function endMission(){closeTriage();clearMci();aerial?.stow();if(mission?.victim)scene.remove(mission.victim.figure.root);gis?.hide('aerial',false);setAerialMode(null);mission=null;renderMci();fireFx.setSite(null);$('mission').hidden=true;clearWaypoint();person.nozzle.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
 // 各步驟以實際紀錄時間判定完成；以雲梯出水等方式越過的步驟標示為略過，不顯示為已完成。
 const STEP_TIMES=['depart','arrive','parked','hose','water','done'];
 function renderMission(){if(!mission)return;$('missionSteps').innerHTML=STEPS.map((s,i)=>{const done=mission.times[STEP_TIMES[i]]!==undefined,skip=!done&&i<mission.phase;return `<li class="${done?'done':skip?'skip':i===mission.phase?'now':''}">${s}${skip?'（略過）':''}</li>`;}).join('');$('fireLevel').style.width=Math.round(Math.max(0,mission.intensity)*100)+'%';}
@@ -268,7 +345,7 @@ function updateMission(dt,t){
  const m=mission,site=m.site;
  if(m.victim?.state==='waiting'&&m.victim.condition==='well'){const a=m.victim.figure.arms;a[0].rotation.z=-2.6-Math.sin(t*6)*.35;a[1].rotation.z=2.6+Math.sin(t*6+1)*.35;}else if(m.victim){m.victim.figure.arms.forEach(a=>a.rotation.z=0);}
  if(m.victim&&m.victim.state!==m.victimShown){m.victimShown=m.victim.state;renderVictim();}
- if(m.phase<6){m.elapsed+=dt;$('missionClock').textContent=fmt(m.elapsed);if(!m.spraying)m.intensity=Math.min(1,m.intensity+RULES.growth*dt);}
+if(m.phase<6||m.reportPending){m.elapsed+=dt;$('missionClock').textContent=fmt(m.elapsed);if(m.phase<6&&!m.spraying)m.intensity=Math.min(1,m.intensity+RULES.growth*dt);}
  const truckDist=Math.hypot(truck.x-site.x,truck.z-site.z);
  if(m.phase===0&&state.mode==='drive'){m.phase=1;m.times.depart=m.elapsed;}
  if(m.phase===1&&truckDist<RULES.arriveRadius){m.phase=2;m.times.arrive=m.elapsed;flashHint('已抵達：於起火面外側 8–30 m 停車，停妥後按 E 下車');}
@@ -291,15 +368,16 @@ function updateMission(dt,t){
  if(aerial?.state.spraying&&m.phase<6){const n=aerial.nozzle(),fp=firePoint(site);fogSpray={origin:n.origin,dir:n.dir,range:n.origin.distanceTo(fp)};
   if(fogSpray.range<RULES.reach+6){if(m.times.water===undefined)m.times.water=m.elapsed;m.intensity=Math.max(0,m.intensity-RULES.knockdown*dt);if(m.phase<5){m.phase=5;}}}
  if(m.phase===4&&m.times.water!==undefined){m.phase=5;}
- if(m.phase===5&&m.intensity<=0){m.phase=6;m.intensity=0;m.times.done=m.elapsed;fireFx.setSite(null);showReport();}
+ if(m.phase===5&&m.intensity<=0){m.phase=6;m.intensity=0;m.times.done=m.elapsed;fireFx.setSite(null);if(m.mci&&!mciComplete(m.mci.patients)){m.reportPending=true;flashHint('火勢已控制；仍有傷患待檢傷或後送，完成後顯示任務紀錄');}else showReport();}
+ updateMci(dt);
  $('tHose').hidden=!(m.phase>=3&&state.mode==='walk');$('tSpray').hidden=!(m.hose&&state.mode==='walk');
  const handPos=new T.Vector3(state.x,ground.at(state.x,state.z)+1,state.z),truckPos=new T.Vector3(truck.x,ground.at(truck.x,truck.z)+1,truck.z);
  fireFx.update(dt,m.phase<6?m.intensity:0,{spray,hoseFrom:m.hose?truckPos:null,hoseTo:m.hose?handPos:null,fogSpray});
  if(Math.floor(t*4)!==Math.floor((t-dt)*4))renderMission();
 }
 function showReport(){
- const m=mission,T0=m.times,row=(a,b)=>`<tr><td>${a}</td><td>${b}</td></tr>`,span=(a,b)=>a!==undefined&&b!==undefined?fmt(b-a):'—';
- $('reportBody').innerHTML='<table>'+row('派遣地點',`${m.site.street||'信義區'}・${m.site.floor} 樓（示意）`)+row('派遣 → 上車出發',span(0,T0.depart))+row('出發 → 抵達',span(T0.depart,T0.arrive))+row('抵達 → 停妥下車',span(T0.arrive,T0.parked))+row('停妥 → 佈設水線',span(T0.parked,T0.hose))+row('佈線 → 開始射水',span(T0.hose,T0.water))+row('射水 → 火勢控制',span(T0.water,T0.done))+(T0.aerialStart!==undefined?row('雲梯：配置 → 籃架到位',span(T0.aerialStart,T0.aerialReady)):'')+(m.victim?.triage?row('檢傷（你的分類／START 參考）',TAGS[m.victim.triage.tag].label.split('（')[0]+'／'+TAGS[m.victim.triage.start.tag].label.split('（')[0])+row('急救處置',m.victim.triage.aid.map(id=>FIRST_AID.find(f=>f.id===id).label).join('、')||'未記錄'):(m.victim?.state==='rescued'?row('檢傷與處置','未記錄'):''))+row('受困者（'+(m.victim?`${m.victim.sex==='male'?'男':'女'}・${CONDITION_LABEL[m.victim.condition]}`:'—')+'）',T0.rescued!==undefined?'派遣後 '+fmt(T0.rescued)+(m.victim?.stretcher?' 以擔架':'')+' 救出':'未救出')+row('總時間',fmt(T0.done))+row('停車距起火面',m.parkDist?m.parkDist.toFixed(1)+' m':'—')+'</table>';
+ const m=mission;m.reportPending=false;const T0=m.times,row=(a,b)=>`<tr><td>${a}</td><td>${b}</td></tr>`,span=(a,b)=>a!==undefined&&b!==undefined?fmt(b-a):'—';
+ $('reportBody').innerHTML='<table>'+row('派遣地點',`${m.site.street||'信義區'}・${m.site.floor} 樓（示意）`)+row('派遣 → 上車出發',span(0,T0.depart))+row('出發 → 抵達',span(T0.depart,T0.arrive))+row('抵達 → 停妥下車',span(T0.arrive,T0.parked))+row('停妥 → 佈設水線',span(T0.parked,T0.hose))+row('佈線 → 開始射水',span(T0.hose,T0.water))+row('射水 → 火勢控制',span(T0.water,T0.done))+(T0.aerialStart!==undefined?row('雲梯：配置 → 籃架到位',span(T0.aerialStart,T0.aerialReady)):'')+(m.victim?.triage?row('檢傷（你的分類／START 參考）',TAGS[m.victim.triage.tag].label.split('（')[0]+'／'+TAGS[m.victim.triage.start.tag].label.split('（')[0])+row('急救處置',m.victim.triage.aid.map(id=>FIRST_AID.find(f=>f.id===id).label).join('、')||'未記錄'):(m.victim?.state==='rescued'?row('檢傷與處置','未記錄'):''))+row('受困者（'+(m.victim?`${m.victim.sex==='male'?'男':'女'}・${CONDITION_LABEL[m.victim.condition]}`:'—')+'）',T0.rescued!==undefined?'派遣後 '+fmt(T0.rescued)+(m.victim?.stretcher?' 以擔架':'')+' 救出':'未救出')+row('總時間',fmt(T0.done))+row('停車距起火面',m.parkDist?m.parkDist.toFixed(1)+' m':'—')+mciReportRows(row)+'</table>';
  $('missionReport').hidden=false;$('missionTitle').textContent='火勢已控制';flashHint('任務完成，可按 F 收回水線');renderMission();
 }
 // ---------- 雲梯車作業（訓練示意） ----------
@@ -362,7 +440,7 @@ function updateAerial(dt){
  if(e?.arrived){if(mission&&mission.times.aerialReady===undefined)mission.times.aerialReady=mission.elapsed;flashHint(e.rescue?(aerial.state.stretcher?'籃架到位受困者窗口：開籃門，籃內隊員將傷患移上擔架並固定':'籃架到位受困者窗口：開籃門，協助受困者跨窗台進籃'):'籃架到位，砲塔對準起火點出水（大水霧）');}
  if(e?.aboard)flashHint(aerial.state.stretcher?'傷患已固定於籃架擔架、籃門關妥：載人緩慢下降到車外地面':'受困者已進籃、籃門關妥：載人緩慢下降到車外地面');
  if(e?.landed)flashHint(aerial.state.stretcher?'籃架落地：卸下擔架，隊員與擔架移到交接位置':'籃架落地：開籃門，引導受困者離籃');
- if(e?.rescued){if(mission){mission.times.rescued=mission.elapsed;renderVictim();}flashHint('受困者已救出並交接（示意）；走到傷患旁按 K 檢傷與處置；按 L 升梯到起火窗口出水，或按「收梯」');}
+ if(e?.rescued){if(mission){mission.times.rescued=mission.elapsed;if(mission.mci&&!mission.mci.patients.includes(mission.victim)){mission.victim.id='W1';mission.mci.patients.push(mission.victim);renderMci();}renderVictim();}flashHint('受困者已救出並交接（示意）；走到傷患旁按 K 檢傷與處置；按 L 升梯到起火窗口出水，或按「收梯」');}
  if(e?.collar)flashHint('頭頸部撞擊機轉：籃內隊員先為傷患上頸圈');
  if(e?.strapped)flashHint('傷患已以胸、腰、腿三條固定帶固定於擔架');
  if(e?.parked)flashHint('已收梯並收回支腿；可按 L 重新配置或「撤離」');
@@ -481,7 +559,7 @@ function frame(now){
 function resize(){renderer.setPixelRatio(quality.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();const s=innerWidth<=640?140:220;mini.width=mini.height=s*Math.min(devicePixelRatio,2);}
 // ---------- 設定與暫停選單 ----------
 // 設定只存在本機瀏覽器（localStorage）；無法存取時仍以預設值運作。
-const SETTINGS_KEY='xinyiStreetSettings',DEFAULTS={quality:'auto',fps:60,showFps:false,sens:1,invertY:false,life:{traffic:true,people:true,shops:true,markings:true,trees:true},audio:{muted:false,master:.8,siren:.7,engine:.6,ambient:.5},load:{firefighter:75,gear:25,equipment:15,stretcher:15,capacity:500}};
+const SETTINGS_KEY='xinyiStreetSettings',DEFAULTS={quality:'auto',fps:60,showFps:false,sens:1,invertY:false,life:{traffic:true,people:true,shops:true,markings:true,trees:true},audio:{muted:false,master:.8,siren:.7,engine:.6,ambient:.5},load:{firefighter:75,gear:25,equipment:15,stretcher:15,capacity:500},missionType:'fire'};
 const settings=(()=>{try{const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');return {...DEFAULTS,...v,life:{...DEFAULTS.life,...v.life},audio:{...DEFAULTS.audio,...v.audio},load:{...DEFAULTS.load,...v.load}};}catch{return structuredClone(DEFAULTS);}})();
 const saveSettings=()=>{try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch{}};
 // 畫質：解析度倍率、陰影、NPC 密度、可視距離。自動模式依裝置起始，實測平均幀率過低時逐級降低。
@@ -510,6 +588,7 @@ $('menu').addEventListener('pointerdown',e=>{if(e.target===$('menu'))setPaused(f
 function bindSeg(id,get,set){const seg=$(id),sync=()=>{for(const b of seg.children)b.classList.toggle('on',b.dataset.v===String(get()));};for(const b of seg.children)b.onclick=()=>{set(b.dataset.v);sync();saveSettings();};sync();return sync;}
 bindSeg('quality',()=>settings.quality,v=>{settings.quality=v;quality.apply();});
 bindSeg('fpsCap',()=>settings.fps,v=>{settings.fps=+v;});
+bindSeg('missionType',()=>settings.missionType,v=>{settings.missionType=v;});
 const syncTime=bindSeg('timeSeg',()=>state.time,v=>{applyTime(v);quality.apply();});
 $('showFps').checked=settings.showFps;$('fps').hidden=!settings.showFps;$('showFps').onchange=()=>{settings.showFps=$('showFps').checked;$('fps').hidden=!settings.showFps;saveSettings();};
 $('sens').value=settings.sens;$('sensValue').textContent=(+settings.sens).toFixed(1)+'×';$('sens').oninput=()=>{settings.sens=+$('sens').value;$('sensValue').textContent=settings.sens.toFixed(1)+'×';saveSettings();};
@@ -527,5 +606,5 @@ $('loadReset').onclick=()=>{settings.load={...DEFAULTS.load};for(const k of Obje
 renderLoad();
 $('loading').hidden=true;
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){state.mode==='walk'?updateWalk(dt):updateDrive(dt);updateAerial(dt);updateMission(dt,i*dt);}}};
+window.__xinyiStreet={openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){state.mode==='walk'?updateWalk(dt):updateDrive(dt);updateAerial(dt);updateMission(dt,i*dt);}}};
 requestAnimationFrame(frame);
