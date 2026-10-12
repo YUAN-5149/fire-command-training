@@ -142,3 +142,16 @@ button.primary{background:#c8202b;border-color:#ff6b6b}
 .load-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;align-items:end;margin:6px 0}
 .load-grid label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:#cfd8dc}
 .load-grid input{width:100%;font:inherit;background:#1d2a34;color:#edf1f2;border:1px solid #53636d;border-radius:6px;padding:6px}
+#triage{position:fixed;inset:0;z-index:16;background:rgba(6,10,14,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+#triage[hidden]{display:none}
+.triage-card{max-height:calc(100vh - 32px);overflow:auto}
+.triage-card h3{margin:12px 0 6px;font-size:14px;color:#ffd36b}
+#triageWho{margin:0 0 6px;color:#dfe7ea;font-size:14px}
+#triageTags{display:flex;flex-wrap:wrap;gap:6px}
+#triageTags button{border-left:8px solid var(--tag);font-size:13px}
+#triageTags button.on{background:color-mix(in srgb,var(--tag) 45%,#0d1419);border-color:#fff}
+#triageAid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 12px;font-size:13px}
+#triageResult{margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(255,211,107,.08);border:1px solid rgba(255,211,107,.35);font-size:13px}
+#triageResult ul{margin:4px 0 0;padding-left:18px}
+#triageBtn{margin:6px 0 0;font-size:12px;padding:4px 10px;border-color:#60d6be}
+#triageBtn[hidden]{display:none}

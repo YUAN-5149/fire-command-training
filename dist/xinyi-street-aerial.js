@@ -3,8 +3,8 @@
 // 及升梯運動（aerial-motion）；只把避碰邊界由首頁街景的兩道立面換成信義的真實量體。
 // 幾何皆為模型示意，非原廠作業曲線、支腿反力或地盤承載核定；LOD1 量體不含陽臺、雨遮、招牌與騎樓等突出物。
 import * as T from 'three';
-import {project} from './xinyi-street-world.js?v=s14';
-import {createAerialMotion} from './aerial-motion.js?v=s14';
+import {project} from './xinyi-street-world.js?v=s15';
+import {createAerialMotion} from './aerial-motion.js?v=s15';
 import {createGrounding,walkBoarding} from './aerial-grounding.js';
 import {createCageSwivel,createNativeMonitor} from './native-cage.js';
 
@@ -124,8 +124,15 @@ export function createPatient(parent,{sex='male',condition='well'}={}){
  const head=new T.Mesh(new T.SphereGeometry(.17,12,8),skin);head.position.y=1.52;head.castShadow=true;body.add(head);box(body,.31,.12,.28,0,1.65,.025,hair);
  if(sex==='female'){const skirt=new T.Mesh(new T.CylinderGeometry(.23,.39,.55,20),shirt);skirt.position.y=.72;skirt.name='女性裙裝';body.add(skirt);box(body,.34,.42,.18,0,1.4,.13,hair).name='女性髮型';}
  const arms=[-1,1].map(side=>{const g=new T.Group();g.position.set(side*.27,1.3,0);body.add(g);box(g,.13,.58,.15,0,-.28,0,shirt);return g;});
+ // 頸圈（示意）：白色硬式頸圈，前方橙色調整片；預設不顯示。
+ const collar=new T.Group();collar.name='頸圈';body.add(collar);collar.position.y=1.36;collar.visible=false;
+ {const ring=new T.Mesh(new T.CylinderGeometry(.13,.14,.12,16,1,true),new T.MeshStandardMaterial({color:'#f2f2ee',roughness:.7,side:T.DoubleSide}));collar.add(ring);const tab=new T.Mesh(new T.BoxGeometry(.09,.1,.03),new T.MeshStandardMaterial({color:'#e8701a'}));tab.position.set(0,0,-.14);collar.add(tab);}
+ // 檢傷卡（示意）：繫在胸前，依分類變色；預設不顯示。
+ const tag=new T.Mesh(new T.BoxGeometry(.12,.16,.02),new T.MeshStandardMaterial({color:'#ffffff',emissive:'#000000'}));tag.position.set(.1,1.12,-.135);tag.visible=false;tag.name='檢傷卡';body.add(tag);
+ // 氧氣面罩（示意）
+ const mask=new T.Mesh(new T.BoxGeometry(.12,.1,.06),new T.MeshStandardMaterial({color:'#9fe0b0',transparent:true,opacity:.75}));mask.position.set(0,1.5,-.17);mask.visible=false;mask.name='氧氣面罩';body.add(mask);
  parent.add(root);
- const f={root,body,legs,arms,sex,condition};f.setPose=pose=>setPatientPose(f,pose);f.setPose(condition==='unconscious'?'lying':condition==='serious'?'slumped':'standing');return f;
+ const f={root,body,legs,arms,sex,condition,collar,tag,mask,setCollar:on=>{collar.visible=on;},setTag:color=>{tag.visible=!!color;if(color){tag.material.color.set(color);tag.material.emissive.set(color).multiplyScalar(.35);}},setMask:on=>{mask.visible=on;}};f.setPose=pose=>setPatientPose(f,pose);f.setPose(condition==='unconscious'?'lying':condition==='serious'?'slumped':'standing');return f;
 }
 // 倒臥：仰躺、身體沿 root 的 +z（腳在 −z、頭在 +z），中心在 root 原點；癱坐：與首頁重傷姿勢相同。
 export function setPatientPose(f,pose){
@@ -156,9 +163,15 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
  {const orange=new T.MeshStandardMaterial({color:'#e8701a',roughness:.6}),steel=new T.MeshStandardMaterial({color:'#9aa4a9',metalness:.7,roughness:.35});
   const box=(w,h,d,x,y,z,m)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;litter.add(o);return o;};
   box(.62,.1,2.1,-.95,-.2,0,orange);for(const x of [-.66,-1.24])box(.04,.08,2.1,x,-.12,0,steel);for(const z of [-.6,.6])box(.1,.05,.06,-.63,-.13,z,steel);
-  for(const z of [-.5,0,.5])box(.64,.02,.06,-.95,-.07,z,steel);}
+  for(const z of [-.5,0,.5])box(.64,.02,.06,-.95,-.07,z,steel);
+  // 固定帶（示意）：胸、腰、腿三條黃色綁帶跨過傷患，扣具黑色；固定後才顯示。
+  const strapMat=new T.MeshStandardMaterial({color:'#f2c230',roughness:.6}),buckle=new T.MeshStandardMaterial({color:'#1d1f20'});
+  for(const z of [.55,.05,-.5]){const st=box(.66,.025,.07,-.95,.17,z,strapMat);st.name='Stretcher_strap';const b=box(.08,.03,.09,-.95,.185,z,buckle);b.name='Stretcher_strap';}}
  const groundLitter=litter.clone(true);groundLitter.visible=false;scene.add(groundLitter);
- const setLitter=on=>litter.traverse(o=>{if(o.isMesh)o.visible=on;});setLitter(false);
+ const isStrap=o=>o.name==='Stretcher_strap';
+ // 擔架架裝上時才顯示並計入避碰；固定帶只在傷患固定後顯示。
+ const setLitter=(on,straps=false)=>litter.traverse(o=>{if(o.isMesh)o.visible=on&&(!isStrap(o)||straps);});setLitter(false);
+ const setGroundStraps=on=>groundLitter.traverse(o=>{if(o.isMesh&&isStrap(o))o.visible=on;else if(o.isMesh)o.visible=true;});
  const LITTER_TOP=new T.Vector3(-.95,-.15,0);
  const beacons=[];source.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;if(/beacon|warning|LED strip/i.test(o.material?.name||'')){o.material=o.material.clone();o.material.color.set('#c61f16');o.material.emissive.set('#ff180a');beacons.push(o.material);}});
  const grounding=createGrounding(source);
@@ -219,7 +232,7 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
  function deploy(result,site,{task='fire',victim=null}={}){
   if(!result?.ok||!result.plan)return false;
   setFrame(result.frame,result.y);envelope=envFor(result.frame,result.y,result.obstacles);
-  Object.assign(st,{phase:'deploying',t:0,frame:result.frame,y:result.y,site,plan:result.plan,legs:[result.plan.waypoints],target:result.target,standoff:result.standoff,blocked:null,arrived:false,spraying:false,result,task:task==='rescue'&&victim?'rescue':'fire',victim:task==='rescue'?victim:null,lower:null,raise:null,landing:null,carry:null,stretcher:task==='rescue'&&!!result.stretcher});
+  Object.assign(st,{phase:'deploying',t:0,frame:result.frame,y:result.y,site,plan:result.plan,legs:[result.plan.waypoints],target:result.target,standoff:result.standoff,blocked:null,arrived:false,spraying:false,result,task:task==='rescue'&&victim?'rescue':'fire',victim:task==='rescue'?victim:null,lower:null,raise:null,landing:null,carry:null,strapped:false,stretcher:task==='rescue'&&!!result.stretcher});
   frame.visible=crewRoot.visible=true;setGate(0);setLitter(st.stretcher);groundLitter.visible=false;if(st.victim)st.victim.windowQ=st.victim.figure.root.quaternion.clone();
   layout.feet.forEach(([lx,lz],i)=>{const [x,z]=fromFrameXZ(result.frame,lx,lz),g=ground.at(x,z),top=result.y+layout.footBottom,h=Math.max(.05,top-g);pads[i].scale.y=h;pads[i].position.set(x,g+h/2,z);});
   return true;
@@ -285,7 +298,10 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
    setGate(t<G+X+S?smooth(t/G):1-smooth((t-G-X-S)/C));
    if(t<G){}else if(t<G+X){const k=smooth((t-G)/X);if(v.figure.pose!=='lying')v.figure.setPose('lying');const lift=v.window.clone().add(new T.Vector3(st.site.nx*.5,.5,st.site.nz*.5));
     const pos=k<.5?v.window.clone().lerp(lift,k*2):lift.clone().lerp(top,k*2-1);placeOnLitter(pos,v.windowQ.clone().slerp(q,k));}
-   else{v.state='basket';placeOnLitter(top,q);}
+   else{v.state='basket';placeOnLitter(top,q);
+    // 固定：先上頸圈（有頭頸部撞擊機轉時），再扣上三條固定帶。
+    if(v.collar&&!v.figure.collar.visible){v.figure.setCollar(true);event??={collar:true};}
+    if(t>=G+X+S*.4&&!st.strapped){st.strapped=true;setLitter(true,true);event??={strapped:true};}}
    poseCrewAtWork(actual);if(t>=G&&t<G+X+S)crew[0].arms.forEach(a=>a.rotation.x=-1.1);
    if(t>=G+X+S+C){const l=planLanding();if(!l){if(!st.blocked){st.blocked='找不到可安全降落的地面位置（車尾、街側、車頭外側皆會碰到建物或車輛）';event={blocked:true,reason:st.blocked};}}
     else{st.legs.push(l.plan.waypoints);st.lower=legPath(l.plan.waypoints,TIMELINE.lowerSlow);st.landing=l.target;st.phase='lowering';st.t=0;event={aboard:true};}}
@@ -310,7 +326,7 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
     const side=new T.Vector3(.75,0,0).applyQuaternion(lq),basketCrew=W(actual).add(new T.Vector3(-.28,0,0).applyQuaternion(q));
     st.carry={mount,lq,litterPath:[mount,off(1.2,.35),off(3.5,.35)],crewPath:[basketCrew,off(1.0,0).add(side),off(3.3,0).add(side)]};}
    const c=st.carry;setGate(t<G+K+R?smooth(t/G):1-smooth((t-G-K-R)/G));
-   if(t>=G&&litter.children[0].visible){setLitter(false);groundLitter.visible=true;}
+   if(t>=G&&litter.children[0].visible){setLitter(false);setGroundStraps(!!st.strapped);groundLitter.visible=true;}
    const k=T.MathUtils.clamp((t-G)/K,0,1),n=c.litterPath.length-1,s2=k*n,i=Math.min(n-1,Math.floor(s2)),lp=c.litterPath[i].clone().lerp(c.litterPath[i+1],smooth(s2-i));
    if(t>=G){groundLitter.position.copy(lp).sub(LITTER_TOP.clone().applyQuaternion(c.lq));groundLitter.quaternion.copy(c.lq);placeOnLitter(lp,c.lq);}
    if(t<G)poseCrewAtWork(actual);else if(t<G+K)walkPerson(crew[0],c.crewPath,k);else if(t<G+K+R)walkPerson(crew[0],[...c.crewPath].reverse(),(t-G-K)/R);else poseCrewAtWork(actual);

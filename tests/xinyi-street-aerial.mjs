@@ -68,9 +68,9 @@ function runTimeline(ac,s,result,fire){
 {const s=site(3),r=a.check(s,4,6),fire={x:0,y:s.y,z:-.5};const feet=runTimeline(a,s,r,fire);for(const y of feet)assert(Math.abs(y)<.02,"支腿落在平地："+y);}
 
 // 4b. 籃架載人救出：開門 → 待救者跨窗台進籃 → 關門 → 緩慢下降到車外地面 → 下籃交接 → 再升梯到起火窗口出水 → 收梯。
-function runRescue(ac,s,result,win,fire,{condition='well',sex='male'}={}){
+function runRescue(ac,s,result,win,fire,{condition='well',sex='male',collar=false}={}){
  const stretcher=needsStretcher(condition),figure=createPatient(new T.Group(),{sex,condition});
- const victim={figure,window:new T.Vector3(win.x+s.nx*(stretcher?.45:.25),s.base+(s.floor-1)*AERIAL.floorHeight,win.z+s.nz*(stretcher?.45:.25)),state:'waiting',stretcher,condition};
+ const victim={figure,window:new T.Vector3(win.x+s.nx*(stretcher?.45:.25),s.base+(s.floor-1)*AERIAL.floorHeight,win.z+s.nz*(stretcher?.45:.25)),state:'waiting',stretcher,condition,collar};
  figure.root.position.copy(victim.window);if(stretcher)figure.root.rotation.y=Math.atan2(-s.nz,s.nx);
  assert.equal(figure.pose,condition==='unconscious'?'lying':condition==='serious'?'slumped':'standing','昏迷倒臥、重傷癱坐');
  assert.equal(result.stretcher,stretcher);
@@ -80,15 +80,17 @@ function runRescue(ac,s,result,win,fire,{condition='well',sex='male'}={}){
   if(victim.state==='basket'){const p=victim.figure.root.position;
    if(stretcher){const top=ac.litter.localToWorld(new T.Vector3(-.95,-.15,0));assert(p.distanceTo(top)<.02,'傷患在擔架上隨籃架移動');assert.equal(victim.figure.pose,'lying','傷患仰躺');assert(ac.litter.children[0].visible,'擔架架已裝上並計入避碰');}
    else{const q=ac.state.actual,w=ac.frame.localToWorld(q.clone());assert(p.distanceTo(w)<.45,'待救者在籃內隨籃架移動');}}
-  if(ac.state.phase==='lowering'){assert(ac.motion.clearance().safe);}}
+  if(ac.state.phase==='lowering'){assert(ac.motion.clearance().safe);
+   if(stretcher){const straps=[];ac.litter.traverse(o=>{if(o.name==='Stretcher_strap')straps.push(o.visible);});assert(straps.length>=6&&straps.every(Boolean),'下降時固定帶已扣上');assert.equal(figure.collar.visible,collar,'頸圈依機轉');}}}
  for(const k of ['arrived','rescue','aboard','landed','rescued'])assert(seen.has(k),'事件 '+k);
+ if(stretcher)assert(seen.has('strapped'),'事件 strapped');if(collar)assert(seen.has('collar'),'事件 collar');
  assert(!sprayedWhileRescue,'救人時不出水');assert.equal(victim.state,'rescued');
  const h=victim.handover,[lx,lz]=toFrameXZ(result.frame,h.x,h.z);assert(Math.abs(h.y-ac.state.y-(0))<1.5,'交接位置在地面');
  assert(Math.hypot(lx,lz)>5,'交接位置在車身外');
  assert(lz>-0.5,'交接位置不在建物側');
  // 籃架在地面高度（距地 0.2 m）
  const bp=ac.frame.localToWorld(ac.state.actual.clone());assert(Math.abs(bp.y-(stretcher?.45:.2)-ground0(bp.x,bp.z))<.06,'籃架降到地面上方（裝擔架 0.45 m）');
- if(stretcher){assert(ac.groundLitter.visible&&!ac.litter.children[0].visible,'擔架已卸到地面');const lt=victim.figure.root.position;assert(Math.abs(lt.y-.35-ground0(lt.x,lt.z))<.05,'擔架在地面');assert.equal(victim.figure.pose,'lying');
+ if(stretcher){assert(ac.groundLitter.visible&&!ac.litter.children[0].visible,'擔架已卸到地面');{const g=[];ac.groundLitter.traverse(o=>{if(o.name==='Stretcher_strap')g.push(o.visible);});assert(g.every(Boolean),'地面擔架仍扣著固定帶');}const lt=victim.figure.root.position;assert(Math.abs(lt.y-.35-ground0(lt.x,lt.z))<.05,'擔架在地面');assert.equal(victim.figure.pose,'lying');
   const cp=ac.crew[0].body.position,spot=ac.frame.localToWorld(ac.state.actual.clone());assert(Math.hypot(cp.x-spot.x,cp.z-spot.z)<.5,'隊員回到籃內');}
  assert(!ac.raiseToFire({total:600,capacity:500,over:true}).ok,'超重不可升梯');const up=ac.raiseToFire();assert(up.ok,up.reason);
  for(let t=0;t<120&&ac.state.phase!=='ready';t+=dt){const e=ac.update(dt,{fire,fireActive:true});assert(!e?.blocked,e?.reason);}
@@ -103,9 +105,11 @@ let ground0=()=>0;
  assert.equal(load.total,210);assert(!load.over);assert.deepEqual(load.parts.map(p=>p[0]),['消防員','消防衣與 SCBA','籃內器材','待救者（估計）','擔架']);
  const heavy=basketLoad({firefighter:75,gear:25,equipment:15,victim:80,stretcher:15,capacity:180});assert(heavy.over);
  const over=a.check(s,4,6,{window:win,stretcher:true,load:heavy});assert(!over.ok&&over.issues[0].includes('超過容許籃載重'),JSON.stringify(over.issues));
- for(const [condition,sex] of [['unconscious','female'],['serious','male']]){
+ for(const [condition,sex,collar] of [['unconscious','female',true],['serious','male',false]]){
   let r=null,spot=null;for(const [x,d] of [[4,6],[6,6],[4,8],[8,8],[6,10]]){r=a.check(s,x,d,{window:win,stretcher:true,load});if(r.ok){spot=[x,d];break;}}
-  assert(r?.ok,condition+' '+JSON.stringify(r?.issues));runRescue(a,s,r,win,{x:0,y:s.y,z:-.5},{condition,sex});a.dismiss();assert(!a.groundLitter.visible,'撤離時收起擔架');}
+  assert(r?.ok,condition+' '+JSON.stringify(r?.issues));runRescue(a,s,r,win,{x:0,y:s.y,z:-.5},{condition,sex,collar});a.dismiss();assert(!a.groundLitter.visible,'撤離時收起擔架');}
+ // 固定帶未固定前不顯示
+ a.setLitter(true);{const v=[];a.litter.traverse(o=>{if(o.name==='Stretcher_strap')v.push(o.visible);});assert(v.every(x=>!x),'固定前不顯示固定帶');}
  // 擔架架未裝時不計入避碰
  a.setLitter(false);assert(a.litter.children.every(o=>!o.visible));}
 // 路徑分段計時：各段依軸速度、慢速倍率
