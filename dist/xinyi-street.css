@@ -170,3 +170,6 @@ button.primary{background:#c8202b;border-color:#ff6b6b}
 .transport-table button{padding:2px 8px;font-size:12px;margin-right:4px}
 .chip{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 #transportDone{margin:0;padding-left:18px;font-size:13px}
+#mission{max-height:calc(100vh - 100px);overflow:auto}
+@media (max-width:640px){#mission{max-height:calc(100vh - 230px)}}
+.map-legend i.mk{background:#f85149;border-radius:2px}

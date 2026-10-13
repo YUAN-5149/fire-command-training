@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s16">
+<link rel="stylesheet" href="xinyi-street.css?v=s17">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -39,7 +39,7 @@
  <p id="missionHint"></p>
  <button id="missionAbort">取消任務</button>
 </aside>
-<div id="missionReport" hidden role="dialog" aria-label="任務紀錄"><div class="report-card"><h2>任務紀錄</h2><div id="reportBody"></div><p class="note">火勢、射程與水量為遊戲化示意，非火場物理預測；本紀錄只列時間與位置，不作戰術正確性評分，請由教官依單位標準講評。</p><div class="report-actions"><button id="reportAgain" class="primary">再派遣一次</button><button id="reportClose">關閉</button></div></div></div>
+<div id="missionReport" hidden role="dialog" aria-label="任務紀錄"><div class="report-card"><h2>任務紀錄</h2><div id="reportBody"></div><p class="note">火勢、射程與水量為遊戲化示意，非火場物理預測；本紀錄只列時間與位置，不作戰術正確性評分，請由教官依單位標準講評。</p><div class="report-actions"><button id="reportAgain" class="primary">再派遣一次</button><button id="reportDownload">下載任務紀錄</button><button id="reportClose">關閉</button></div></div></div>
 <div id="triage" hidden role="dialog" aria-label="檢傷與急救處置"><div class="report-card triage-card"><h2>檢傷與急救處置</h2><p id="triageWho"></p>
 <table id="triageFindings"></table>
 <h3>檢傷分類（START）</h3><div id="triageTags"></div>
@@ -57,7 +57,7 @@
 <div id="bigmap" hidden>
  <canvas id="mapCanvas" aria-label="信義區全區地圖"></canvas>
  <div class="map-top"><div class="brand"><span class="badge">119</span><div><strong>信義區</strong><small id="mapStreet">全區地圖</small></div></div><button id="mapClose">✕ 關閉（M）</button></div>
- <div class="map-legend"><b>圖例</b><span><i class="me"></i>你的位置</span><span><i class="truck"></i>消防車</span><span><i class="poi"></i>重點建物（第一批清單）</span><span><i class="wp"></i>目標與導航路線</span></div>
+ <div class="map-legend"><b>圖例</b><span><i class="me"></i>你的位置</span><span><i class="truck"></i>消防車</span><span><i class="poi"></i>重點建物（第一批清單）</span><span><i class="wp"></i>目標與導航路線</span><span><i class="mk"></i>傷患區／救護車停靠／雲梯車</span></div>
  <div class="map-tools"><button id="mapIn" aria-label="放大">＋</button><button id="mapOut" aria-label="縮小">－</button><button id="mapMe" aria-label="回到我的位置">◎</button><button id="mapTruckWp">消防車設為目標</button><button id="mapClear">清除目標</button></div>
  <div class="map-hint">點地圖設定目標 · 拖曳移動 · 滾輪／雙指縮放 · M 或 Esc 關閉。導航沿 OSM 路網示意，未含即時路況與轉向限制。</div>
 </div>
@@ -138,6 +138,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s16"></script>
+<script type="module" src="xinyi-street.js?v=s17"></script>
 </body>
 </html>
