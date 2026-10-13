@@ -1,8 +1,8 @@
 // 遊戲手把（Gamepad API，Standard 配置：Xbox／PlayStation／Switch Pro 等在瀏覽器中的通用按鍵編號）。
 // 只把手把狀態轉成與鍵盤相同的動作；不含任何遊戲或廠商素材。純函式，可在 Node 測試。
 export const BUTTONS={a:0,b:1,x:2,y:3,lb:4,rb:5,lt:6,rt:7,back:8,start:9,ls:10,rs:11,up:12,down:13,left:14,right:15};
-// 單次觸發的動作（按下瞬間）：對應鍵盤 E/F/Q/T/N/R/M/Esc 與鏡頭遠近。
-export const PRESS_ACTIONS={a:'vehicle',x:'hose',y:'siren',up:'mission',down:'time',back:'map',start:'pause',left:'zoomIn',right:'zoomOut',rs:'resetCam',rb:'aerial'};
+// 單次觸發的動作（按下瞬間）：對應鍵盤 E/F/Q/T/G/M/Esc/L/K/J 與鏡頭遠近；B 在步行持水線時切換瞄子（V），對話框開啟時關閉。
+export const PRESS_ACTIONS={a:'vehicle',x:'hose',y:'siren',up:'mission',down:'supply',back:'map',start:'pause',left:'zoomIn',right:'zoomOut',rb:'aerial',lb:'triage',rs:'transport'};
 export const DEADZONE=.18;
 
 // 徑向死區：小於死區歸零，其餘重新縮放到 0–1，避免搖桿回中時鏡頭或角色漂移。
@@ -18,7 +18,7 @@ export function readPad(pad,prev=[]){
  const pressed=[];for(const [name,action] of Object.entries(PRESS_ACTIONS)){const i=BUTTONS[name];if((buttons[i]??0)>.5&&!((prev[i]??0)>.5))pressed.push(action);}
  const trig=v=>v<.06?0:v;
  return {move:[mx,0-my||0],look:[lx,ly],throttle:trig(buttons[BUTTONS.rt]??0),reverse:trig(buttons[BUTTONS.lt]??0),
-  held:{run:down('lb')||down('ls'),brake:down('b'),spray:down('rt')},pressed,buttons};
+  held:{run:down('ls'),brake:down('b'),spray:down('rt')},pressed,buttons};
 }
 
 // 取第一支已連線的手把（Standard 配置優先）。

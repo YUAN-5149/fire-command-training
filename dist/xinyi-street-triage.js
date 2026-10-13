@@ -60,3 +60,16 @@ export function compareAid(chosen,reference){
 }
 // 頸圈：機轉含頭頸部撞擊時於籃架上預防性固定（示意）。
 export const needsCollar=v=>!!v?.trauma&&v.mechanisms.includes('fall');
+
+// 等候惡化（示意，一位傷患最多惡化一次）：不可行走且未後送者，等候超過時限後生命徵象變差；
+// 相應的處置（給氧、止血、沖水降溫、暢通呼吸道）可延後惡化。回傳 {vitals, note} 或 null（尚未惡化）。
+export const DETERIORATE={base:180,perAid:90};
+export function deteriorate(v,waited,aid=[]){
+ if(v.walks||!v.breathing&&!v.breathesAfterAirway)return null;
+ const helps={smoke:'oxygen',laceration:'pressure',burn:'cool'},airway=['jawThrust','headTilt'];
+ let delay=DETERIORATE.base;for(const m of v.mechanisms)if(aid.includes(helps[m]))delay+=DETERIORATE.perAid;if(!v.obeys&&aid.some(a=>airway.includes(a)))delay+=DETERIORATE.perAid;
+ if(waited<delay)return null;
+ if(v.obeys&&v.radialPulse&&v.capRefill<=2)return {vitals:{...v,radialPulse:false,capRefill:3.2,rr:Math.min(34,v.rr+6)},note:'出現休克徵象（摸不到橈動脈、微血管充填變慢）'};
+ if(v.obeys)return {vitals:{...v,obeys:false},note:'意識變差，無法遵從指令'};
+ return {vitals:{...v,rr:Math.max(v.rr,32)},note:'呼吸變快（> 30 次／分）'};
+}

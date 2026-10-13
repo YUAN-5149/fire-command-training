@@ -173,3 +173,8 @@ button.primary{background:#c8202b;border-color:#ff6b6b}
 #mission{max-height:calc(100vh - 100px);overflow:auto}
 @media (max-width:640px){#mission{max-height:calc(100vh - 230px)}}
 .map-legend i.mk{background:#f85149;border-radius:2px}
+#opsLine{display:flex;flex-wrap:wrap;gap:4px 10px;margin:4px 0 6px;font-size:12px;color:#cfd8dc}
+#opsLine[hidden]{display:none}
+#opsLine b{color:#fff}
+#opsLine .warn,#transportRows .warn{color:#ff8a8a;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.35}}

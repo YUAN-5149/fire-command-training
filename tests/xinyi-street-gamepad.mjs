@@ -19,12 +19,13 @@ assert.deepEqual(deadzone(.1,-.1),[0,0]);
 {const first=readPad(pad([0,0,0,0],[BUTTONS.a,BUTTONS.y]));assert.deepEqual(first.pressed.sort(),['siren','vehicle']);
  const again=readPad(pad([0,0,0,0],[BUTTONS.a,BUTTONS.y]),first.buttons);assert.deepEqual(again.pressed,[]);
  const release=readPad(pad(),again.buttons),re=readPad(pad([0,0,0,0],[BUTTONS.a]),release.buttons);assert.deepEqual(re.pressed,['vehicle']);}
-for(const [b,a] of [['rb','aerial'],['x','hose'],['up','mission'],['down','time'],['back','map'],['start','pause'],['left','zoomIn'],['right','zoomOut'],['rs','resetCam']])
+for(const [b,a] of [['rb','aerial'],['lb','triage'],['rs','transport'],['x','hose'],['up','mission'],['down','supply'],['back','map'],['start','pause'],['left','zoomIn'],['right','zoomOut']])
  assert.deepEqual(readPad(pad([0,0,0,0],[BUTTONS[b]])).pressed,[a],b);
 
 // 扳機：類比值為油門／倒車，極小值歸零；RT 同時是出水按住、B 為煞車、LB／左搖桿按下為跑步。
 {const r=readPad(pad([0,0,0,0],[],{[BUTTONS.rt]:.7,[BUTTONS.lt]:.03}));assert.equal(r.throttle,.7);assert.equal(r.reverse,0);assert.equal(r.held.spray,true);}
-{const r=readPad(pad([0,0,0,0],[BUTTONS.b,BUTTONS.lb]));assert.equal(r.held.brake,true);assert.equal(r.held.run,true);assert.equal(r.held.spray,false);}
+{const r=readPad(pad([0,0,0,0],[BUTTONS.b,BUTTONS.ls]));assert.equal(r.held.brake,true);assert.equal(r.held.run,true);assert.equal(r.held.spray,false);}
+assert.equal(readPad(pad([0,0,0,0],[BUTTONS.lb])).held.run,false,'LB 改為檢傷，不再是跑步');
 assert.equal(readPad(pad([0,0,0,0],[BUTTONS.ls])).held.run,true);
 // B 不在單次動作（關閉選單由頁面另外判斷），避免駕駛煞車時觸發其他動作。
 assert.deepEqual(readPad(pad([0,0,0,0],[BUTTONS.b])).pressed,[]);
