@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {STAIR,stairY,stairTransition,stairSegments,buildingFloors,stackExchange,INTERIOR,ENV,EXPOSURE,seeded,makeFloorPlan,spaceOf,wallSegments,resolveCircle,makeEnv,stepEnv,backdraftRisk,openingOutcome,applyBackdraft,
+import {stairRoute,samplePath,pathLength,cool,STAIR,stairY,stairTransition,stairSegments,buildingFloors,stackExchange,INTERIOR,ENV,EXPOSURE,seeded,makeFloorPlan,spaceOf,wallSegments,resolveCircle,makeEnv,stepEnv,backdraftRisk,openingOutcome,applyBackdraft,
  layerHeight,feltTemp,visibility,stepExposure,hoseRemaining,pathDoors,searchTime,ppvState,fireCap,thermalColor,connected} from '../dist/xinyi-street-interior-rules.js';
 
 // 平面：同一 seed 重現；空間互不重疊並鋪滿 W×D；起火房間含立面中點；每個房間有門；受困者不在起火房間、不在家具上。
@@ -72,4 +72,13 @@ assert(searchTime({x0:0,x1:6,z0:0,z1:5})===18&&searchTime({x0:0,x1:2,z0:0,z1:2})
 assert.deepEqual(buildingFloors(3,20),[1,2,3,4]);assert.deepEqual(buildingFloors(5,17),[1,2,3,4,5]);assert.deepEqual(buildingFloors(2,40),[1,2,3]);
 // 樓梯間煙囪效應：煙與熱只往上層流。
 {const a={T:300,smoke:.8},b={T:20,smoke:0};stackExchange(a,b,1);assert(b.smoke>0&&b.T>20&&a.smoke<.8);const c={T:20,smoke:0},d={T:300,smoke:.8};stackExchange(c,d,1);assert.equal(c.smoke,0);}
+// 樓梯路線：1 樓 → 3 樓沿梯段，高度單調上升、終點在 3 樓樓梯口；反向相同；取樣在折線上。
+{const FH=INTERIOR.floorHeight,r=stairRoute(1,3);assert.deepEqual(r.at(-1),{x:1.2,z:7.9,y:2*FH});for(let i=1;i<r.length;i++)assert(r[i].y>=r[i-1].y-1e-9);
+ for(const p of r)if(p.z>STAIR.zLow+1e-9&&p.z<STAIR.zHigh-1e-9)assert(false,'路線點不在梯段中間');
+ const d=stairRoute(3,1);assert.deepEqual(d[0],r.at(-1));assert.deepEqual(d.at(-1),r[0]);assert(Math.abs(pathLength(r)-pathLength(d))<1e-9);
+ const q=samplePath(r,pathLength(r)/2);assert(q.y>0&&q.y<2*FH);assert.deepEqual(samplePath(r,1e9).y,2*FH);assert.equal(stairRoute(2,2).length,1);}
+// 冷卻：降溫、減少未燃氣體、煙略增；不低於常溫。
+{const e={T:400,smoke:.5,o2:.15,fuel:.6};cool(e,1,1);assert(e.T===330&&Math.abs(e.fuel-.42)<1e-9&&e.smoke>.5);for(let i=0;i<20;i++)cool(e,1,1);assert.equal(e.T,ENV.ambient);
+ // stepEnv 接受多個冷卻來源（中隊長＋隊員）。
+ const p=makeFloorPlan(seeded(2),{facadeWidth:18}),a=makeEnv(p),b=makeEnv(p);a.spaces.F1.T=b.spaces.F1.T=400;stepEnv(p,a,1,{cooling:{space:'F1',rate:1}});stepEnv(p,b,1,{cooling:[{space:'F1',rate:1},{space:'F1',rate:1}]});assert(b.spaces.F1.T<a.spaces.F1.T);}
 console.log('xinyi-street-interior: ok');

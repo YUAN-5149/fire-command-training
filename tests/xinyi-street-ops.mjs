@@ -1,6 +1,6 @@
 // 火場作業規則：水箱與補水、氣量與換瓶、瞄子模式射程與錐角、多火點目標、延燒；傷患等候惡化。
 import assert from 'node:assert/strict';
-import {WATER,NOZZLE,AIR,SPREAD,stepWater,stepAir,inHazard,sprayTarget,stepSpread,upperSite,allOut} from '../dist/xinyi-street-ops.js';
+import {lowerSite,LOWER,WATER,NOZZLE,AIR,SPREAD,stepWater,stepAir,inHazard,sprayTarget,stepSpread,upperSite,allOut} from '../dist/xinyi-street-ops.js';
 import {deteriorate,startTriage,DETERIORATE} from '../dist/xinyi-street-triage.js';
 
 // 水箱：直線水柱 6 L/s 約 333 秒用完；水霧較耗水；接消防栓會補到滿、不超過容量
@@ -33,4 +33,5 @@ import {deteriorate,startTriage,DETERIORATE} from '../dist/xinyi-street-triage.j
  const red={walks:false,breathing:true,rr:14,radialPulse:true,capRefill:1.8,obeys:false,mechanisms:['smoke'],trauma:false};
  assert(deteriorate(red,DETERIORATE.base).vitals.rr>30);assert.equal(deteriorate(red,DETERIORATE.base+100,['oxygen','headTilt']),null,'給氧與暢通呼吸道可延後');
  assert.equal(deteriorate({...yellow,walks:true},999),null);assert.equal(deteriorate({...red,breathing:false,breathesAfterAirway:false},999),null);}
+{const s={x:1,z:2,floor:3,y:8.5};const l=lowerSite(s);assert(l.floor===2&&Math.abs(l.y-5.1)<1e-9&&l.lower&&l.x===1);assert(LOWER.chance>0&&LOWER.chance<1);}
 console.log('xinyi-street-ops: ok');

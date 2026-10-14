@@ -40,4 +40,7 @@ export function stepSpread(fire,dt,timer,{buildingTop=Infinity,floorHeight=3.4}=
 }
 // 上一樓火點：同一立面、上一樓層。
 export const upperSite=(site,floorHeight=3.4)=>({...site,floor:site.floor+1,y:site.y+floorHeight,upper:true});
+// 下一層火點（掉落物或樓板延燒，示意）：同一立面、下一樓層。
+export const lowerSite=(site,floorHeight=3.4)=>({...site,floor:site.floor-1,y:site.y-floorHeight,lower:true});
+export const LOWER={chance:.3,after:60,threshold:.85,start:.3};             // 30% 派遣：起火層火勢 ≥ 0.85 累計 60 秒後下一層起火（示意）
 export const allOut=fires=>fires.every(f=>!(f.intensity>0));

@@ -3,27 +3,27 @@
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js';
-import {rigWheels} from './wheel-rig.js?v=s20';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s20';
-import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s20';
-import {createBigMap} from './xinyi-street-map.js?v=s20';
-import {createAudio} from './xinyi-street-audio.js?v=s20';
-import {RULES,pickFireSite,siteFromBuilding,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s20';
-import {readPad,pickPad,rumble,BUTTONS} from './xinyi-street-gamepad.js?v=s20';
-import {createXinyiAerial,buildObstacleIndex,fromFrameXZ,createPatient,needsStretcher,basketLoad,CONDITION_LABEL} from './xinyi-street-aerial.js?v=s20';
-import {WATER,NOZZLE,AIR,SUPPLY,stepWater,stepAir,inHazard,sprayTarget,stepSpread,upperSite,allOut} from './xinyi-street-ops.js?v=s20';
-import {makeVitals,startTriage,aidReference,compareAid,needsCollar,deteriorate,FIRST_AID,TAGS,MECHANISMS} from './xinyi-street-triage.js?v=s20';
-import {generateCasualties,loadAmbulance,transportReference,mciComplete,priority,HOSPITALS,AMBULANCE} from './xinyi-street-mci.js?v=s20';
-import {createInterior} from './xinyi-street-interior.js?v=s20';
-import {INTERIOR,EXPOSURE,EQUIPMENT,CARRY_LIMIT,hoseRemaining,layerHeight,buildingFloors} from './xinyi-street-interior-rules.js?v=s20';
-import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s20';
-import {storeKey} from './deployment-store.js?v=s20';
-import {unproject} from './xinyi-street-world.js?v=s20';
+import {rigWheels} from './wheel-rig.js?v=s21';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s21';
+import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s21';
+import {createBigMap} from './xinyi-street-map.js?v=s21';
+import {createAudio} from './xinyi-street-audio.js?v=s21';
+import {RULES,pickFireSite,siteFromBuilding,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s21';
+import {readPad,pickPad,rumble,BUTTONS} from './xinyi-street-gamepad.js?v=s21';
+import {createXinyiAerial,buildObstacleIndex,fromFrameXZ,createPatient,needsStretcher,basketLoad,CONDITION_LABEL} from './xinyi-street-aerial.js?v=s21';
+import {WATER,NOZZLE,AIR,SUPPLY,LOWER,stepWater,stepAir,inHazard,sprayTarget,stepSpread,upperSite,lowerSite,allOut} from './xinyi-street-ops.js?v=s21';
+import {makeVitals,startTriage,aidReference,compareAid,needsCollar,deteriorate,FIRST_AID,TAGS,MECHANISMS} from './xinyi-street-triage.js?v=s21';
+import {generateCasualties,loadAmbulance,transportReference,mciComplete,priority,HOSPITALS,AMBULANCE} from './xinyi-street-mci.js?v=s21';
+import {createInterior} from './xinyi-street-interior.js?v=s21';
+import {INTERIOR,EXPOSURE,EQUIPMENT,CARRY_LIMIT,hoseRemaining,layerHeight,buildingFloors} from './xinyi-street-interior-rules.js?v=s21';
+import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s21';
+import {storeKey} from './deployment-store.js?v=s21';
+import {unproject} from './xinyi-street-world.js?v=s21';
 import {buildDistrictBatch} from './geo-district.js';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
-import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s20';
+import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s21';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
 const canvas=$('view');let renderer;
@@ -370,7 +370,7 @@ function startMission(){
  const site=fromGis??pickFireSite(district.buildings,streets.features,ground,Math.random,{exclude,colliders});if(!site)return;
  if(target&&!fromGis)flashHint('GIS 指定的搶救建物不在本頁量體範圍內，改為隨機派遣');
  aerial?.stow();setAerialMode(null);clearMci();clearOps();if(mission?.victim)scene.remove(mission.victim.figure.root);
- mission={site,phase:0,elapsed:0,times:{},intensity:.55,hose:false,spraying:false,parking:null,victim:makeVictim(site),water:WATER.tank,supply:null,upper:null};fireFx.setSite(site);upperFx.setSite(null);state.air=AIR.full;
+ mission={site,phase:0,elapsed:0,times:{},intensity:.55,hose:false,spraying:false,parking:null,victim:makeVictim(site),water:WATER.tank,supply:null,upper:null};fireFx.setSite(site);upperFx.setSite(null);lowerFx.setSite(null);state.air=AIR.full;
  mission.fireMain={site,get intensity(){return mission?.intensity??0},set intensity(v){if(mission)mission.intensity=v;}};mission.hydrants=placeHydrants(site);mission.entry=placeEntry(site);mission.indoor=setupIndoor(site);if(mission.indoor.closed)mission.intensity=.3;
  if(settings.missionType==='mci')mission.mci=setupMci(site);renderVictim();renderMci();renderIndoorLine();
  $('missionTitle').textContent=mission.mci?'建物火警・大量傷患':'建物火警';$('missionWhere').textContent=`${site.street||'信義區'} 一帶・${site.floor} 樓${mission.indoor.closed?'窗戶冒濃煙（窗戶未破）':'冒煙'}（示意）`+(site.fromGis?'・GIS 指定搶救建物'+(gisDep?.entrance?'，起火面取第一正面':''):'');$('mission').hidden=false;$('missionReport').hidden=true;
@@ -388,9 +388,11 @@ function toggleHose(){
  mission.hose=true;person.nozzle.visible=true;if(mission.phase===3){mission.phase=4;mission.times.hose=mission.elapsed;}flashHint('面向火點，按住 Space 出水（水線長 '+RULES.hoseLength+' m）');renderMission();
 }
 // ---------- 火場作業（訓練示意）：多樓層火點、供水、空氣呼吸器、瞄子模式 ----------
-const upperFx=createFireFX(scene);
+const upperFx=createFireFX(scene),lowerFx=createFireFX(scene);
 state.nozzle='stream';state.air=AIR.full;state.airSwap=0;
-function fireList(){const m=mission;if(!m)return [];return m.upper?[m.fireMain,m.upper]:[m.fireMain];}
+function fireList(){const m=mission;if(!m)return [];return [m.fireMain,m.upper,m.lower].filter(Boolean);}
+// 室內樓層 → 該層火點（起火層、上一層延燒、下一層延燒）。
+function fireOfLevel(lv){const m=mission,F=m.site.floor;return lv===F?m.fireMain:lv===F+1?m.upper:lv===F-1?m.lower:null;}
 function activeFire(){return fireList().find(f=>f.intensity>0)??mission.fireMain;}
 // 示意消防栓：起火建物附近街側空地 2 處（非實際消防栓位置）。
 function placeHydrants(site){const free=openGround(site),tx=-site.nz,tz=site.nx,out=[];
@@ -421,7 +423,7 @@ function updateAir(dt){if(!mission||state.mode==='drive'||mission.phase>=6&&!mis
  if(r.swapped){mission.airSwaps=(mission.airSwaps??0)+1;flashHint('已更換氣瓶（300 bar）');}}
 function renderOps(){const m=mission;$('opsLine').hidden=!m;if(!m)return;const air=Math.round(state.air),water=Math.round(m.water);
  $('opsLine').innerHTML=`<span>水箱 <b>${water.toLocaleString()}</b> L${m.supply?.connected?'（消防栓供水中）':m.supply?.carrying?'（拉水帶中）':''}</span><span>瞄子 <b>${NOZZLE[state.nozzle].label}</b>（V）</span><span class="${air<=AIR.warn?'warn':''}">空氣 <b>${air}</b> bar${state.inHazard?'・危害區':''}${state.airSwap>0?'・換瓶中':''}</span>`;}
-function clearOps(){upperFx.setSite(null);supplyLine.visible=false;for(const h of mission?.hydrants??[])scene.remove(h.mesh);}
+function clearOps(){upperFx.setSite(null);lowerFx.setSite(null);supplyLine.visible=false;for(const h of mission?.hydrants??[])scene.remove(h.mesh);}
 function toggleNozzle(){state.nozzle=state.nozzle==='stream'?'fog':'stream';const N=NOZZLE[state.nozzle];flashHint(`瞄子：${N.label}（射程 ${N.reach} m，錐角較${state.nozzle==='fog'?'寬、近距離壓制較快':'窄、射程較遠'}）`);renderOps();}
 // ---------- 建物內部作業（訓練示意）：進入起火樓層、破壞進入、煙層、熱顯像、隊員指令、通風排煙、閃燃與回燃徵兆 ----------
 // 室內為依起火立面寬度產生的示意平面（非該建物實際格局）；溫度、煙量、含氧量與時間皆為遊戲化示意。
@@ -448,9 +450,13 @@ const entryMark=new T.Group();entryMark.visible=false;scene.add(entryMark);
 function placeEntry(site){let x=site.x+site.nx*1.3,z=site.z+site.nz*1.3;const e=gisDep?.entrance;if(site.fromGis&&e){const [ex,ez]=project(e.longitude,e.latitude);if(Math.hypot(ex-site.x,ez-site.z)<25){const p=colliders.resolve(ex,ez,.5);x=p.x;z=p.z;}}
  const p=colliders.resolve(x,z,.6);entryMark.position.set(p.x,ground.at(p.x,p.z),p.z);entryMark.visible=true;return {x:p.x,z:p.z};}
 function nearEntry(){const m=mission;return !!(m?.entry&&state.mode==='walk'&&m.phase>=3&&m.phase<6&&Math.hypot(state.x-m.entry.x,state.z-m.entry.z)<2.6);}
-function setupIndoor(site,closed=Math.random()<.35){const floors=buildingFloors(site.floor,site.height),victims=Math.random()<.5?2:1,upperVictims=floors.includes(site.floor+1)&&Math.random()<.5?1:0;
- indoor.setup(site,{seed:Math.floor(Math.random()*1e9),closed,victims,upperVictims,floors,vitalsFor:()=>({condition:'unconscious',vitals:makeVitals('unconscious')})});
- return {closed,floors,victims:victims+upperVictims,events:[],entries:[],rescued:[],items:{...state.items},windowHit:0};}
+function setupIndoor(site,closed=Math.random()<.35){const F=site.floor,floors=buildingFloors(F,site.height),byFloor={};
+ // 受困者（示意）：起火層 1–2 人、上一層 50% 1 人（昏迷）；起火層以下各層 40% 1 人（可行走 50%、重傷 25%、昏迷 25%，受煙影響）。
+ byFloor[F]=Math.random()<.5?2:1;if(floors.includes(F+1)&&Math.random()<.5)byFloor[F+1]=1;for(const f of floors)if(f>1&&f<F&&Math.random()<.4)byFloor[f]=1;
+ const vitalsFor=v=>{if(v.floor>=F)return {condition:'unconscious',vitals:makeVitals('unconscious')};const r=Math.random(),condition=r<.5?'well':r<.75?'serious':'unconscious';return {condition,vitals:makeVitals(condition)};};
+ indoor.setup(site,{seed:Math.floor(Math.random()*1e9),closed,victimsByFloor:byFloor,floors,vitalsFor});
+ if(mission){mission.lowerPlanned=F>=2&&Math.random()<LOWER.chance;mission.lowerTimer=0;}
+ return {closed,floors,victims:Object.values(byFloor).reduce((a,b)=>a+b,0),events:[],entries:[],rescued:[],items:{...state.items},windowHit:0};}
 // 裝備（示意，最多 4 項）：在消防車旁按 U 選擇。
 state.items={halligan:true,tic:true};
 function openEquip(){if(!mission){flashHint('裝備選擇用於任務中（按 T 派遣）');return;}if(state.mode!=='walk'||!nearTruck()){flashHint('走到消防車旁按 U 選擇攜帶裝備');return;}
@@ -475,18 +481,18 @@ function exitBuilding(forced=false){const m=mission;if(state.mode!=='interior')r
  $('indoorPanel').hidden=true;document.body.classList.remove('indoor');syncUi();
  if(forced){m.indoor.forcedExit=(m.indoor.forcedExit??0)+1;showNotice('熱暴露達上限，已緊急撤出建物（示意）',5000);}flashHint(forced?'已緊急撤出：在外部以水線控制火勢或冷卻後再進入':'已撤出建物');}
 function rescueIndoor(v){const m=mission;if(!m)return;const tx=-m.site.nz,tz=m.site.nx,k=m.indoor.rescued.length,x=m.entry.x+m.site.nx*3+tx*(k*1.8-1),z=m.entry.z+m.site.nz*3+tz*(k*1.8-1),pos=colliders.resolve(x,z,.6);
- const figure=createPatient(scene,{sex:v.sex,condition:'unconscious'});figure.root.position.set(pos.x,ground.at(pos.x,pos.z),pos.z);figure.root.rotation.y=Math.atan2(tx,tz);
- const p={id:v.id,floor:v.floor,sex:v.sex,condition:'unconscious',vitals:v.vitals,weight:v.weight,figure,state:m.mci?'waiting':'rescued',triage:null,indoor:true,rescuedAt:m.elapsed,hospital:null};
+ const figure=createPatient(scene,{sex:v.sex,condition:v.condition??'unconscious'});figure.root.position.set(pos.x,ground.at(pos.x,pos.z),pos.z);figure.root.rotation.y=Math.atan2(tx,tz);
+ const p={id:v.id,floor:v.floor,sex:v.sex,condition:v.condition??'unconscious',vitals:v.vitals,weight:v.weight,figure,state:m.mci?'waiting':'rescued',triage:null,indoor:true,rescuedAt:m.elapsed,hospital:null};
  m.indoor.rescued.push(p);if(m.mci)m.mci.patients.push(p);showNotice(`室內受困者 ${v.id} 已由隊員搬出交接（入口外），請檢傷`,4000);renderIndoorLine();}
 function interiorKey(k){if(k==='e')indoor.interact();else if(k==='x')indoor.ajar();else if(k==='f')indoor.useItem(true);else if(k==='c'){const c=indoor.toggleCrouch();flashHint(c?'蹲低前進（視線在煙層下、熱暴露較低）':'站立');}
- else if(k==='i'){const on=indoor.toggleThermal();$('thermal').hidden=!on;}else if(k==='v')toggleNozzle();else if('12345'.includes(k)&&k.length===1)indoor.command(+k);}
+ else if(k==='i'){const on=indoor.toggleThermal();$('thermal').hidden=!on;}else if(k==='v')toggleNozzle();else if('123456'.includes(k)&&k.length===1)indoor.command(+k);}
 for(const b of document.querySelectorAll('#indoorPanel [data-k]')){if(b.dataset.k==='f'){b.addEventListener('pointerdown',()=>{state.keys.add('f');interiorKey('f');});const up=()=>state.keys.delete('f');b.addEventListener('pointerup',up);b.addEventListener('pointerleave',up);}else b.onclick=()=>interiorKey(b.dataset.k);}
 function renderIndoorLine(){const m=mission;$('indoorLine').hidden=!m?.indoor;if(!m?.indoor)return;const left=indoor.victims().filter(v=>v.state!=='rescued').length;
  $('indoorLine').textContent=`室內（1–${m.indoor.floors.at(-1)} 樓・示意平面）：`+(m.indoor.closed&&indoor.fireWindow()?.state==='closed'?'起火房間窗戶未破（通風受限）・':'')+`受困者已救出 ${m.indoor.rescued.length}／${m.indoor.victims}`+(left?'（尚有人在室內）':'')+`・裝備：${Object.keys(state.items).map(k=>EQUIPMENT[k].label.split('（')[0]).join('、')||'無'}（U）`;}
 function renderIndoorHud(){const s=indoor.status(),warn=v=>v?' class="warn"':'';
  $('indoorStatus').innerHTML=`<span><b>${s.floor} 樓</b>${s.floor===mission.site.floor?'（起火層）':''}・${s.space}</span><span${warn(s.layer<1.2)}>煙層 <b>${s.layer.toFixed(1)}</b> m</span><span${warn(s.T>=300)}>上層 <b>${Math.round(s.T)}</b> °C</span><span>含氧 <b>${(s.o2*100).toFixed(0)}</b>%</span><span${warn(s.exposure>=EXPOSURE.warn)}>熱暴露 <b>${Math.round(s.exposure)}</b></span>`+(s.hoseLeft!==null?`<span${warn(s.hoseLeft<3)}>${s.standpipe?s.standpipe+' 樓送水口':''}水線剩 <b>${Math.max(0,Math.round(s.hoseLeft))}</b> m</span>`:'<span>未帶水線</span>')+`<span>${s.crouch?'蹲低':'站立'}</span>`+(s.ppv.on?`<span${warn(!s.ppv.effective)}>排煙機${s.ppv.effective?'送風中':'：'+s.ppv.reason}</span>`:'')+(s.pending?'<span class="warn">回燃徵兆</span>':'')+(s.flashed?'<span class="warn">閃燃</span>':s.rollover?'<span class="warn">滾燃徵兆</span>':'');
  if(s.thermal){const r=indoor.reticle(camera);$('thermalRead').textContent=r===null?'—':`${r} °C`;}
- const crew=indoor.crew.map(c=>c.out?'已撤出':({follow:'跟隨',move:'移動',search:'搜索',force:'破門',lift:'抬起',carry:'搬運',idle:'待命',spray:'射水'}[c.state]??c.state));$('crewLine').textContent='隊員：'+crew.join('、');}
+ const crew=indoor.crew.map(c=>c.out?'已撤出':c.cover&&c.state==='follow'?'掩護射水':({cover:'掩護射水',follow:'跟隨',move:'移動',search:'搜索',force:'破門',lift:'抬起',carry:'搬運',idle:'待命',spray:'射水'}[c.state]??c.state));$('crewLine').textContent='隊員：'+crew.join('、');}
 function updateInterior(dt){const m=mission;if(!m){exitBuilding();return;}const [f,r]=input();
  indoor.update(dt,{input:[f,r],yaw:state.yaw,pitch:fpPitch(),run:state.keys.has('shift')||state.run||state.pad.held.run,intensity:m.phase<6?m.intensity:0,forceHeld:state.keys.has('f')||!!state.pad.held.use});
  if(Math.floor(m.elapsed*4)!==Math.floor((m.elapsed-dt)*4))renderIndoorHud();}
@@ -498,7 +504,9 @@ function updateMission(dt,t){
 if(m.phase<6||m.reportPending){m.elapsed+=dt;$('missionClock').textContent=fmt(m.elapsed);
   for(const f of fireList())if(f.intensity>0&&f!==m.hitFire&&m.phase<6)f.intensity=Math.min(f===m.fireMain?Math.max(indoor.cap,Math.min(f.intensity,1)):1,f.intensity+RULES.growth*dt);}
  // 室內環境（示意）：起火房間通風受限時火勢上限較低（未燃氣體累積）；氣體冷卻來自上一幀的水霧。
- if(m.phase<6||m.reportPending){indoor.step(dt,{fires:{[site.floor]:m.phase<6?m.intensity:0,[site.floor+1]:m.phase<6&&m.upper?m.upper.intensity:0},cooling:m.cooling});m.cooling=null;if(m.intensity>indoor.cap&&m.phase<6&&!m.times.flashover)m.intensity=Math.max(indoor.cap,m.intensity-.01*dt);}
+ if(m.phase<6||m.reportPending){indoor.step(dt,{fires:{[site.floor]:m.phase<6?m.intensity:0,[site.floor+1]:m.phase<6&&m.upper?m.upper.intensity:0,[site.floor-1]:m.phase<6&&m.lower?m.lower.intensity:0},cooling:m.cooling});m.cooling=null;if(m.intensity>indoor.cap&&m.phase<6&&!m.times.flashover)m.intensity=Math.max(indoor.cap,m.intensity-.01*dt);}
+ // 延燒到下一樓（示意，部分派遣）：起火層火勢持續偏高後，掉落物或樓板延燒引燃下一層同一位置。
+ if(m.phase<6&&m.lowerPlanned&&!m.lower){if(m.intensity>=LOWER.threshold)m.lowerTimer=(m.lowerTimer??0)+dt;if(m.lowerTimer>=LOWER.after){const lo=lowerSite(site);m.lower={site:lo,intensity:LOWER.start};lowerFx.setSite(lo);indoor.igniteLevel(lo.floor);m.times.lower=m.elapsed;flashHint(`⚠ 火勢向下延燒至 ${lo.floor} 樓（掉落物引燃，示意）`);showNotice(`火勢向下延燒至 ${lo.floor} 樓（示意）`,5000);}}
  // 延燒到上一樓（示意）
  if(m.phase<6&&!m.upper){const r=stepSpread(m.fireMain,dt,m.spreadTimer??0,{buildingTop:site.base+site.height});m.spreadTimer=r.timer;
   if(r.spread){const up=upperSite(site);m.upper={site:up,intensity:.4};upperFx.setSite(up);indoor.igniteUpper();m.times.spread=m.elapsed;flashHint(`⚠ 火勢延燒至 ${up.floor} 樓！`);showNotice(`火勢延燒至 ${up.floor} 樓（同一立面上一層）`,5000);}}
@@ -517,11 +525,11 @@ if(m.phase<6||m.reportPending){m.elapsed+=dt;$('missionClock').textContent=fmt(m
  if(wantSpray&&m.water<=0)flashHint('水箱已空：走到消防車旁按 G 拉供水水帶，再到消防栓按 G 連接');else if(wantSpray&&state.air<=0)flashHint('空氣用盡：立即撤離火點 25 m 外，到消防車旁更換氣瓶');
  let spray=null;const fireWin=indoor.fireWindow(),winClosed=fireWin?.state==='closed';
  // 隊員射水（示意：隊員自同一水源架設第二條水線，用水量計入水箱）。
- if(state.mode==='interior'){for(const c of indoor.takeCrewSprays()){const tf=c.lv===site.floor?m.fireMain:c.lv===site.floor+1?m.upper:null;if(!tf||m.phase>=6)continue;
+ if(state.mode==='interior'){for(const c of indoor.takeCrewSprays()){const tf=fireOfLevel(c.lv);if(!tf||m.phase>=6)continue;
    if(m.water<=0){flashHint('水箱已空：隊員無法射水');continue;}m.water=Math.max(0,m.water-NOZZLE.stream.flow*dt);if(m.times.water===undefined)m.times.water=m.elapsed;if(m.phase<5&&m.phase>=3)m.phase=5;tf.intensity=Math.max(0,tf.intensity-NOZZLE.stream.knockdown*.8*dt);if(!m.hitFire)m.hitFire=tf;m.indoor.crewSpray=(m.indoor.crewSpray??0)+dt;}}
  // 室內射水：直線水柱直接打火點；水霧打入上層熱煙（或微開門後的空間）做氣體冷卻。
  if(state.mode==='interior'){const r=indoor.spray(dt,state.nozzle,m.spraying,state.yaw,fpPitch());if(m.spraying){m.cooling=r.cooling;
-   const tf=r.lv===site.floor?m.fireMain:r.lv===site.floor+1?m.upper:null;
+   const tf=fireOfLevel(r.lv);
    if(r.hit&&tf&&m.phase<6){if(m.times.water===undefined)m.times.water=m.elapsed;if(m.phase>=3&&m.phase<5)m.phase=5;tf.intensity=Math.max(0,tf.intensity-NOZZLE[state.nozzle].knockdown*1.3*dt);m.hitFire=tf;flashHint(`室內直接射水命中 ${r.lv} 樓火點（${NOZZLE[state.nozzle].label}）`);}
    else if(m.phase<6&&!r.burning)flashHint(r.cooling?`${NOZZLE[state.nozzle].label}冷卻上層熱煙（示意）`:'此處沒有燃燒中的火點');
    else if(m.phase<6)flashHint((fpPitch()>.12&&r.cooling?`${NOZZLE[state.nozzle].label}冷卻上層熱煙（示意）；`:'')+(r.blocked?'火點被牆或門擋住：進到門口再對準火光':r.dist>r.reach?`距火點 ${r.dist.toFixed(1)} m，${NOZZLE[state.nozzle].label}室內射程約 ${r.reach} m`:r.inCone?'':'對準火光方向'));}}
@@ -540,13 +548,15 @@ if(m.phase<6||m.reportPending){m.elapsed+=dt;$('missionClock').textContent=fmt(m
   else if(fogSpray.range<RULES.reach+6){if(m.times.water===undefined)m.times.water=m.elapsed;af.intensity=Math.max(0,af.intensity-RULES.knockdown*dt);if(af!==m.hitFire)m.hitFire=m.hitFire??af;if(m.phase<5){m.phase=5;}}}
  if(spray?.mode==='fog'&&!fogSpray){fogSpray=spray;spray=null;}
  if(m.phase===4&&m.times.water!==undefined){m.phase=5;}
- if(m.phase===5&&allOut(fireList())){m.phase=6;m.intensity=0;m.times.done=m.elapsed;fireFx.setSite(null);upperFx.setSite(null);if(m.mci&&!mciComplete(m.mci.patients)){m.reportPending=true;flashHint('火勢已控制；仍有傷患待檢傷或後送，完成後顯示任務紀錄');}else showReport();}
+ if(m.phase===5&&allOut(fireList())){m.phase=6;m.intensity=0;m.times.done=m.elapsed;fireFx.setSite(null);upperFx.setSite(null);lowerFx.setSite(null);if(m.mci&&!mciComplete(m.mci.patients)){m.reportPending=true;flashHint('火勢已控制；仍有傷患待檢傷或後送，完成後顯示任務紀錄');}else showReport();}
  updateMci(dt);updateDeterioration();updateSupply(dt);renderOps();if(Math.floor(t*2)!==Math.floor((t-dt)*2))renderIndoorLine();
  $('tHose').hidden=!(m.phase>=3&&state.mode==='walk');$('tSpray').hidden=!(state.mode==='walk'&&m.hose||state.mode==='interior'&&indoor.me.hoseIn);
  const handPos=new T.Vector3(state.x,ground.at(state.x,state.z)+1,state.z),truckPos=new T.Vector3(truck.x,ground.at(truck.x,truck.z)+1,truck.z);
  entryMark.visible=m.phase>=3&&m.phase<6;
  fireFx.update(dt,m.phase<6?(winClosed?Math.min(m.intensity,.12):m.intensity):0,{spray,hoseFrom:m.hose?truckPos:null,hoseTo:m.hose?handPos:null,fogSpray});
  if(m.upper)upperFx.update(dt,m.phase<6?m.upper.intensity:0);
+ if(m.lower)lowerFx.update(dt,m.phase<6?m.lower.intensity:0);
+ if(m.lower&&m.lower.intensity<=0&&!m.times.lowerOut){m.times.lowerOut=m.elapsed;lowerFx.setSite(null);flashHint(`${m.lower.site.floor} 樓火點已撲滅`);}
  if(m.upper&&m.upper.intensity<=0&&!m.times.upperOut){m.times.upperOut=m.elapsed;upperFx.setSite(null);flashHint(`${m.upper.site.floor} 樓火點已撲滅`);}
  if(m.intensity<=0&&m.fireMainOut!==true&&m.upper?.intensity>0){m.fireMainOut=true;fireFx.setSite(null);flashHint(`${site.floor} 樓火點已撲滅，仍有 ${m.upper.site.floor} 樓火點`);}
  if(Math.floor(t*4)!==Math.floor((t-dt)*4))renderMission();
@@ -559,11 +569,11 @@ function missionRecord(){const m=mission;if(!m)return null;const V=v=>v&&{id:v.i
  return {format:'xinyi-street-mission-v1',savedAt:new Date().toISOString(),note:'訓練示意紀錄：火勢、生命徵象、救護車與醫院皆為示意；不評分，請依單位標準講評。',
   site:{street:m.site.street,floor:m.site.floor,buildingId:m.site.buildingId,fromGis:!!m.site.fromGis,lonLat:unproject(m.site.x,m.site.z)},seconds:Object.fromEntries(Object.entries(m.times).map(([k,v])=>[k,Math.round(v*10)/10])),
   parkingDistance:m.parkDist??null,aerial:a&&a.result?{distanceToFacade:+a.result.dist.toFixed(1),standoff:a.standoff,stretcher:!!a.result.stretcher,load:a.result.load?{totalKg:a.result.load.total,capacityKg:a.result.load.capacity,parts:a.result.load.parts}:null}:null,
-  ops:{waterLeftL:Math.round(m.water),supplyConnectedAt:m.times.supply??null,airSwaps:m.airSwaps??0,spreadAt:m.times.spread??null,upperFloorOutAt:m.times.upperOut??null},
+  ops:{waterLeftL:Math.round(m.water),supplyConnectedAt:m.times.supply??null,airSwaps:m.airSwaps??0,spreadAt:m.times.spread??null,lowerSpreadAt:m.times.lower??null,lowerOutAt:m.times.lowerOut??null,upperFloorOutAt:m.times.upperOut??null},
   indoor:m.indoor&&indoor.plan?{note:'室內為示意平面（非建物實際格局），溫度、煙、含氧量為示意值',floor:m.site.floor,ventilationLimited:m.indoor.closed,items:Object.keys(m.indoor.items??{}).map(k=>EQUIPMENT[k].label),entries:m.indoor.entries.map(e=>({atSeconds:Math.round(e.time),hose:e.hose})),
    forcedDoors:m.indoor.forced??0,ventOpenings:m.indoor.vents??0,forcedExit:m.indoor.forcedExit??0,maxHeatExposure:Math.round(indoor.me.maxExposure),events:(m.indoor.events??[]).filter(e=>!['enter','exit'].includes(e.kind)).map(e=>({atSeconds:Math.round(e.time),kind:e.kind,text:e.text})),
    floorsModeled:m.indoor.floors,floorsVisited:[...indoor.me.visited],reachedFireFloorAt:m.times.fireFloor!==undefined?Math.round(m.times.fireFloor):null,standpipeConnections:m.indoor.standpipe??0,crewSpraySeconds:Math.round(m.indoor.crewSpray??0),
-   victims:indoor.victims().map(v=>({id:v.id,floor:v.floor,room:indoor.levels.get(v.floor).plan.spaces.find(s=>s.id===v.space).name,state:v.state})),rescued:m.indoor.rescued.map(V)}:null,
+   victims:indoor.victims().map(v=>({id:v.id,floor:v.floor,condition:v.condition,room:indoor.levels.get(v.floor).plan.spaces.find(s=>s.id===v.space).name,state:v.state})),rescued:m.indoor.rescued.map(V)}:null,
   victim:V(m.victim),massCasualty:mci||null};}
 function downloadRecord(){const r=missionRecord();if(!r)return;const url=URL.createObjectURL(new Blob([JSON.stringify(r,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`信義街景任務紀錄-${new Date().toISOString().slice(0,16).replace(/[:T]/g,'')}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('reportDownload').onclick=()=>downloadRecord();
@@ -575,7 +585,7 @@ function indoorReportRows(row){const m=mission,I=m.indoor,T0=m.times,P=indoor.pl
   row('最高熱暴露（示意 0–100）',Math.round(indoor.me.maxExposure)+((I.forcedExit??0)?`・緊急撤出 ${I.forcedExit} 次`:''));}
 function showReport(){
  const m=mission;m.reportPending=false;const T0=m.times,row=(a,b)=>`<tr><td>${a}</td><td>${b}</td></tr>`,span=(a,b)=>a!==undefined&&b!==undefined?fmt(b-a):'—';
- $('reportBody').innerHTML='<table>'+row('派遣地點',`${m.site.street||'信義區'}・${m.site.floor} 樓（示意）`)+row('派遣 → 上車出發',span(0,T0.depart))+row('出發 → 抵達',span(T0.depart,T0.arrive))+row('抵達 → 停妥下車',span(T0.arrive,T0.parked))+row('停妥 → 佈設水線',span(T0.parked,T0.hose))+row('佈線 → 開始射水',span(T0.hose,T0.water))+row('射水 → 火勢控制',span(T0.water,T0.done))+(T0.aerialStart!==undefined?row('雲梯：配置 → 籃架到位',span(T0.aerialStart,T0.aerialReady)):'')+(m.victim?.triage?row('檢傷（你的分類／START 參考）',TAGS[m.victim.triage.tag].label.split('（')[0]+'／'+TAGS[m.victim.triage.start.tag].label.split('（')[0])+row('急救處置',m.victim.triage.aid.map(id=>FIRST_AID.find(f=>f.id===id).label).join('、')||'未記錄'):(m.victim?.state==='rescued'?row('檢傷與處置','未記錄'):''))+row('受困者（'+(m.victim?`${m.victim.sex==='male'?'男':'女'}・${CONDITION_LABEL[m.victim.condition]}`:'—')+'）',T0.rescued!==undefined?'派遣後 '+fmt(T0.rescued)+(m.victim?.stretcher?' 以擔架救出':' 救出'):'未救出')+row('總時間',fmt(T0.done))+row('停車距起火面',m.parkDist?m.parkDist.toFixed(1)+' m':'—')+(T0.spread!==undefined?row('延燒至上一樓',fmt(T0.spread)+(T0.upperOut!==undefined?`；${fmt(T0.upperOut)} 撲滅`:'')):'')+(m.indoor?indoorReportRows(row):'')+row('消防栓供水連接',T0.supply!==undefined?fmt(T0.supply):'未連接')+row('水箱剩餘／更換氣瓶',`${Math.round(m.water)} L／${m.airSwaps??0} 次`)+mciReportRows(row)+'</table>';
+ $('reportBody').innerHTML='<table>'+row('派遣地點',`${m.site.street||'信義區'}・${m.site.floor} 樓（示意）`)+row('派遣 → 上車出發',span(0,T0.depart))+row('出發 → 抵達',span(T0.depart,T0.arrive))+row('抵達 → 停妥下車',span(T0.arrive,T0.parked))+row('停妥 → 佈設水線',span(T0.parked,T0.hose))+row('佈線 → 開始射水',span(T0.hose,T0.water))+row('射水 → 火勢控制',span(T0.water,T0.done))+(T0.aerialStart!==undefined?row('雲梯：配置 → 籃架到位',span(T0.aerialStart,T0.aerialReady)):'')+(m.victim?.triage?row('檢傷（你的分類／START 參考）',TAGS[m.victim.triage.tag].label.split('（')[0]+'／'+TAGS[m.victim.triage.start.tag].label.split('（')[0])+row('急救處置',m.victim.triage.aid.map(id=>FIRST_AID.find(f=>f.id===id).label).join('、')||'未記錄'):(m.victim?.state==='rescued'?row('檢傷與處置','未記錄'):''))+row('受困者（'+(m.victim?`${m.victim.sex==='male'?'男':'女'}・${CONDITION_LABEL[m.victim.condition]}`:'—')+'）',T0.rescued!==undefined?'派遣後 '+fmt(T0.rescued)+(m.victim?.stretcher?' 以擔架救出':' 救出'):'未救出')+row('總時間',fmt(T0.done))+row('停車距起火面',m.parkDist?m.parkDist.toFixed(1)+' m':'—')+(T0.lower!==undefined?row('向下延燒至下一樓（示意）',fmt(T0.lower)+(T0.lowerOut!==undefined?`；${fmt(T0.lowerOut)} 撲滅`:'')):'')+(T0.spread!==undefined?row('延燒至上一樓',fmt(T0.spread)+(T0.upperOut!==undefined?`；${fmt(T0.upperOut)} 撲滅`:'')):'')+(m.indoor?indoorReportRows(row):'')+row('消防栓供水連接',T0.supply!==undefined?fmt(T0.supply):'未連接')+row('水箱剩餘／更換氣瓶',`${Math.round(m.water)} L／${m.airSwaps??0} 次`)+mciReportRows(row)+'</table>';
  $('missionReport').hidden=false;$('missionTitle').textContent='火勢已控制';flashHint('任務完成，可按 F 收回水線');renderMission();
 }
 // ---------- 雲梯車作業（訓練示意） ----------

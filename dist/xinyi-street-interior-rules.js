@@ -83,6 +83,8 @@ export const o2Factor=o2=>Math.max(0,Math.min(1,(o2-.10)/.06));
 // 起火房間的火勢上限（通風受限時火勢被壓低，但未燃氣體累積）。
 export function fireCap(env,plan){return Math.max(.2,o2Factor(env.spaces[plan.fire.space].o2));}
 
+// 氣體冷卻（水霧打入上層熱煙）：降溫、減少未燃氣體，產生水蒸氣使煙量略增（示意）。
+export function cool(e,rate,dt){e.T=Math.max(ENV.ambient,e.T-70*rate*dt);e.fuel=Math.max(0,e.fuel-.18*rate*dt);e.smoke=Math.min(1,e.smoke+.01*rate*dt);}
 export function stepEnv(plan,env,dt,{intensity=0,fanOn=false,cooling=null}={}){
  const S=env.spaces,f=S[plan.fire.space],events=[],ppv=ppvState(plan,fanOn);
  const ventF=outsideVent(plan,plan.fire.space),Ieff=Math.max(0,intensity)*o2Factor(f.o2);
@@ -101,12 +103,12 @@ export function stepEnv(plan,env,dt,{intensity=0,fanOn=false,cooling=null}={}){
  // 正壓送風：連通空間排煙、降溫、補氧（含起火房間時也會助燃）。
  if(ppv.effective)for(const id of ppv.reach){const e=S[id];e.smoke-=e.smoke*Math.min(1,.22*dt);e.o2+=(.21-e.o2)*Math.min(1,.3*dt);if(id!==plan.fire.space)e.T-=(e.T-ENV.ambient)*Math.min(1,.05*dt);}
  // 氣體冷卻（水霧打入上層熱煙）：降溫、減少未燃氣體，產生水蒸氣使煙量略增。
- if(cooling){const e=S[cooling.space];if(e){e.T=Math.max(ENV.ambient,e.T-70*cooling.rate*dt);e.fuel=Math.max(0,e.fuel-.18*cooling.rate*dt);e.smoke=Math.min(1,e.smoke+.01*cooling.rate*dt);}}
+ for(const c of [cooling].flat())if(c&&S[c.space])cool(S[c.space],c.rate,dt);
  for(const s of plan.spaces){const e=S[s.id];e.smoke=Math.max(0,Math.min(1,e.smoke));e.o2=Math.max(.05,Math.min(.21,e.o2));e.fuel=Math.max(0,Math.min(1,e.fuel));e.T=Math.max(ENV.ambient,Math.min(1000,e.T));}
  if(!env.rollover&&f.T>=ENV.rollover&&intensity>0){env.rollover=true;events.push('rollover');}
  if(env.rollover&&f.T<ENV.rollover-60)env.rollover=false;
  if(!env.flashed&&f.T>=ENV.flashover&&intensity>0){env.flashed=true;events.push('flashover');}
- if(env.flashed&&intensity<=0)env.flashed=false;
+ if(env.flashed&&(intensity<=0||f.T<300))env.flashed=false;   // 撲滅或冷卻到 300 °C 以下即結束全面燃燒狀態（示意）
  return {events,ppv,cap:fireCap(env,plan),Ieff};
 }
 // 回燃徵兆：空間含氧低、未燃氣體多且溫度高時，突然開口可能回燃（示意門檻）。
@@ -159,3 +161,11 @@ export function stairSegments(seg,{up=false,down=false}={}){const out=[[STAIR.xM
 export function buildingFloors(fireFloor,height,floorHeight=INTERIOR.floorHeight){const max=Math.max(fireFloor,Math.floor(height/floorHeight));const top=Math.min(fireFloor+1,max);const out=[];for(let f=1;f<=top;f++)out.push(f);return out;}
 // 樓梯間的煙與熱往上層流動（煙囪效應，示意）：下層樓梯間 → 上層樓梯間。
 export function stackExchange(lower,upper,dt){const ds=Math.max(0,lower.smoke-upper.smoke)*.08*dt,dT=Math.max(0,lower.T-upper.T)*.04*dt;lower.smoke-=ds;upper.smoke+=ds;lower.T-=dT;upper.T+=dT;}
+// 樓梯路線（世界高度，1 樓地面為 0）：自 from 層樓梯口走到 to 層樓梯口，沿兩段折返梯。回傳 [{x,z,y}]。
+export function stairRoute(from,to){const FH=INTERIOR.floorHeight,h=FH/2,out=[];if(from===to)return [{x:1.2,z:7.9,y:(from-1)*FH}];
+ const upOne=b=>[{x:2.65,z:7.9,y:b},{x:2.65,z:STAIR.zLow,y:b},{x:2.65,z:STAIR.zHigh,y:b+h},{x:2.65,z:11.5,y:b+h},{x:.9,z:11.5,y:b+h},{x:.9,z:STAIR.zHigh,y:b+h},{x:.9,z:STAIR.zLow,y:b+FH},{x:.9,z:7.9,y:b+FH}];
+ if(to>from){out.push({x:1.2,z:7.9,y:(from-1)*FH});for(let f=from;f<to;f++)out.push(...upOne((f-1)*FH));out.push({x:1.2,z:7.9,y:(to-1)*FH});return out;}
+ return stairRoute(to,from).reverse();}
+// 折線取樣（依 3D 弧長）：回傳 {x,z,y,heading}；超出時停在端點。
+export function samplePath(path,d){let rest=Math.max(0,d);for(let i=1;i<path.length;i++){const a=path[i-1],b=path[i],l=Math.hypot(b.x-a.x,b.z-a.z,b.y-a.y);if(rest<=l||i===path.length-1){const k=l?Math.min(1,rest/l):1;return {x:a.x+(b.x-a.x)*k,z:a.z+(b.z-a.z)*k,y:a.y+(b.y-a.y)*k,heading:Math.atan2(-(b.x-a.x),-(b.z-a.z))};}rest-=l;}const p=path[0];return {...p,heading:0};}
+export const pathLength=path=>path.slice(1).reduce((a,b,i)=>a+Math.hypot(b.x-path[i].x,b.z-path[i].z,b.y-path[i].y),0);
