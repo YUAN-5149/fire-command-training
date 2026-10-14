@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s21">
+<link rel="stylesheet" href="xinyi-street.css?v=s22">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -41,11 +41,11 @@
  <p id="missionHint"></p>
  <button id="missionAbort">取消任務</button>
 </aside>
-<div id="indoorPanel" hidden><div id="indoorStatus"></div><p id="crewLine"></p><p id="indoorHint"></p>
+<div id="indoorPanel" hidden><div id="indoorStatus"></div><p id="crewLine"></p><p id="callLine" hidden></p><p id="indoorHint"></p>
  <div class="indoor-actions"><button data-k="e">開關門窗／撤出（E）</button><button data-k="x">微開門（X）</button><button data-k="f">器材（按住 F）</button><button data-k="c">蹲低（C）</button><button data-k="i">熱顯像（I）</button><button data-k="1">1 跟隨</button><button data-k="2">2 搜索</button><button data-k="3">3 開窗排煙</button><button data-k="4">4 隊員撤離</button><button data-k="5">5 隊員射水</button><button data-k="6">6 掩護射水</button></div>
  <p class="note">室內為示意平面（非該建物實際格局）；溫度、煙層、含氧量為示意值，閃燃／回燃只依示意門檻呈現徵兆。</p></div>
 <div id="thermal" hidden><div class="thermal-frame"></div><div class="thermal-cross">+</div><div class="thermal-read">熱顯像（示意）<b id="thermalRead">—</b></div></div>
-<div id="equip" hidden role="dialog" aria-label="攜帶裝備"><div class="report-card"><h2>攜帶裝備 <small id="equipCount"></small></h2><div id="equipList"></div><p class="note">裝備與數量上限為訓練示意；水線另由 F 佈設。破壞器材用於上鎖的門（按住 F），排煙機放在樓梯間門口，照明燈可放任意處。</p><div class="report-actions"><button id="equipClose" class="primary">完成（Esc）</button></div></div></div>
+<div id="equip" hidden role="dialog" aria-label="攜帶裝備"><div class="report-card"><h2>攜帶裝備 <small id="equipCount"></small></h2><div id="equipList"></div><label class="support-row">支援小組（自 1 樓上樓搬運受困者，示意）<select id="supportTeams"><option value="1">1 組</option><option value="2">2 組</option><option value="3">3 組</option></select></label><p class="note">裝備與數量上限為訓練示意；水線另由 F 佈設。破壞器材用於上鎖的門（按住 F），排煙機放在樓梯間門口，照明燈可放任意處。</p><div class="report-actions"><button id="equipClose" class="primary">完成（Esc）</button></div></div></div>
 <div id="missionReport" hidden role="dialog" aria-label="任務紀錄"><div class="report-card"><h2>任務紀錄</h2><div id="reportBody"></div><p class="note">火勢、射程與水量為遊戲化示意，非火場物理預測；本紀錄只列時間與位置，不作戰術正確性評分，請由教官依單位標準講評。</p><div class="report-actions"><button id="reportAgain" class="primary">再派遣一次</button><button id="reportDownload">下載任務紀錄</button><button id="reportClose">關閉</button></div></div></div>
 <div id="triage" hidden role="dialog" aria-label="檢傷與急救處置"><div class="report-card triage-card"><h2>檢傷與急救處置</h2><p id="triageWho"></p>
 <table id="triageFindings"></table>
@@ -116,7 +116,7 @@
     <h2>共通</h2>
     <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>傷患檢傷與急救處置</td><td><kbd>K</kbd>（在傷患旁 5 m 內；窗口受困者需先救出交接）</td></tr><tr><td>後送管理（大量傷患）</td><td><kbd>J</kbd></td></tr><tr><td>雲梯車：配置／確認車位／升梯出水／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置。有受困者時先以籃架救人）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>瞄子：直線水柱／水霧</td><td><kbd>V</kbd></td></tr><tr><td>消防栓供水（拉水帶／連接／拆除）</td><td><kbd>G</kbd>（消防車旁拉出，示意消防栓旁連接）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
     <h2>建物內部（示意平面）</h2>
-    <table class="keys"><tr><td>攜帶裝備（最多 3 項）</td><td><kbd>U</kbd>（消防車旁）</td></tr><tr><td>進入建物／撤出</td><td><kbd>E</kbd>（停妥後，黃色入口標示旁；空氣 ≥ 100 bar；撤出在 1 樓樓梯間西側出入口）</td></tr><tr><td>開關門窗</td><td><kbd>E</kbd></td></tr><tr><td>微開門（觀察門後、門縫冷卻）</td><td><kbd>X</kbd>（再按一次全開）</td></tr><tr><td>破門／放排煙機／放照明燈</td><td>按住 <kbd>F</kbd>（上鎖門前／樓梯間門口／任意處）</td></tr><tr><td>蹲低</td><td><kbd>C</kbd></td></tr><tr><td>熱顯像儀</td><td><kbd>I</kbd></td></tr><tr><td>隊員：跟隨／搜索／開窗排煙／撤離／架設水線射水（熱煙高溫時先水霧冷卻）／掩護射水</td><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd></td></tr><tr><td>上下樓</td><td>走進樓梯間的梯段（右側上行、左側下行）</td></tr><tr><td>連結送水管送水口接水線</td><td>按住 <kbd>F</kbd>（樓梯間紅色箱旁，需攜帶水帶背包）</td></tr><tr><td>出水（直線水柱打火點；水霧朝上冷卻熱煙）</td><td>按住 <kbd>Space</kbd>；<kbd>V</kbd> 切換瞄子；滑鼠拖曳上下看</td></tr></table>
+    <table class="keys"><tr><td>攜帶裝備（最多 3 項）</td><td><kbd>U</kbd>（消防車旁）</td></tr><tr><td>進入建物／撤出</td><td><kbd>E</kbd>（停妥後，黃色入口標示旁；空氣 ≥ 100 bar；撤出在 1 樓樓梯間西側出入口）</td></tr><tr><td>開關門窗</td><td><kbd>E</kbd></td></tr><tr><td>微開門（觀察門後、門縫冷卻）</td><td><kbd>X</kbd>（再按一次全開）</td></tr><tr><td>破門／放排煙機／放照明燈</td><td>按住 <kbd>F</kbd>（上鎖門前／樓梯間門口／任意處）</td></tr><tr><td>蹲低</td><td><kbd>C</kbd></td></tr><tr><td>熱顯像儀</td><td><kbd>I</kbd></td></tr><tr><td>隊員：跟隨／搜索／開窗排煙／撤離／架設水線射水（熱煙高溫時先水霧冷卻）／掩護射水</td><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd></td></tr><tr><td>受困者呼救</td><td>意識清楚者定時喊「救命！」（合成示意聲，左右聲道表示方向）；面板顯示方向與距離，小地圖以「?」標示房間；隔門越多越難聽到。按 2 搜索時隊員先往呼救房間</td></tr><tr><td>上下樓</td><td>走進樓梯間的梯段（右側上行、左側下行）</td></tr><tr><td>連結送水管送水口接水線</td><td>按住 <kbd>F</kbd>（樓梯間紅色箱旁，需攜帶水帶背包）</td></tr><tr><td>出水（直線水柱打火點；水霧朝上冷卻熱煙）</td><td>按住 <kbd>Space</kbd>；<kbd>V</kbd> 切換瞄子；滑鼠拖曳上下看</td></tr></table>
     <p class="note">室內為依起火立面寬度產生的示意平面，不是該建物實際格局；溫度、煙層、含氧量、熱暴露與時間為遊戲化示意，閃燃（上層 600 °C）、滾燃（500 °C）、回燃（含氧低、未燃氣體多、溫度高時開口）皆為示意門檻，不能作為現場判斷依據。</p>
     <h2>遊戲手把</h2>
     <table class="keys"><tr><td>移動／轉向</td><td>左搖桿（按下左搖桿跑步）</td></tr><tr><td>視角</td><td>右搖桿；十字鍵 ←／→ 拉近／拉遠</td></tr><tr><td>上／下車</td><td><kbd>A</kbd>（PS：✕）</td></tr><tr><td>油門／倒車</td><td><kbd>RT</kbd>／<kbd>LT</kbd>（亦可用左搖桿上下）</td></tr><tr><td>煞車</td><td>按住 <kbd>B</kbd>（PS：○）</td></tr><tr><td>警示燈</td><td><kbd>Y</kbd>（PS：△）</td></tr><tr><td>佈設／收回水線</td><td><kbd>X</kbd>（PS：□）；持水線時 <kbd>B</kbd> 切換瞄子</td></tr><tr><td>檢傷（K）／後送管理（J）</td><td><kbd>LB</kbd>（PS：L1）／按下右搖桿</td></tr><tr><td>雲梯車配置／確認／收梯</td><td><kbd>RB</kbd>（PS：R1）</td></tr><tr><td>出水</td><td>按住 <kbd>RT</kbd>（步行持水線時）</td></tr><tr><td>派遣火警／消防栓供水（G）</td><td>十字鍵 ↑／↓（時段改用鍵盤 N 或選單）</td></tr><tr><td>建物內部</td><td><kbd>A</kbd> 門窗／撤出、<kbd>X</kbd> 按住器材、<kbd>RB</kbd> 微開門、<kbd>Y</kbd> 蹲低、<kbd>LB</kbd> 熱顯像、十字鍵 ←／→／↑／↓ 隊員跟隨／搜索／開窗／撤離、按下右搖桿隊員射水</td></tr><tr><td>地圖／暫停選單</td><td><kbd>Back</kbd>（View）／<kbd>Start</kbd>（Menu）；<kbd>B</kbd> 關閉</td></tr></table>
@@ -148,6 +148,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s21"></script>
+<script type="module" src="xinyi-street.js?v=s22"></script>
 </body>
 </html>

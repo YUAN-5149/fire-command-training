@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {stairRoute,samplePath,pathLength,cool,STAIR,stairY,stairTransition,stairSegments,buildingFloors,stackExchange,INTERIOR,ENV,EXPOSURE,seeded,makeFloorPlan,spaceOf,wallSegments,resolveCircle,makeEnv,stepEnv,backdraftRisk,openingOutcome,applyBackdraft,
+import {CALL,canCall,hearing,directionWord,stairRoute,samplePath,pathLength,cool,STAIR,stairY,stairTransition,stairSegments,buildingFloors,stackExchange,INTERIOR,ENV,EXPOSURE,seeded,makeFloorPlan,spaceOf,wallSegments,resolveCircle,makeEnv,stepEnv,backdraftRisk,openingOutcome,applyBackdraft,
  layerHeight,feltTemp,visibility,stepExposure,hoseRemaining,pathDoors,searchTime,ppvState,fireCap,thermalColor,connected} from '../dist/xinyi-street-interior-rules.js';
 
 // 平面：同一 seed 重現；空間互不重疊並鋪滿 W×D；起火房間含立面中點；每個房間有門；受困者不在起火房間、不在家具上。
@@ -81,4 +81,9 @@ assert.deepEqual(buildingFloors(3,20),[1,2,3,4]);assert.deepEqual(buildingFloors
 {const e={T:400,smoke:.5,o2:.15,fuel:.6};cool(e,1,1);assert(e.T===330&&Math.abs(e.fuel-.42)<1e-9&&e.smoke>.5);for(let i=0;i<20;i++)cool(e,1,1);assert.equal(e.T,ENV.ambient);
  // stepEnv 接受多個冷卻來源（中隊長＋隊員）。
  const p=makeFloorPlan(seeded(2),{facadeWidth:18}),a=makeEnv(p),b=makeEnv(p);a.spaces.F1.T=b.spaces.F1.T=400;stepEnv(p,a,1,{cooling:{space:'F1',rate:1}});stepEnv(p,b,1,{cooling:[{space:'F1',rate:1},{space:'F1',rate:1}]});assert(b.spaces.F1.T<a.spaces.F1.T);}
+// 呼救：意識清楚者才呼救；距離、關閉的門、樓層差都會讓聲音變小；方向用語。
+{assert(canCall({state:'inside',condition:'well',vitals:{obeys:true}}));assert(canCall({state:'inside',condition:'serious',vitals:{obeys:true}}));
+ assert(!canCall({state:'inside',condition:'unconscious',vitals:{obeys:false}}));assert(!canCall({state:'assigned',condition:'well',vitals:{obeys:true}}));
+ assert.equal(hearing(0,0),1);assert(Math.abs(hearing(8,0)-.5)<1e-9);assert.equal(hearing(CALL.range,0),0);assert(hearing(5,1)<hearing(5,0)&&hearing(5,1)>0);assert.equal(hearing(3,4),0);assert(hearing(4,0,1)<hearing(4,0,0));
+ assert.equal(directionWord(0,0,-5),'前方');assert.equal(directionWord(0,5,0),'右方');assert.equal(directionWord(0,-5,0),'左方');assert.equal(directionWord(0,0,5),'後方');assert.equal(directionWord(0,3,-3),'右前方');assert.equal(directionWord(Math.PI/2,-5,0),'前方');}
 console.log('xinyi-street-interior: ok');

@@ -2,9 +2,9 @@
 // 煙層與能見度（樓梯間煙囪效應）、熱顯像儀、隊員指令（跟隨、搜索、開窗排煙、撤離、架設水線射水）、連結送水管送水口、
 // 排煙機與照明燈、閃燃／回燃徵兆。室內格局不是該建物實際平面；溫度、煙、含氧量與時間皆為遊戲化示意（規則見 xinyi-street-interior-rules.js）。
 import * as T from 'three';
-import {createPatient} from './xinyi-street-aerial.js?v=s21';
+import {createPatient} from './xinyi-street-aerial.js?v=s22';
 import {INTERIOR,ENV,EXPOSURE,FORCE,STAIR,seeded,makeFloorPlan,spaceOf,spaceById,wallSegments,resolveCircle,makeEnv,stepEnv,backdraftRisk,applyBackdraft,openingOutcome,
- layerHeight,feltTemp,visibility,stepExposure,pathDoors,searchTime,thermalColor,ppvState,stairY,stairTransition,stairSegments,stackExchange,stairRoute,samplePath,pathLength} from './xinyi-street-interior-rules.js?v=s21';
+ layerHeight,feltTemp,visibility,stepExposure,pathDoors,searchTime,thermalColor,ppvState,stairY,stairTransition,stairSegments,stackExchange,stairRoute,samplePath,pathLength,CALL,canCall,hearing,directionWord} from './xinyi-street-interior-rules.js?v=s22';
 
 const H=INTERIOR.ceiling,FH=INTERIOR.floorHeight,PACK=40;
 function tex(size,draw){const c=document.createElement('canvas');c.width=c.height=size;draw(c.getContext('2d'),size);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;return t;}
@@ -28,7 +28,7 @@ export function createInterior({createPerson}){
  const nozzle=new T.Mesh(new T.CylinderGeometry(.022,.032,.32,10),new T.MeshLambertMaterial({color:'#2b2b2b'}));scene.add(nozzle);
  const mat=c=>new T.MeshStandardMaterial({color:c,roughness:.85});
 
- const levels=new Map();let L=null,plan=null,env=null,fireFloor=1,meshes=[],crew=[],crewSprays=[],crewCool=[],support=null,evacuees=[];
+ const levels=new Map();let L=null,plan=null,env=null,fireFloor=1,meshes=[],crew=[],crewSprays=[],crewCool=[],supports=[],supportQueue=[],supportCount=2,evacuees=[];
  const HP={x:2.3,z:7.75},EXIT_IN=[{x:-.8,z:7.7,y:0},{x:.6,z:7.75,y:0}];
  const me={lv:1,seg:'floor',x:0,z:0,y:0,crouch:false,exposure:0,maxExposure:0,thermal:false,trail:[],crumbs:[],hoseIn:false,hoseBudget:0,standpipe:null,forcing:null,pending:null,burstT:0,shake:0,items:{},visited:new Set()};
  const log=[];let api=null,lastPpv={on:false},stepInfo={cap:1};
@@ -75,7 +75,8 @@ export function createInterior({createPerson}){
   // 連結送水管出水口（示意，紅色箱）。
   {const sp=pl.standpipe;const cab=box(.22,.7,.5,3.33,1.05,sp.z,new T.MeshStandardMaterial({color:'#c4161c',roughness:.5}),()=>ENV.ambient);cab.name='standpipe';const t=label(`送水口 ${lv.no}F`,'#ff7b72');t.scale.multiplyScalar(.7);t.position.set(3.3,1.65,sp.z);root.add(t);}
   {const t=label(`${lv.no} 樓`,'#ffd33d');t.position.set(1.75,2.5,7.12);root.add(t);}
-  for(const v of pl.victims){const fig=createPatient(root,{sex:v.sex,condition:v.condition??'unconscious'});fig.root.position.set(v.x,0,v.z);fig.root.rotation.y=v.heading;fig.body.traverse(o=>{if(o.isMesh){o.userData.heat=()=>36;o.userData.mat=o.material;meshes.push(o);}});lv.victimFigs.set(v.id,fig);}
+  for(const v of pl.victims){const fig=createPatient(root,{sex:v.sex,condition:v.condition??'unconscious'});fig.root.position.set(v.x,0,v.z);fig.root.rotation.y=v.heading;fig.body.traverse(o=>{if(o.isMesh){o.userData.heat=()=>36;o.userData.mat=o.material;meshes.push(o);}});lv.victimFigs.set(v.id,fig);
+   const bub=label('救命！','#ffdd55');bub.material.depthTest=false;bub.renderOrder=10;bub.scale.multiplyScalar(1.6);bub.position.set(v.x,v.condition==='well'?2.1:1.3,v.z);bub.visible=false;root.add(bub);v.bubble=bub;v.callT=1+Math.random()*CALL.every;v.bubbleT=0;}
   // 火焰效果（起火樓層與上一層）。
   if(Math.abs(lv.no-fireFloor)<=1){const flames=pts(root,160,flameTex,.9,T.AdditiveBlending,.95),roll=pts(root,200,rollTex,1.1,T.AdditiveBlending,.85),light=new T.PointLight('#ff7a2a',0,14,1.4);root.add(light);roll.visible=false;
    lv.fx={flames,roll,light,fl:[...Array(160)].map(()=>({t:Math.random(),u:Math.random()-.5,v:Math.random()-.5})),rl:[...Array(200)].map(()=>({t:Math.random(),u:Math.random(),v:Math.random()}))};}
@@ -83,7 +84,7 @@ export function createInterior({createPerson}){
  }
  function syncDoors(lv=L){for(const d of lv.plan.doors){const m=lv.doorMeshes.get(d.id);if(!m)continue;m.hinge.rotation.y=d.state==='open'?1.45:d.state==='ajar'?.3:0;m.leaf.rotation.z=d.forced?.06:0;}
   for(const w of lv.plan.windows){const m=lv.windowMeshes.get(w.id);if(m)m.glass.visible=w.state==='closed';}lv.segs=wallSegments(lv.plan);}
- function clearAll(){if(support)world.remove(support.g);support=null;for(const e of evacuees)world.remove(e.fig.root);evacuees=[];for(const m of meshes)m.geometry?.dispose();for(const lv of levels.values())world.remove(lv.root);levels.clear();meshes=[];for(const c of crew)world.remove(c.g);crew=[];L=plan=env=null;}
+ function clearAll(){for(const t of supports)world.remove(t.g);supports=[];supportQueue=[];for(const e of evacuees)world.remove(e.fig.root);evacuees=[];for(const m of meshes)m.geometry?.dispose();for(const lv of levels.values())world.remove(lv.root);levels.clear();meshes=[];for(const c of crew)world.remove(c.g);crew=[];L=plan=env=null;}
 
  // ---------- 任務設定 ----------
  function setup(site,{seed=Date.now(),closed=false,victimsByFloor={},floors=[1,site.floor],vitalsFor=()=>({})}={}){
@@ -96,7 +97,7 @@ export function createInterior({createPerson}){
    lv.root.position.y=base(no);world.add(lv.root);levels.set(no,lv);}
   for(const lv of levels.values())buildLevel(lv);
   crew=[0,1].map(i=>{const g=new T.Group();world.add(g);const p=createPerson(g,'隊員');p.beam.visible=true;p.body.traverse(o=>{if(o.isMesh&&o!==p.beam){o.userData.heat=()=>38;o.userData.mat=o.material;meshes.push(o);}});g.visible=false;return {i,g,p,lv:1,seg:'floor',x:0,z:0,y:0,heading:0,state:'follow',path:[],task:null,walk:0,out:true};});
-  support=makeSupport();evacuees=[];useLevel(floors[0]);log.length=0;me.maxExposure=0;me.visited=new Set();return levels.get(fireFloor).plan;
+  setSupportTeams(supportCount);evacuees=[];useLevel(floors[0]);log.length=0;me.maxExposure=0;me.visited=new Set();return levels.get(fireFloor).plan;
  }
  function clear(){clearAll();api.active=false;}
  function note(kind,text,extra={}){log.push({kind,text,...extra});api.onEvent?.(kind,text,extra);}
@@ -122,7 +123,7 @@ export function createInterior({createPerson}){
  function exit(){api.active=false;for(const c of crew){if(c.task?.victim)c.task.victim.state='inside';c.state='follow';c.task=null;c.cover=false;c.g.visible=false;c.out=true;}coverWater.visible=false;
   // 已交給支援小組或正在自行避難者：撤出時一併完成（示意）。
   for(const v of api.victims())if(['handover','down','evacuating'].includes(v.state)){finishRescue(v,'撤出時由支援小組完成搬運／引導（示意）');}
-  if(support){support.state='idle';support.queue=[];support.g.visible=false;}for(const e of evacuees)world.remove(e.fig.root);evacuees=[];me.pending=null;me.forcing=null;me.hoseIn=false;me.standpipe=null;crewWater.visible=false;note('exit','撤出建物');}
+  for(const t of supports){t.state='idle';t.v=null;t.g.visible=false;}supportQueue=[];for(const e of evacuees)world.remove(e.fig.root);evacuees=[];me.pending=null;me.forcing=null;me.hoseIn=false;me.standpipe=null;crewWater.visible=false;note('exit','撤出建物');}
 
  // ---------- 移動（含樓梯） ----------
  const eye=()=>me.crouch?INTERIOR.eyeCrouch:INTERIOR.eyeStand;
@@ -193,11 +194,12 @@ export function createInterior({createPerson}){
   if(n===6){if(!me.hoseIn){api.hint?.('掩護射水需要水線（自消防車拉入或接送水口）');return;}const c=crew.find(c=>!c.out&&!c.task&&c.i===1)??crew.find(c=>!c.out&&!c.task);if(!c){api.hint?.('隊員忙碌中');return;}
    if(c.cover){c.cover=false;api.hint?.('隊員：停止掩護射水');return;}c.cover=true;c.state='follow';api.hint?.('隊員：在中隊長後方以水霧掩護（上層熱煙 ≥ 120 °C 時冷卻，示意）');note('command',`指令隊員掩護射水（${L.no} 樓）`,{floor:L.no});}
   if(n===2){const searched=new Set(log.filter(l=>l.kind==='searched'&&l.floor===L.no).map(l=>l.space)),rooms=plan.spaces.filter(s=>s.kind==='room'&&!searched.has(s.id)&&!crew.some(c=>c.task?.room===s.id));
-   const room=nearest(rooms,s=>Math.hypot((s.x0+s.x1)/2-me.x,(s.z0+s.z1)/2-me.z),1e9);if(!room){api.hint?.(`${L.no} 樓所有房間已搜索或搜索中`);return;}
+   // 先往聽到呼救的房間搜索。
+   const called=rooms.find(r=>plan.victims.some(v=>v.heard&&v.state==='inside'&&v.space===r.id)),room=called??nearest(rooms,s=>Math.hypot((s.x0+s.x1)/2-me.x,(s.z0+s.z1)/2-me.z),1e9);if(!room){api.hint?.(`${L.no} 樓所有房間已搜索或搜索中`);return;}
    const e=env.spaces[room.id];if(e.T>=300){api.hint?.(`隊員回報：${room.name}溫度過高（示意 ${Math.round(e.T)} °C），需先控制火勢或冷卻`);return;}
    const team=ready();if(!team.length){api.hint?.('隊員正在搬運受困者');return;}
    for(const c of team){c.task={kind:'search',room:room.id,t:0};goTo(c,room.id,{x:(room.x0+room.x1)/2+(c.i?.6:-.6),z:(room.z0+room.z1)/2},()=>{c.state='search';c.task.t=0;});}
-   api.hint?.(`隊員：搜索 ${L.no} 樓${room.name}`);note('command',`指令隊員搜索 ${L.no} 樓${room.name}`,{floor:L.no});}
+   api.hint?.(`隊員：搜索 ${L.no} 樓${room.name}`+(called?'（往呼救聲方向）':''));note('command',`指令隊員搜索 ${L.no} 樓${room.name}`,{floor:L.no});}
   if(n===3){const sp=spaceOf(plan,me.x,me.z),cands=plan.windows.filter(w=>w.state==='closed');const w=nearest(cands,w=>(w.space===sp?.id?0:20)+Math.hypot(w.x-me.x,w.z-me.z),1e9);if(!w){api.hint?.('沒有可開啟的窗戶');return;}
    const c=ready().find(c=>!c.task);if(!c){api.hint?.('隊員忙碌中');return;}c.task={kind:'vent',window:w.id};goTo(c,w.space,{x:w.x,z:w.z+(w.z===0?.7:-.7)},()=>{const e=env.spaces[w.space];if(backdraftRisk(e)){api.hint?.(`隊員回報：${spaceById(plan,w.space).name}有回燃徵兆，未開窗`);note('crewRefuse','隊員因回燃徵兆未開窗',{floor:L.no});}else{w.state='open';syncDoors();note('vent',`隊員開窗排煙：${L.no} 樓${spaceById(plan,w.space).name}`,{floor:L.no,window:w.id,by:'crew'});api.hint?.(`隊員已開啟${spaceById(plan,w.space).name}窗戶`);}c.state='follow';c.task=null;});
    api.hint?.(`隊員：開啟${spaceById(plan,w.space).name}窗戶排煙`);}
@@ -209,7 +211,10 @@ export function createInterior({createPerson}){
     c.path=[{x:d.x,z:d.z-dir*.5}];c.state='spray';c.task.t=0;});
    api.hint?.(`隊員：架設水線，自 ${L.no} 樓起火房間門口進攻（示意）`);note('command',`指令隊員射水（${L.no} 樓）`,{floor:L.no});}}
  // 找到受困者：可行走者自行沿樓梯避難（中隊長指引），其餘由隊員抬到樓梯間交支援小組。
- function rescueFound(v){if(v.state!=='inside')return;if(v.condition==='well')evacuate(v);else assignCarry(v);}
+ // 交接：受困者放在該層樓梯間，排入支援小組佇列。
+ function handover(v){const lv=levels.get(v.floor),fig=lv.victimFigs.get(v.id);v.state='handover';v.x=HP.x;v.z=HP.z;if(v.bubble)v.bubble.visible=false;fig.root.position.set(HP.x,0,HP.z);fig.root.rotation.y=Math.PI/2;
+  note('handover',`受困者 ${v.id} 已抬到 ${v.floor} 樓樓梯間，等待支援小組搬下樓`,{floor:v.floor,victim:v.id});api.hint?.(`受困者 ${v.id} 已交給支援小組（自 1 樓上來搬運；${supports.length} 組輪流）`);supportQueue.push(v);}
+ function rescueFound(v){if(v.state!=='inside')return;if(v.bubble)v.bubble.visible=false;if(v.condition==='well')evacuate(v);else assignCarry(v);}
  function toWorld(fig,lvNo){const p=fig.root.position;world.attach(fig.root);return p;}
  function evacuate(v){const lv=levels.get(v.floor),fig=lv.victimFigs.get(v.id),r=pathDoors(lv.plan,v.space,'stair');for(const d of r.doors??[])if(d.state!=='open'){d.state='open';}syncDoors(lv);
   let pts=[];let cur=v.space;for(const d of r.doors??[]){const sp=spaceById(lv.plan,cur),dir=(sp.z0+sp.z1)/2<d.z?1:-1;pts.push({x:d.x,z:d.z-dir*.6},{x:d.x,z:d.z+dir*.6});cur=d.a===cur?d.b:d.a;}
@@ -217,18 +222,34 @@ export function createInterior({createPerson}){
   toWorld(fig);fig.root.position.set(v.x,b,v.z);v.state='evacuating';evacuees.push({v,fig,path,len:pathLength(path),d:0,walk:0});note('evacuate',`受困者 ${v.id}（${v.floor} 樓，可行走）沿樓梯自行避難`,{floor:v.floor,victim:v.id});api.hint?.(`受困者 ${v.id} 可行走：指引其沿樓梯下樓避難`);}
  function finishRescue(v,text){v.state='rescued';const fig=levels.get(v.floor)?.victimFigs.get(v.id);if(fig)fig.root.visible=false;note('rescued',text??`受困者 ${v.id} 已救出至 1 樓出入口`,{floor:v.floor,victim:v.id});api.onRescue?.(v);}
  // 支援小組（示意，2 名隊員＋擔架）：自 1 樓出入口沿樓梯上到交接樓層，抬起受困者沿樓梯搬到 1 樓出入口。
- function makeSupport(){const g=new T.Group();g.visible=false;world.add(g);const people=[0,1].map(()=>{const p=createPerson(g,'隊員');p.beam.visible=true;p.body.traverse(o=>{if(o.isMesh&&o!==p.beam){o.userData.heat=()=>38;o.userData.mat=o.material;meshes.push(o);}});return p;});
-  const litter=new T.Mesh(new T.BoxGeometry(.6,.08,2.0),new T.MeshStandardMaterial({color:'#e8701a',roughness:.6}));g.add(litter);return {g,people,litter,state:'idle',queue:[],d:0,path:null,len:0,v:null,t:0,walk:0};}
- function updateSupport(dt){const s=support;if(!s)return;
-  if(s.state==='idle'){if(!s.queue.length)return;const v=s.queue.shift(),b=base(v.floor);s.v=v;s.path=[...EXIT_IN,...stairRoute(1,v.floor).slice(1),{x:HP.x+1,z:HP.z,y:b}];s.len=pathLength(s.path);s.d=0;s.state='up';s.g.visible=true;note('support',`支援小組自 1 樓上樓搬運 ${v.id}`,{floor:v.floor,victim:v.id});}
+ function makeSupport(i){const g=new T.Group();g.name='support'+i;g.visible=false;world.add(g);const people=[0,1].map(()=>{const p=createPerson(g,'隊員');p.beam.visible=true;p.body.traverse(o=>{if(o.isMesh&&o!==p.beam){o.userData.heat=()=>38;o.userData.mat=o.material;meshes.push(o);}});return p;});
+  const litter=new T.Mesh(new T.BoxGeometry(.6,.08,2.0),new T.MeshStandardMaterial({color:'#e8701a',roughness:.6}));g.add(litter);return {i,g,people,litter,state:'idle',d:0,path:null,len:0,v:null,t:0,walk:0};}
+ // 支援小組組數（示意 1–3 組）：多組時依交接順序輪流，同時可有多組在樓梯上。
+ function setSupportTeams(n){supportCount=Math.max(1,Math.min(3,n|0));while(supports.length<supportCount)supports.push(makeSupport(supports.length));while(supports.length>supportCount&&supports.at(-1).state==='idle'){world.remove(supports.pop().g);}}
+ function updateSupport(dt){for(const s of supports)updateTeam(s,dt);}
+ function updateTeam(s,dt){
+  if(s.state==='idle'){if(!supportQueue.length)return;// 前一組剛出發時錯開 3 秒，避免兩組重疊。
+   if(supports.some(o=>o!==s&&o.state==='up'&&o.d<3.5))return;const v=supportQueue.shift(),b=base(v.floor);s.v=v;s.path=[...EXIT_IN,...stairRoute(1,v.floor).slice(1),{x:HP.x+1,z:HP.z,y:b}];s.len=pathLength(s.path);s.d=0;s.state='up';s.g.visible=true;note('support',`支援小組 ${s.i+1} 自 1 樓上樓搬運 ${v.id}`,{floor:v.floor,victim:v.id});}
   if(s.state==='up'){s.d+=1.3*dt;if(s.d>=s.len){s.state='lift';s.t=0;}}
   else if(s.state==='lift'){s.t+=dt;if(s.t>2){const v=s.v,b=base(v.floor),fig=levels.get(v.floor).victimFigs.get(v.id);toWorld(fig);v.state='down';
    s.path=[{x:HP.x+1,z:HP.z,y:b},{x:1.2,z:7.9,y:b},...stairRoute(v.floor,1).slice(1),...[...EXIT_IN].reverse()];s.len=pathLength(s.path);s.d=1.2;s.state='down';}}
   else if(s.state==='down'){s.d+=.85*dt;const v=s.v,fig=levels.get(v.floor).victimFigs.get(v.id),a=samplePath(s.path,s.d),b=samplePath(s.path,s.d-1.2);fig.root.position.set((a.x+b.x)/2,(a.y+b.y)/2+.75,(a.z+b.z)/2);fig.root.rotation.y=Math.atan2(-(a.x-b.x),-(a.z-b.z));
-   if(s.d>=s.len){finishRescue(v,`支援小組將受困者 ${v.id} 自 ${v.floor} 樓沿樓梯搬到 1 樓出入口`);s.state='idle';s.g.visible=false;s.v=null;return;}}
+   if(s.d>=s.len){finishRescue(v,`支援小組 ${s.i+1} 將受困者 ${v.id} 自 ${v.floor} 樓沿樓梯搬到 1 樓出入口`);s.state='idle';s.g.visible=false;s.v=null;return;}}
   if(s.state==='up'||s.state==='down'||s.state==='lift'){const lead=samplePath(s.path,s.d),rear=samplePath(s.path,Math.max(0,s.d-1.2)),moving=s.state!=='lift';s.walk+=moving?dt*5:0;
    [lead,rear].forEach((q,k)=>{const p=s.people[k];p.body.position.set(q.x,q.y,q.z);p.body.rotation.y=Math.atan2(-(lead.x-rear.x),-(lead.z-rear.z))||lead.heading;const sw=moving?Math.sin(s.walk+k*Math.PI)*.35:0;p.legs[0].rotation.x=sw;p.legs[1].rotation.x=-sw;p.arms.forEach(a=>a.rotation.x=s.state==='down'?-.5:0);});
    s.litter.position.set((lead.x+rear.x)/2,(lead.y+rear.y)/2+(s.state==='down'?.72:.4),(lead.z+rear.z)/2);s.litter.rotation.set(-Math.atan2(lead.y-rear.y,Math.hypot(lead.x-rear.x,lead.z-rear.z)||1),Math.atan2(lead.x-rear.x,lead.z-rear.z),0,'YXZ');}}
+ // 呼救：意識清楚者定時呼救；依距離、之間關閉的門與樓層差決定聽不聽得到。聽到時顯示「救命！」與方向（示意）。
+ function doorsBetween(pl,a,b){if(a===b)return [];const prev=new Map([[a,null]]),q=[a];while(q.length){const id=q.shift();for(const d of pl.doors){const o=d.a===id?d.b:d.b===id?d.a:null;if(!o||prev.has(o))continue;prev.set(o,{id,d});q.push(o);}}if(!prev.has(b))return null;const out=[];let c=b;while(prev.get(c)){out.push(prev.get(c).d);c=prev.get(c).id;}return out;}
+ function updateCalls(dt){const now=performance.now()/1000;
+  for(const lv of levels.values())for(const v of lv.plan.victims){if(v.bubbleT>0){v.bubbleT-=dt;if(v.bubbleT<=0||v.state!=='inside')v.bubble.visible=false;}
+   if(!canCall(v))continue;v.callT-=dt;if(v.callT>0)continue;v.callT=CALL.every+(Math.random()*2-1)*CALL.jitter;
+   const fd=v.floor-me.lv,mySpace=onFloor()?spaceOf(plan,me.x,me.z)?.id:'stair';if(Math.abs(fd)>1||(fd!==0&&mySpace!=='stair'))continue;
+   const doors=doorsBetween(lv.plan,fd?'stair':mySpace??'corridor',v.space);if(!doors)continue;const closed=doors.filter(d=>d.state!=='open').length,dx=v.x-me.x,dz=v.z-me.z,dist=Math.hypot(dx,dz,fd*FH);
+   const loud=hearing(dist,closed,Math.abs(fd));if(loud<=0)continue;v.heard=true;if(!fd){v.bubble.visible=true;v.bubbleT=CALL.duration;}
+   const dir=directionWord(api.yaw,dx,dz),rel=Math.atan2(Math.sin(Math.atan2(-dx,-dz)-api.yaw),Math.cos(Math.atan2(-dx,-dz)-api.yaw));
+   me.lastCall={id:v.id,at:now,text:fd?`${fd>0?'上':'下'}方 ${v.floor} 樓傳來呼救聲`:`聽到呼救：${dir}，約 ${Math.max(1,Math.round(dist))} m`+(closed?`（隔 ${closed} 道門）`:'')};
+   if(!log.some(l=>l.kind==='heard'&&l.victim===v.id))note('heard',`聽到受困者呼救（${v.floor} 樓）`,{floor:v.floor,victim:v.id});
+   api.onCall?.({loud,pan:Math.max(-1,Math.min(1,-Math.sin(rel))),floor:v.floor});}}
  function updateEvacuees(dt){for(const e of [...evacuees]){e.d+=1.1*dt;e.walk+=dt*7;const q=samplePath(e.path,e.d);e.fig.root.position.set(q.x,q.y,q.z);e.fig.root.rotation.y=q.heading;const sw=Math.sin(e.walk)*.35;e.fig.legs[0].rotation.x=sw;e.fig.legs[1].rotation.x=-sw;
   if(e.d>=e.len){evacuees.splice(evacuees.indexOf(e),1);finishRescue(e.v,`受困者 ${e.v.id} 自 ${e.v.floor} 樓沿樓梯自行避難至 1 樓出入口`);}}}
  function assignCarry(v){if(v.state!=='inside')return;const team=crew.filter(c=>!c.out&&c.lv===L.no&&!c.task?.victim);if(team.length<2){api.hint?.(`發現受困者 ${v.id}：需 2 名隊員搬運（隊員忙碌、在別處或已撤出）`);return;}
@@ -255,7 +276,7 @@ export function createInterior({createPerson}){
      if(c.task.t>=searchTime(room)){if(!log.some(l=>l.kind==='searched'&&l.space===room.id&&l.floor===L.no)){note('searched',`${L.no} 樓${room.name}搜索完成：無受困者`,{floor:L.no,space:room.id});api.hint?.(`隊員回報：${room.name}搜索完成，無受困者`);}c.state='follow';c.task=null;}}}
    else if(c.state==='lift'){c.t+=dt;if(c.t>1.5&&crew.filter(o=>o.task?.victim===c.task.victim).every(o=>o.state==='lift'||o.state==='carry')){c.state='carry';if(c.i===0){c.lead=true;c.task.victim.state='carried';const w=waypoints(c,'stair',HP);c.path=w.pts??[];}}}
    else if(c.state==='carry'){const v=c.task.victim;if(c.lead){const done=stepCrew(c,dt,.8);v.x=c.x;v.z=c.z;const fig=L.victimFigs.get(v.id);fig.root.position.set(c.x,.75,c.z);fig.root.rotation.y=c.heading;
-     if(done){v.state='handover';v.x=HP.x;v.z=HP.z;fig.root.position.set(HP.x,0,HP.z);fig.root.rotation.y=Math.PI/2;note('handover',`受困者 ${v.id} 已抬到 ${L.no} 樓樓梯間，等待支援小組搬下樓`,{floor:L.no,victim:v.id});api.hint?.(`受困者 ${v.id} 已交給支援小組（自 1 樓上來搬運）`);support.queue.push(v);for(const o of crew)if(o.task?.victim===v){o.state='follow';o.task=null;o.lead=false;o.path=[];}}}
+     if(done){handover(v);for(const o of crew)if(o.task?.victim===v){o.state='follow';o.task=null;o.lead=false;o.path=[];}}}
     else{const lead=crew.find(o=>o.lead&&o.task?.victim===c.task.victim);if(lead){const f=-Math.sin(lead.heading),g=-Math.cos(lead.heading);c.x=lead.x-f*1.3;c.z=lead.z-g*1.3;c.heading=lead.heading;c.walk=lead.walk;}}}
    else if(c.state==='spray'){c.task.t+=dt;stepCrew(c,dt,.8);const f=plan.fire,dx=f.x-c.x,dz=f.z-c.z,dist=Math.hypot(dx,dz);c.heading=Math.atan2(-dx,-dz);
     if(!(L.intensity>0)){note('crewOut',`隊員回報：${L.no} 樓火點已撲滅`,{floor:L.no});api.hint?.(`隊員回報：${L.no} 樓火點已撲滅，回到跟隨`);c.state='follow';c.task=null;}
@@ -300,7 +321,7 @@ export function createInterior({createPerson}){
    const sp=spaceOf(plan,me.x,me.z),e=env.spaces[sp?.id??'corridor'],felt0=feltTemp(e,me.y-base(me.lv)+eye()),felt=me.covered?ENV.ambient+(felt0-ENV.ambient)*.6:felt0;me.exposure=stepExposure(me.exposure,felt,dt);me.maxExposure=Math.max(me.maxExposure,me.exposure);
    if(onFloor()&&sp?.id===plan.fire.space&&env.flashed)me.exposure=Math.min(EXPOSURE.retreat,me.exposure+25*dt);
    if(me.exposure>=EXPOSURE.retreat){note('retreat','熱暴露達上限，緊急撤出（示意）');api.onForcedExit?.();}
-   updateCrew(dt);updateSupport(dt);updateEvacuees(dt);}
+   updateCrew(dt);updateSupport(dt);updateEvacuees(dt);updateCalls(dt);}
   for(const lv of levels.values()){updateFx(lv,dt);for(const [id,b] of lv.smokeBoxes){const e=lv.env.spaces[id],lh=layerHeight(e),h=H-lh;b.scale.y=Math.max(.01,h);b.position.y=lh+h/2;b.material.opacity=me.thermal?.08:Math.min(.92,.15+e.smoke*.8);b.visible=e.smoke>.02;}
    if(lv.placed.fan)lv.placed.fan.mesh.children[0].rotation.z+=lv.placed.fan.on?dt*20:0;}
   api.intensity=L.intensity;
@@ -315,7 +336,8 @@ export function createInterior({createPerson}){
  // 準星溫度：熱顯像儀讀值（示意）。
  function reticle(camera){ray.setFromCamera(center,camera);const hit=ray.intersectObjects(meshes,false)[0];if(!hit)return null;const t=hit.object.userData.heat?.()??ENV.ambient,dFire=Math.hypot(hit.point.x-plan.fire.x,hit.point.z-plan.fire.z,hit.point.y-base(L.no)-.8);return Math.round(dFire<1.4&&L.intensity>0?Math.max(t,450+L.intensity*300):t);}
  function render(renderer,camera,yaw,pitch){const y=me.y+eye()+(me.shake>0?(Math.random()-.5)*me.shake*.15:0),look=new T.Vector3(-Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch));
-  camera.position.set(me.x,y,me.z);camera.lookAt(me.x+look.x,y+look.y,me.z+look.z);torch.position.copy(camera.position);torch.target.position.copy(camera.position).add(look);
+  camera.position.set(me.x,y,me.z);camera.lookAt(me.x+look.x,y+look.y,me.z+look.z);// 頭盔燈：放在鏡頭後上方，貼牆時亮度不會爆白。
+  torch.position.copy(camera.position).addScaledVector(look,-.9).add(new T.Vector3(0,.25,0));torch.target.position.copy(camera.position).addScaledVector(look,3);
   const right=new T.Vector3(Math.cos(yaw),0,-Math.sin(yaw));nozzle.visible=me.hoseIn;nozzle.position.copy(camera.position).addScaledVector(look,.5).addScaledVector(right,.16).add(new T.Vector3(0,-.22,0));nozzle.lookAt(nozzle.position.clone().add(look));nozzle.rotateX(Math.PI/2);
   renderer.render(scene,camera);}
  // 小地圖：所在樓層示意平面、門窗狀態、火點、人員。
@@ -329,15 +351,16 @@ export function createInterior({createPerson}){
   ctx.fillStyle='#c4161c';ctx.fillRect(X(plan.standpipe.x)-3,Z(plan.standpipe.z)-3,6,6);
   if(L.intensity>0){ctx.fillStyle='#ff5a1f';ctx.beginPath();ctx.arc(X(plan.fire.x),Z(plan.fire.z),5,0,7);ctx.fill();}
   for(const v of plan.victims)if(v.found&&v.state!=='rescued'){ctx.fillStyle='#f85149';ctx.fillRect(X(v.x)-3,Z(v.z)-3,6,6);}
+   else if(v.heard&&v.state==='inside'){const r=spaceById(plan,v.space);ctx.fillStyle='#ffdd55';ctx.font=`bold ${Math.round(size/12)}px sans-serif`;ctx.textAlign='center';ctx.fillText('?',X((r.x0+r.x1)/2),Z((r.z0+r.z1)/2)+5);ctx.textAlign='left';}
   if(L.placed.fan){ctx.fillStyle='#c4161c';ctx.fillRect(X(L.placed.fan.mesh.position.x)-4,Z(L.placed.fan.mesh.position.z)-4,8,8);}
   for(const c of crew)if(!c.out&&c.lv===L.no){ctx.fillStyle='#1f6feb';ctx.beginPath();ctx.arc(X(c.x),Z(c.z),3.5,0,7);ctx.fill();}
   ctx.save();ctx.translate(X(me.x),Z(me.z));ctx.rotate(-api.yaw);ctx.fillStyle='#ffd33d';ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(5,5);ctx.lineTo(-5,5);ctx.closePath();ctx.fill();ctx.restore();
   ctx.fillStyle='#c9d1d9';ctx.font=`${Math.round(size/16)}px sans-serif`;ctx.fillText(`${L.no} 樓${L.no===fireFloor?'（起火層）':''}・示意平面・下方為街側`,pad,size-4);}
- function status(){const sp=spaceOf(plan,me.x,me.z),e=env.spaces[sp?.id??'corridor'],rel=me.y-base(me.lv);return {floor:me.lv,onStair:!onFloor(),space:onFloor()?sp?.name??'—':'樓梯（'+(me.seg==='landing'?'平台':'梯段')+'）',layer:layerHeight(e),T:e.T,smoke:e.smoke,o2:e.o2,felt:feltTemp(e,rel+eye()),exposure:me.exposure,crouch:me.crouch,thermal:me.thermal,hoseLeft:me.hoseIn?hoseLeft():null,standpipe:me.standpipe,ppv:lastPpv,pending:!!me.pending,flashed:env.flashed,rollover:env.rollover};}
+ function status(){const sp=spaceOf(plan,me.x,me.z),e=env.spaces[sp?.id??'corridor'],rel=me.y-base(me.lv);return {floor:me.lv,onStair:!onFloor(),space:onFloor()?sp?.name??'—':'樓梯（'+(me.seg==='landing'?'平台':'梯段')+'）',layer:layerHeight(e),T:e.T,smoke:e.smoke,o2:e.o2,felt:feltTemp(e,rel+eye()),exposure:me.exposure,crouch:me.crouch,thermal:me.thermal,hoseLeft:me.hoseIn?hoseLeft():null,standpipe:me.standpipe,ppv:lastPpv,pending:!!me.pending,flashed:env.flashed,rollover:env.rollover,call:me.lastCall&&performance.now()/1000-me.lastCall.at<4?me.lastCall.text:null};}
  function breakWindow(id){const lv=levels.get(fireFloor),w=lv?.plan.windows.find(w=>w.id===id);if(!w||w.state==='broken')return 'none';const out=openingOutcome(lv.env.spaces[w.space],'broken');w.state='broken';syncDoors(lv);if(out==='backdraft')backdraft(fireFloor,w.space,new T.Vector3(w.x,1.5,w.z));note('windowBroken','起火房間窗戶破裂',{floor:fireFloor,window:w.id});return out;}
  function takeCrewSprays(){const s=crewSprays;crewSprays=[];return s;}
  api={scene,active:false,yaw:0,intensity:0,get plan(){return plan;},get env(){return env;},get levels(){return levels;},get level(){return L;},get me(){return me;},get log(){return log;},get crew(){return crew;},get placed(){return L?.placed;},get cap(){return levels.size?stepInfo.cap:1;},get fireFloor(){return fireFloor;},
-  setup,clear,step,enter,exit,update,render,interact,ajar,useItem,command,spray,reticle,drawMap,status,breakWindow,setThermal,igniteUpper,igniteLevel,takeCrewSprays,useLevel,
+  setup,clear,step,enter,exit,update,render,interact,ajar,useItem,command,spray,reticle,drawMap,status,breakWindow,setThermal,igniteUpper,igniteLevel,setSupportTeams,handover,get supportTeams(){return supports;},takeCrewSprays,useLevel,
   victims(){return [...levels.values()].flatMap(lv=>lv.plan.victims);},
   toggleThermal(){if(!me.items.tic){api.hint?.('沒有攜帶熱顯像儀（在消防車旁按 U 選裝備）');return false;}setThermal(!me.thermal);return me.thermal;},
   toggleCrouch(){me.crouch=!me.crouch;return me.crouch;},hoseLeft,

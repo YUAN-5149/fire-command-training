@@ -169,3 +169,12 @@ export function stairRoute(from,to){const FH=INTERIOR.floorHeight,h=FH/2,out=[];
 // 折線取樣（依 3D 弧長）：回傳 {x,z,y,heading}；超出時停在端點。
 export function samplePath(path,d){let rest=Math.max(0,d);for(let i=1;i<path.length;i++){const a=path[i-1],b=path[i],l=Math.hypot(b.x-a.x,b.z-a.z,b.y-a.y);if(rest<=l||i===path.length-1){const k=l?Math.min(1,rest/l):1;return {x:a.x+(b.x-a.x)*k,z:a.z+(b.z-a.z)*k,y:a.y+(b.y-a.y)*k,heading:Math.atan2(-(b.x-a.x),-(b.z-a.z))};}rest-=l;}const p=path[0];return {...p,heading:0};}
 export const pathLength=path=>path.slice(1).reduce((a,b,i)=>a+Math.hypot(b.x-path[i].x,b.z-path[i].z,b.y-path[i].y),0);
+
+// ---------- 受困者呼救（示意） ----------
+// 意識清楚者（可行走或重傷、可遵從指令）每 5–7 秒呼救一次；昏迷者不會呼救，只能靠搜索。
+// 聽得到的範圍 16 m，每隔一道關閉（或微開）的門少 5 m，跨一層樓（只在樓梯間）再少 6 m。回傳 0–1 音量。
+export const CALL={range:16,perDoor:5,perFloor:6,every:6,jitter:1,duration:2};
+export const canCall=v=>v.state==='inside'&&!!(v.vitals?.obeys||v.condition==='well'||v.condition==='serious');
+export function hearing(dist,closedDoors=0,floors=0){const r=CALL.range-closedDoors*CALL.perDoor-floors*CALL.perFloor;return r<=0?0:Math.max(0,1-dist/r);}
+// 方向（相對中隊長面向）：前、右前、右、右後、後、左後、左、左前。yaw 與街景相同（前方 = (−sin, −cos)）。
+export function directionWord(yaw,dx,dz){const want=Math.atan2(-dx,-dz),d=Math.atan2(Math.sin(want-yaw),Math.cos(want-yaw));const words=['前方','左前方','左方','左後方','後方','右後方','右方','右前方'];return words[((Math.round(d/(Math.PI/4))%8)+8)%8];}

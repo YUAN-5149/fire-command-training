@@ -29,6 +29,11 @@ export function createAudio(){
   setVolume(name,v){vol[name]=v;apply();},
   setMuted(m){muted=m;apply();},
   suspend(){ctx?.suspend();},resume(){if(ctx&&!muted)ctx.resume();},
+  // 受困者呼救（合成示意聲，兩個音節的起伏人聲感，不是錄音）：loud 0–1、pan −1（左）～ 1（右）。
+  call({loud=1,pan=0}={}){if(!ctx||!nodes)return;const now=ctx.currentTime,o=ctx.createOscillator(),bp=ctx.createBiquadFilter(),g=ctx.createGain(),p=ctx.createStereoPanner?ctx.createStereoPanner():null;
+   o.type='sawtooth';bp.type='bandpass';bp.frequency.value=1100;bp.Q.value=2.2;o.frequency.setValueAtTime(330,now);o.frequency.linearRampToValueAtTime(430,now+.18);o.frequency.setValueAtTime(390,now+.3);o.frequency.linearRampToValueAtTime(290,now+.68);
+   const v=Math.min(1,loud)*.45*vol.ambient;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(v,now+.04);g.gain.linearRampToValueAtTime(v*.15,now+.25);g.gain.linearRampToValueAtTime(v,now+.32);g.gain.linearRampToValueAtTime(0,now+.72);
+   o.connect(bp).connect(g);if(p){p.pan.value=pan;g.connect(p).connect(nodes.master);}else g.connect(nodes.master);o.start(now);o.stop(now+.75);},
   // siren: 0–1（含距離衰減）；speed: m/s；driving: 是否在車上；night: 環境音較小。
   update({t,siren=0,speed=0,driving=false,engineNear=0,ambient=1}){
    if(!nodes)return;const now=ctx.currentTime,k=.08;

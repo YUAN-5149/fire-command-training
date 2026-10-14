@@ -203,3 +203,8 @@ button.primary{background:#c8202b;border-color:#ff6b6b}
 #equipList small{grid-column:2;color:#8b949e}
 #indoorHint{display:none;margin:4px 0;color:#ffd33d}
 @media (max-width:640px){#indoorPanel{bottom:auto;top:104px;padding:6px 8px}body.indoor #mission{display:none}#indoorHint{display:block}#indoorPanel .note{display:none}.indoor-actions button{padding:6px 8px}}
+
+#callLine{margin:4px 0;color:#ffdd55;font-weight:bold;animation:blink 1s steps(2) 2}
+#callLine[hidden]{display:none}
+.support-row{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.support-row select{background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:6px;padding:2px 6px}
