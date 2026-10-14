@@ -244,3 +244,16 @@ body.touch.indoor #touchButtons{bottom:142px}
  body.touch #prompt{bottom:70px}
  body.touch #waypoint{bottom:auto;top:52px;left:auto;right:10px;transform:none}
 }
+
+#squadPanel{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);z-index:30}
+#squadPanel[hidden]{display:none}
+.squad-card{width:min(640px,100%);max-height:90vh;overflow:auto}
+.squad-row{border-left:4px solid var(--c);padding:6px 10px;margin:8px 0;background:rgba(255,255,255,.04);border-radius:6px}
+.squad-row small{display:block;color:#9aa6ad;margin-top:2px}
+.squad-actions{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.squad-actions button{font-size:12px;padding:4px 8px}
+.squad-actions button.on{background:#c8202b;border-color:#ff6b6b}
+.squad-actions button:disabled{opacity:.4}
+#squadPanel .seg button{font-size:12px;padding:2px 8px}
+#squadPanel .seg button.on{background:#c8202b}
+.squad-size{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:13px}.squad-size small{color:#8b949e}

@@ -3,8 +3,8 @@
 // 及升梯運動（aerial-motion）；只把避碰邊界由首頁街景的兩道立面換成信義的真實量體。
 // 幾何皆為模型示意，非原廠作業曲線、支腿反力或地盤承載核定；LOD1 量體不含陽臺、雨遮、招牌與騎樓等突出物。
 import * as T from 'three';
-import {project} from './xinyi-street-world.js?v=s23';
-import {createAerialMotion} from './aerial-motion.js?v=s23';
+import {project} from './xinyi-street-world.js?v=s24';
+import {createAerialMotion} from './aerial-motion.js?v=s24';
 import {createGrounding,walkBoarding} from './aerial-grounding.js';
 import {createCageSwivel,createNativeMonitor} from './native-cage.js';
 

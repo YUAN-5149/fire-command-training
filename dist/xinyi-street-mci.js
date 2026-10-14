@@ -1,7 +1,7 @@
 // 信義街景・大量傷患（MCI）檢傷與後送（訓練示意）。純函式，可在 Node 測試。
 // 傷患組成、生命徵象、救護車抵達時間、載運規則與醫院皆為示意，非實際收治能力或派遣規定；
 // 後送醫院請依救護派遣與緊急醫療應變中心（EMOC）指示。比對結果只列差異供講評，不評分。
-import {makeVitals,startTriage} from './xinyi-street-triage.js?v=s23';
+import {makeVitals,startTriage} from './xinyi-street-triage.js?v=s24';
 
 export const HOSPITALS=[
  {id:'A',name:'醫院 A',level:'severe',label:'重度級急救責任醫院（示意）'},
