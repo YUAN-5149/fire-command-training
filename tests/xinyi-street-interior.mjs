@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {INTERIOR,ENV,EXPOSURE,seeded,makeFloorPlan,spaceOf,wallSegments,resolveCircle,makeEnv,stepEnv,backdraftRisk,openingOutcome,applyBackdraft,
+import {STAIR,stairY,stairTransition,stairSegments,buildingFloors,stackExchange,INTERIOR,ENV,EXPOSURE,seeded,makeFloorPlan,spaceOf,wallSegments,resolveCircle,makeEnv,stepEnv,backdraftRisk,openingOutcome,applyBackdraft,
  layerHeight,feltTemp,visibility,stepExposure,hoseRemaining,pathDoors,searchTime,ppvState,fireCap,thermalColor,connected} from '../dist/xinyi-street-interior-rules.js';
 
 // 平面：同一 seed 重現；空間互不重疊並鋪滿 W×D；起火房間含立面中點；每個房間有門；受困者不在起火房間、不在家具上。
@@ -56,4 +56,20 @@ assert.equal(hoseRemaining({total:45,outside:14,floor:3}),21);assert.equal(hoseR
 assert(searchTime({x0:0,x1:6,z0:0,z1:5})===18&&searchTime({x0:0,x1:2,z0:0,z1:2})===6);
 // 熱顯像色彩：低溫灰階、高溫轉黃紅。
 {const a=thermalColor(20),b=thermalColor(150),c=thermalColor(600);assert(a[0]===a[1]&&a[0]<b[0]);assert(c[2]===0&&c[1]<1);}
+// 樓梯：高度連續（下一層第二段頂端 = 本層地面高度 + 樓高），上下行轉換。
+{const FH=INTERIOR.floorHeight;assert.equal(stairY('f1',STAIR.zLow),0);assert(Math.abs(stairY('f1',STAIR.zHigh)-FH/2)<1e-9);assert.equal(stairY('landing',11.5),FH/2);assert(Math.abs(stairY('f2',STAIR.zLow)-FH)<1e-9);
+ for(let z=STAIR.zLow;z<=STAIR.zHigh;z+=.1){assert(stairY('f1',z)<=FH/2+1e-9&&stairY('f2',z)>=FH/2-1e-9);}
+ // 上樓：樓梯口 → 第一段 → 平台 → 第二段 → 上一層樓梯口。
+ let s='floor',lv=3;const go=(x,z,o)=>{const t=stairTransition(s,x,z,o);s=t.seg;lv+=t.dLv;return t;};
+ go(2.6,8.6,{up:true,down:true});assert.equal(s,'f1');go(2.6,11.3,{up:true,down:true});assert.equal(s,'landing');go(1,10.8,{up:true,down:true});assert.equal(s,'f2');go(1,8.2,{up:true,down:true});assert.deepEqual([s,lv],['floor',4]);
+ // 下樓：樓梯口左側 → 下一層第二段，高度連續。
+ go(1,8.6,{up:true,down:true});assert.deepEqual([s,lv],['f2',3]);assert(Math.abs(stairY('f2',8.6)-(FH-.2/STAIR.run*FH/2))<1e-9);
+ // 最低層沒有下行、最高層沒有上行：停在樓板上；平台側不能直接跨到樓梯井。
+ s='floor';lv=1;go(1,8.6,{up:true,down:false});assert.deepEqual([s,lv],['floor',1]);s='floor';go(2.6,8.6,{up:false,down:true});assert.equal(s,'floor');
+ s='floor';go(2.6,11.5,{up:true,down:true});assert.equal(s,'floor','只有樓梯口那一側能上梯段');
+ assert.equal(stairSegments('floor',{up:false,down:true}).length,2);assert.equal(stairSegments('f1',{up:true,down:true}).length,1);}
+// 模型樓層：1 樓到起火層上一層，不超過量體高度。
+assert.deepEqual(buildingFloors(3,20),[1,2,3,4]);assert.deepEqual(buildingFloors(5,17),[1,2,3,4,5]);assert.deepEqual(buildingFloors(2,40),[1,2,3]);
+// 樓梯間煙囪效應：煙與熱只往上層流。
+{const a={T:300,smoke:.8},b={T:20,smoke:0};stackExchange(a,b,1);assert(b.smoke>0&&b.T>20&&a.smoke<.8);const c={T:20,smoke:0},d={T:300,smoke:.8};stackExchange(c,d,1);assert.equal(c.smoke,0);}
 console.log('xinyi-street-interior: ok');

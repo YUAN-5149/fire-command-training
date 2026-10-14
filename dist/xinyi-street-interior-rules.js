@@ -11,9 +11,10 @@ export const EQUIPMENT={
  tic:{label:'熱顯像儀',note:'按 I 切換，可穿透濃煙看溫度'},
  fan:{label:'排煙機（正壓送風）',note:'放在樓梯間門口，需有排氣開口'},
  light:{label:'照明燈',note:'放置後照亮周圍'},
- hose20:{label:'延長水帶 20 m',note:'室內可用水線加長 20 m'},
+ hose20:{label:'延長水帶 20 m',note:'自消防車拉入的水線加長 20 m'},
+ pack:{label:'水帶背包（連結送水管用）',note:'在各樓樓梯間的送水口出水口接 40 m 水線（示意）'},
 };
-export const CARRY_LIMIT=3;
+export const CARRY_LIMIT=4;
 
 // 以 seed 產生的亂數（mulberry32），同一任務重現同一平面。
 export function seeded(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};}
@@ -42,7 +43,7 @@ export function makeFloorPlan(rand,{facadeWidth=18,depth=12,floor=3,closed=false
  const pool=rooms.filter(r=>r!==fire),out=[];for(let i=0;i<victims&&pool.length;i++){const r=pool.splice(Math.floor(rand()*pool.length),1)[0];
   let pos=null;for(let tries=0;tries<20&&!pos;tries++){const x=r.x0+.9+rand()*(r.x1-r.x0-1.8),z=r.z0+.9+rand()*(r.z1-r.z0-1.8);if(!furniture.some(f=>f.space===r.id&&Math.abs(f.x-x)<f.w/2+.7&&Math.abs(f.z-z)<f.d/2+.9))pos={x,z};}
   pos??={x:(r.x0+r.x1)/2,z:(r.z0+r.z1)/2};out.push({id:'I'+(i+1),space:r.id,x:+pos.x.toFixed(2),z:+pos.z.toFixed(2),found:false,state:'inside',heading:rand()*Math.PI*2});}
- return {W,D,floor,closed,spaces,doors,windows,furniture,victims:out,fire:{space:fire.id,x:+fx.toFixed(2),z:1.6},entry:{x:1.75,z:D-1.2,heading:0}};
+ return {W,D,floor,closed,spaces,doors,windows,furniture,victims:out,fire:{space:fire.id,x:+fx.toFixed(2),z:1.6},entry:{x:1.1,z:7.75,heading:-Math.PI/2},exit:{x:.35,z:7.7},standpipe:{x:3.25,z:7.75}};
 }
 export const spaceOf=(plan,x,z)=>plan.spaces.find(s=>x>=s.x0-1e-6&&x<=s.x1+1e-6&&z>=s.z0-1e-6&&z<=s.z1+1e-6)??null;
 export const spaceById=(plan,id)=>plan.spaces.find(s=>s.id===id);
@@ -133,3 +134,28 @@ export const searchTime=s=>Math.max(6,(s.x1-s.x0)*(s.z1-s.z0)*.6);
 
 // 熱顯像色彩：低溫至中溫為灰階（白熱），200 °C 以上依溫度轉黃、橙、紅（示意）。回傳 [r,g,b] 0–1。
 export function thermalColor(t,lo=20,hi=200){if(t>=200){const k=Math.min(1,(t-200)/400);return k<.5?[1,1,.6-.6*k*2]:[1,1-(k-.5)*2*.8,0];}const v=Math.max(0,Math.min(1,(t-lo)/Math.max(1,hi-lo)));return [.08+v*.85,.08+v*.85,.08+v*.85];}
+
+// ---------- 樓梯（示意：每層兩段折返梯，樓梯間 x 0–3.5、z 7–D） ----------
+// 第一段（上行）x 1.85–3.45、z 8.4→11；平台 z 11–12；第二段 x 0.05–1.65、z 11→8.4，到上一層樓梯間。
+// 樓梯間 z 7–8.4 為各層樓梯口；中間 x = 1.75 為隔牆。
+export const STAIR={xMid:1.75,zLow:8.4,zHigh:11,run:2.6,landing:12,steps:8};
+const half=()=>INTERIOR.floorHeight/2;
+// 在某一段上的高度（相對該層地面）。
+export function stairY(seg,z){const t=Math.max(0,Math.min(1,(z-STAIR.zLow)/STAIR.run));if(seg==='f1')return t*half();if(seg==='landing')return half();if(seg==='f2')return half()+(1-t)*half();return 0;}
+// 依位置轉換所在段：回傳 {seg, dLv}（dLv：+1 到上一層、−1 到下一層的第二段），或 blocked。
+export function stairTransition(seg,x,z,{up=false,down=false}={}){
+ const inStair=x<3.5&&z>7;if(!inStair&&seg==='floor')return {seg,dLv:0};
+ if(seg==='floor'){if(z<=STAIR.zLow||z>STAIR.zLow+.6)return {seg,dLv:0};if(x>=STAIR.xMid)return up?{seg:'f1',dLv:0}:{seg,dLv:0};return down?{seg:'f2',dLv:-1}:{seg,dLv:0};}
+ if(seg==='f1'){if(z<STAIR.zLow)return {seg:'floor',dLv:0};if(z>STAIR.zHigh)return {seg:'landing',dLv:0};return {seg,dLv:0};}
+ if(seg==='landing'){if(z>=STAIR.zHigh)return {seg,dLv:0};return x>=STAIR.xMid?{seg:'f1',dLv:0}:{seg:'f2',dLv:0};}
+ if(seg==='f2'){if(z>STAIR.zHigh)return {seg:'landing',dLv:0};if(z<STAIR.zLow)return {seg:'floor',dLv:1};return {seg,dLv:0};}
+ return {seg,dLv:0};}
+// 樓梯間碰撞線段：中間隔牆；在樓梯段上時，樓梯口以外的牆仍沿用平面牆。
+export function stairSegments(seg,{up=false,down=false}={}){const out=[[STAIR.xMid,STAIR.zLow,STAIR.xMid,STAIR.zHigh]];
+ // 沒有上行或下行梯段的那一側是樓板：隔牆延伸到底，避免從平台側走到樓梯井上方。
+ if(seg==='floor'&&(!up||!down))out.push([STAIR.xMid,STAIR.zHigh,STAIR.xMid,STAIR.landing]);
+ return out;}
+// 建物樓層：1 樓到起火樓層的上一層（不超過量體高度估算的樓層數）。
+export function buildingFloors(fireFloor,height,floorHeight=INTERIOR.floorHeight){const max=Math.max(fireFloor,Math.floor(height/floorHeight));const top=Math.min(fireFloor+1,max);const out=[];for(let f=1;f<=top;f++)out.push(f);return out;}
+// 樓梯間的煙與熱往上層流動（煙囪效應，示意）：下層樓梯間 → 上層樓梯間。
+export function stackExchange(lower,upper,dt){const ds=Math.max(0,lower.smoke-upper.smoke)*.08*dt,dT=Math.max(0,lower.T-upper.T)*.04*dt;lower.smoke-=ds;upper.smoke+=ds;lower.T-=dT;upper.T+=dT;}
