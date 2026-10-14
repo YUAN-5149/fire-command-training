@@ -2,7 +2,7 @@
 // 車道標線、一樓店面招牌、補植行道樹、NPC 車流與行人、時段光影。
 // 只加在本頁；不改動 GIS 頁的官方量體、道路寬度與既有樣板。
 import * as T from 'three';
-import {project} from './xinyi-street-world.js?v=s23';
+import {project} from './xinyi-street-world.js?v=s24';
 
 const key=p=>p[0].toFixed(7)+','+p[1].toFixed(7);
 const isOneway=t=>['yes','1','-1'].includes(t?.oneway);
@@ -190,8 +190,8 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
  life.update=(dt,t,blockers,{siren=null}={})=>{
   if(life.groups.traffic.visible)for(const veh of vehicles){if(!veh.active)continue;
    const gap=obstacleAhead(veh,vehicles,blockers);let target=gap<veh.kit.length/2+1.5?0:gap<veh.kit.length/2+8?veh.max*.3:veh.max;
-   // 消防車鳴警笛接近（35 m 內）時，NPC 車輛減速讓道（示意）。
-   if(siren&&Math.hypot(siren.x-veh.x,siren.z-veh.z)<35)target=Math.min(target,2);
+   // 消防車（含自動出勤的分隊車輛，可傳入多部）鳴警笛接近（35 m 內）時，NPC 車輛減速讓道（示意）。
+   if([siren].flat().some(sv=>sv&&Math.hypot(sv.x-veh.x,sv.z-veh.z)<35))target=Math.min(target,2);
    veh.v+=Math.max(-8*dt,Math.min(3*dt,target-veh.v));veh.s+=veh.v*dt;
    while(veh.s>veh.lane.length){veh.s-=veh.lane.length;const next=veh.lane.next.length?veh.lane.next[Math.floor(rand()*veh.lane.next.length)]:veh.lane.back??pickLane();veh.lane=next;veh.max=(next.speed+rand()*3)*(veh.kind==='scooter'?1.1:1);}
    const p=lanePose(veh.lane,veh.s),rx=Math.cos(p.heading),rz=-Math.sin(p.heading);
