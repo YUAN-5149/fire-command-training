@@ -123,22 +123,97 @@ kbd{display:inline-block;min-width:24px;padding:1px 7px;margin:0 2px;border-radi
 .report-actions{display:flex;gap:8px;justify-content:flex-end}
 button.primary{background:#c8202b;border-color:#ff6b6b}
 @media (max-width:640px){#mission{left:8px;right:8px;width:auto;top:62px;font-size:12px;padding:8px 10px}#mission ol{display:none}}
+#aerialPanel{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0;padding:6px 8px;border:1px solid rgba(255,179,78,.45);border-radius:8px;background:rgba(255,179,78,.08);font-size:13px}
+#aerialPanel b{color:#ffb34e}
+#aerialStatus{color:#dfe7ea}
+.aerial-actions{display:flex;gap:6px}
+.aerial-actions button{font-size:12px;padding:4px 9px}
+.aerial-actions button:disabled{opacity:.5;cursor:default}
+#missionSteps li.skip{color:#a39472}
+#missionSteps li.skip::marker{content:"– "}
+.menu-note{display:block;color:#9fb0b8;font-size:12px;line-height:1.4;margin:-2px 2px 4px}
+#notice{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:6;max-width:min(560px,calc(100vw - 32px));background:rgba(16,40,52,.9);border:1px solid #60d6be;color:#e6fffa;padding:8px 16px;border-radius:8px;font-size:14px;text-align:center}
+#notice[hidden]{display:none}
+#victimLine{margin:6px 0 0;padding:5px 8px;border-radius:6px;background:rgba(115,158,197,.18);border:1px solid rgba(115,158,197,.6);font-size:13px;color:#dbe9f5}
+#victimLine.done{background:rgba(127,211,138,.15);border-color:#7fd38a;color:#c9f0cf}
+#victimLine[hidden]{display:none}
+#aerialLoad{display:block;color:#aab6bc;font-size:11px;margin-top:2px}
+#aerialLoad.over{color:#ff8a8a;font-weight:700}
+.load-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;align-items:end;margin:6px 0}
+.load-grid label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:#cfd8dc}
+.load-grid input{width:100%;font:inherit;background:#1d2a34;color:#edf1f2;border:1px solid #53636d;border-radius:6px;padding:6px}
+#triage{position:fixed;inset:0;z-index:16;background:rgba(6,10,14,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+#triage[hidden]{display:none}
+.triage-card{max-height:calc(100vh - 32px);overflow:auto}
+.triage-card h3{margin:12px 0 6px;font-size:14px;color:#ffd36b}
+#triageWho{margin:0 0 6px;color:#dfe7ea;font-size:14px}
+#triageTags{display:flex;flex-wrap:wrap;gap:6px}
+#triageTags button{border-left:8px solid var(--tag);font-size:13px}
+#triageTags button.on{background:color-mix(in srgb,var(--tag) 45%,#0d1419);border-color:#fff}
+#triageAid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 12px;font-size:13px}
+#triageResult{margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(255,211,107,.08);border:1px solid rgba(255,211,107,.35);font-size:13px}
+#triageResult ul{margin:4px 0 0;padding-left:18px}
+#triageBtn{margin:6px 0 0;font-size:12px;padding:4px 10px;border-color:#60d6be}
+#triageBtn[hidden]{display:none}
+#mciLine{margin:6px 0 0;padding:5px 8px;border-radius:6px;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.5);font-size:13px;color:#ffd9d6}
+#mciLine[hidden],#transportBtn[hidden]{display:none}
+#transportBtn{margin:6px 0 0 6px;font-size:12px;padding:4px 10px;border-color:#f85149}
+#transport{position:fixed;inset:0;z-index:16;background:rgba(6,10,14,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+#transport[hidden]{display:none}
+.transport-card{width:min(720px,100%);max-height:calc(100vh - 32px);overflow:auto}
+.transport-card h3{margin:12px 0 6px;font-size:14px;color:#ffd36b}
+.transport-table{width:100%;border-collapse:collapse;font-size:13px}
+.transport-table th{text-align:left;color:#aab6bc;font-weight:400;border-bottom:1px solid rgba(255,255,255,.15);padding:4px}
+.transport-table td{padding:4px;border-bottom:1px solid rgba(255,255,255,.07)}
+.transport-table td:last-child{text-align:left}
+.transport-table select{font:inherit;font-size:12px;background:#1d2a34;color:#edf1f2;border:1px solid #53636d;border-radius:6px;padding:3px;max-width:230px}
+.transport-table button{padding:2px 8px;font-size:12px;margin-right:4px}
+.chip{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+#transportDone{margin:0;padding-left:18px;font-size:13px}
+#mission{max-height:calc(100vh - 100px);overflow:auto}
+@media (max-width:640px){#mission{max-height:calc(100vh - 230px)}}
+.map-legend i.mk{background:#f85149;border-radius:2px}
+#opsLine{display:flex;flex-wrap:wrap;gap:4px 10px;margin:4px 0 6px;font-size:12px;color:#cfd8dc}
+#opsLine[hidden]{display:none}
+#opsLine b{color:#fff}
+#opsLine .warn,#transportRows .warn{color:#ff8a8a;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.35}}
 
-/* 任務選單 */
-#missionPick{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:16px}
-#missionPick[hidden]{display:none}
-#missionPick .report-card{max-width:440px;width:100%}
-#missionPick [data-type]{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;line-height:1.4}
-#missionPick [data-type] b{display:inline-block;width:1.6em;color:#ffd36b}
-#missionPick [data-type] small{display:block;opacity:.75;margin-left:1.6em;font-size:12px}
-#missionPick [data-type].focus{outline:2px solid #ffd36b;background:rgba(255,211,107,.12)}
-.fire-bar[hidden]{display:none}
+#indoorLine{margin:4px 0;font-size:12px;color:#ffd33d}
+#indoorLine[hidden]{display:none}
+#indoorPanel{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:min(760px,calc(100vw - 32px));background:rgba(10,14,18,.82);border:1px solid #30363d;border-radius:10px;padding:8px 10px;color:#e6edf3;font-size:12px;z-index:12;backdrop-filter:blur(4px)}
+#indoorPanel[hidden]{display:none}
+#indoorStatus{display:flex;flex-wrap:wrap;gap:4px 12px}
+#indoorStatus b{color:#fff}
+#indoorStatus .warn{color:#ff8a8a;animation:blink 1s steps(2) infinite}
+#crewLine{margin:4px 0;color:#9ecbff}
+.indoor-actions{display:flex;flex-wrap:wrap;gap:4px}
+.indoor-actions button{font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid #30363d;background:#161b22;color:#e6edf3;cursor:pointer;touch-action:manipulation}
+#indoorPanel .note{margin:4px 0 0;font-size:11px;color:#8b949e}
+#thermal{position:fixed;inset:0;pointer-events:none;z-index:11}
+#thermal[hidden]{display:none}
+#thermal .thermal-frame{position:absolute;inset:0;box-shadow:inset 0 0 0 9999px rgba(0,0,0,0),inset 0 0 120px 60px rgba(0,0,0,.85);border-radius:24px;mix-blend-mode:normal}
+#thermal .thermal-cross{position:absolute;left:50%;top:50%;transform:translate(-50%,-55%);font:28px monospace;color:#fff;text-shadow:0 0 3px #000}
+#thermal .thermal-read{position:absolute;left:50%;top:calc(50% + 26px);transform:translateX(-50%);font:13px monospace;color:#fff;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:4px}
+#thermal .thermal-read b{margin-left:6px;font-size:16px}
+#equip{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.5);z-index:30}
+#equip[hidden]{display:none}
+#equipList{display:grid;gap:6px;margin:8px 0}
+#equipList label{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:center}
+#equipList small{grid-column:2;color:#8b949e}
+#indoorHint{display:none;margin:4px 0;color:#ffd33d}
+@media (max-width:640px){#indoorPanel{bottom:auto;top:104px;padding:6px 8px}body.indoor #mission{display:none}#indoorHint{display:block}#indoorPanel .note{display:none}.indoor-actions button{padding:6px 8px}}
 
-/* ---------- 手機（觸控）版面：body.touch 由程式依觸控裝置加上 ---------- */
+#callLine{margin:4px 0;color:#ffdd55;font-weight:bold;animation:blink 1s steps(2) 2}
+#callLine[hidden]{display:none}
+.support-row{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.support-row select{background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:6px;padding:2px 6px}
+
+/* ---------- 手機（觸控）版面：body.touch 由程式依觸控裝置加上（移植自 main V11，依本分支按鈕調整） ---------- */
 body.touch .brand{padding:6px 10px 6px 6px}
 body.touch .brand strong{white-space:nowrap;font-size:14px}
 body.touch .brand small{font-size:12px;white-space:nowrap;max-width:42vw;overflow:hidden;text-overflow:ellipsis}
-body.touch #night,body.touch #reset,body.touch #enter{display:none}
+body.touch #night,body.touch #reset,body.touch #enter,body.touch #siren{display:none}
 body.touch .actions{flex-wrap:nowrap;gap:5px}
 body.touch .actions button{padding:7px 9px;font-size:13px;white-space:nowrap}
 body.touch #minimap{width:120px;height:120px;right:10px;bottom:10px}
@@ -151,7 +226,7 @@ body.touch #touchButtons button[hidden]{display:none}
 body.touch #touchButtons button.on{background:#c8202b}
 body.touch #prompt{bottom:150px;max-width:calc(100% - 32px);font-size:13px;text-align:center}
 body.touch #waypoint{top:auto;bottom:190px;font-size:12px;padding:4px 12px}
-body.touch #mission{left:8px;right:auto;top:56px;width:min(300px,calc(100% - 16px));padding:7px 10px;font-size:12px;line-height:1.4}
+body.touch #mission{left:8px;right:auto;top:56px;width:min(300px,calc(100% - 16px));padding:7px 10px;font-size:12px;line-height:1.4;max-height:calc(100vh - 260px);overflow:auto}
 body.touch #mission ol{display:none}
 body.touch #mission.open ol{display:block;max-height:38vh;overflow:auto;margin:4px 0}
 body.touch #mission .fire-bar{margin:4px 0 2px}
@@ -159,13 +234,13 @@ body.touch #missionHint{margin:2px 0 4px}
 body.touch #missionAbort{padding:4px 8px;font-size:12px}
 body.touch #mission::after{content:'點此展開／收合步驟';display:block;font-size:11px;color:#8d9aa1;margin-top:2px}
 body.touch #mission.open::after{content:'點此收合'}
-@media (orientation:portrait){body.touch .brand strong{display:none}}
+body.touch.indoor #touchButtons{bottom:142px}
+@media (orientation:portrait){body.touch .brand strong{display:none}body.touch #prompt{bottom:330px}body.touch #waypoint{bottom:372px}}
 @media (orientation:landscape){
  body.touch .top{padding:6px 10px}
- body.touch #mission{width:280px;top:52px}
+ body.touch #mission{width:280px;top:52px;max-height:calc(100vh - 205px);overflow:auto}
  body.touch #mission.open ol{max-height:28vh}
  body.touch #touchButtons{bottom:10px;right:140px}
  body.touch #prompt{bottom:70px}
  body.touch #waypoint{bottom:auto;top:52px;left:auto;right:10px;transform:none}
 }
-@media (orientation:portrait){body.touch #prompt{bottom:268px}body.touch #waypoint{bottom:312px}}

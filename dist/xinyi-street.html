@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=s12">
+<link rel="stylesheet" href="xinyi-street.css?v=s23">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -26,26 +26,45 @@
 <canvas id="minimap" width="220" height="220" aria-label="小地圖"></canvas>
 <div id="speed" hidden><b id="kmh">0</b><small>km/h</small></div>
 <div id="prompt" hidden></div>
+<div id="notice" hidden role="status"></div>
 <aside id="mission" hidden>
  <div class="mission-head"><span class="badge">119</span><div><strong id="missionTitle">火警派遣</strong><small id="missionWhere">—</small></div><b id="missionClock">00:00</b></div>
- <div class="fire-bar" id="fireBar"><span>火勢</span><i><b id="fireLevel"></b></i></div>
+ <p id="opsLine" hidden></p>
+ <div class="fire-bar"><span>火勢</span><i><b id="fireLevel"></b></i></div>
  <ol id="missionSteps"></ol>
+ <p id="victimLine" hidden></p>
+ <button id="triageBtn" hidden>檢傷與處置（K）</button>
+ <p id="indoorLine" hidden></p>
+ <p id="mciLine" hidden></p>
+ <button id="transportBtn" hidden>後送管理（J）</button>
+ <div id="aerialPanel"><div><div><b>雲梯車</b> <span id="aerialStatus">未配置</span></div><small id="aerialLoad"></small></div><div class="aerial-actions"><button id="aerialBtn">配置雲梯（L）</button><button id="aerialCancel" hidden>取消</button></div></div>
  <p id="missionHint"></p>
  <button id="missionAbort">取消任務</button>
 </aside>
-<div id="missionReport" hidden role="dialog" aria-label="任務紀錄"><div class="report-card"><h2>任務紀錄</h2><div id="reportBody"></div><p class="note">火勢、射程與水量為遊戲化示意，非火場物理預測；本紀錄只列時間與位置，不作戰術正確性評分，請由教官依單位標準講評。</p><div class="report-actions"><button id="reportAgain" class="primary">再派遣一次</button><button id="reportClose">關閉</button></div></div></div>
-<div id="missionPick" hidden role="dialog" aria-label="選擇任務"><div class="report-card"><h2>選擇任務</h2>
- <button data-type="fire"><b>1</b> 建物火警<small>水箱車到場、順向停妥、佈設水線射水</small></button>
- <button data-type="rescue"><b>2</b> 受困救援（雲梯車）<small>3–8 樓窗口受困；支腿展開落地後升梯接救</small></button>
- <button data-type="joint"><b>3</b> 協同出勤<small>同一棟建物：一面起火、另一面受困；你駕駛一車，另一車自動出勤</small></button>
- <button data-type="random"><b>4</b> 隨機派遣<small>三種任務隨機一種</small></button>
- <p class="note">派遣地點取自官方量體臨路外牆；受困救援會先核對該面至少有一處雲梯可作業車位（示意，非原廠作業範圍或地盤認證）。</p>
- <div class="report-actions"><button id="pickCancel">取消（Esc）</button></div></div></div>
+<div id="indoorPanel" hidden><div id="indoorStatus"></div><p id="crewLine"></p><p id="callLine" hidden></p><p id="indoorHint"></p>
+ <div class="indoor-actions"><button data-k="e">開關門窗／撤出（E）</button><button data-k="x">微開門（X）</button><button data-k="f">器材（按住 F）</button><button data-k="c">蹲低（C）</button><button data-k="i">熱顯像（I）</button><button data-k="1">1 跟隨</button><button data-k="2">2 搜索</button><button data-k="3">3 開窗排煙</button><button data-k="4">4 隊員撤離</button><button data-k="5">5 隊員射水</button><button data-k="6">6 掩護射水</button></div>
+ <p class="note">室內為示意平面（非該建物實際格局）；溫度、煙層、含氧量為示意值，閃燃／回燃只依示意門檻呈現徵兆。</p></div>
+<div id="thermal" hidden><div class="thermal-frame"></div><div class="thermal-cross">+</div><div class="thermal-read">熱顯像（示意）<b id="thermalRead">—</b></div></div>
+<div id="equip" hidden role="dialog" aria-label="攜帶裝備"><div class="report-card"><h2>攜帶裝備 <small id="equipCount"></small></h2><div id="equipList"></div><label class="support-row">支援小組（自 1 樓上樓搬運受困者，示意）<select id="supportTeams"><option value="1">1 組</option><option value="2">2 組</option><option value="3">3 組</option></select></label><p class="note">裝備與數量上限為訓練示意；水線另由 F 佈設。破壞器材用於上鎖的門（按住 F），排煙機放在樓梯間門口，照明燈可放任意處。</p><div class="report-actions"><button id="equipClose" class="primary">完成（Esc）</button></div></div></div>
+<div id="missionReport" hidden role="dialog" aria-label="任務紀錄"><div class="report-card"><h2>任務紀錄</h2><div id="reportBody"></div><p class="note">火勢、射程與水量為遊戲化示意，非火場物理預測；本紀錄只列時間與位置，不作戰術正確性評分，請由教官依單位標準講評。</p><div class="report-actions"><button id="reportAgain" class="primary">再派遣一次</button><button id="reportDownload">下載任務紀錄</button><button id="reportClose">關閉</button></div></div></div>
+<div id="triage" hidden role="dialog" aria-label="檢傷與急救處置"><div class="report-card triage-card"><h2>檢傷與急救處置</h2><p id="triageWho"></p>
+<table id="triageFindings"></table>
+<h3>檢傷分類（START）</h3><div id="triageTags"></div>
+<h3>急救處置</h3><div id="triageAid"></div>
+<div id="triageResult" hidden></div>
+<p class="note">生命徵象為示意值；分類參考 START 簡易檢傷分類流程，處置比對為常見做法參考，不是醫療判斷或評分，請依單位 EMT 標準與教官講評。</p>
+<div class="report-actions"><button id="triageSubmit" class="primary" disabled>完成檢傷與處置</button><button id="triageClose">關閉（Esc）</button></div></div></div>
+<div id="transport" hidden role="dialog" aria-label="後送管理"><div class="report-card transport-card"><h2>後送管理（大量傷患）</h2>
+<p id="transportInfo" class="note"></p>
+<table class="transport-table"><thead><tr><th>順序</th><th>分類</th><th>傷患</th><th>後送醫院</th><th>調整</th></tr></thead><tbody id="transportRows"></tbody></table>
+<h3>已後送</h3><ul id="transportDone"></ul>
+<p class="note">救護車抵達時依上表順序裝載：第一位可後送者（已檢傷、非黑色、已指定醫院）決定醫院，再依序補上同醫院者，每輛擔架 1、坐姿 2。抵達時間、醫院層級與載運規則皆為示意，實際後送醫院請依救護派遣與 EMOC 指示。參考比對於任務紀錄列出，不評分。</p>
+<div class="report-actions"><button id="transportDefault">依分類預設醫院（紅→A、黃→B、綠→C）</button><button id="transportClose" class="primary">關閉（Esc）</button></div></div></div>
 <div id="waypoint" hidden><span class="pin">◆</span> <span id="wpText"></span></div>
 <div id="bigmap" hidden>
  <canvas id="mapCanvas" aria-label="信義區全區地圖"></canvas>
  <div class="map-top"><div class="brand"><span class="badge">119</span><div><strong>信義區</strong><small id="mapStreet">全區地圖</small></div></div><button id="mapClose">✕ 關閉（M）</button></div>
- <div class="map-legend"><b>圖例</b><span><i class="me"></i>你的位置</span><span><i class="truck"></i>水箱車</span><span><i class="truck" style="background:#ff8a2a"></i>雲梯車</span><span><i class="truck" style="background:#ff3b2f;border-radius:50%"></i>火點</span><span><i class="truck" style="background:#2f7bff;border-radius:50%"></i>受困者</span><span><i class="poi"></i>重點建物（第一批清單）</span><span><i class="wp"></i>目標與導航路線</span></div>
+ <div class="map-legend"><b>圖例</b><span><i class="me"></i>你的位置</span><span><i class="truck"></i>消防車</span><span><i class="poi"></i>重點建物（第一批清單）</span><span><i class="wp"></i>目標與導航路線</span><span><i class="mk"></i>傷患區／救護車停靠／雲梯車</span></div>
  <div class="map-tools"><button id="mapIn" aria-label="放大">＋</button><button id="mapOut" aria-label="縮小">－</button><button id="mapMe" aria-label="回到我的位置">◎</button><button id="mapTruckWp">消防車設為目標</button><button id="mapClear">清除目標</button></div>
  <div class="map-hint">點地圖設定目標 · 拖曳移動 · 滾輪／雙指縮放 · M 或 Esc 關閉。導航沿 OSM 路網示意，未含即時路況與轉向限制。</div>
 </div>
@@ -60,7 +79,9 @@
    <button data-page="controls">操作說明</button>
    <button data-page="sources">資料來源</button>
    <a href="index.html">回消防演練首頁</a>
-   <a href="taipei-map.html?place=xinyi">臺北真實圖資（GIS）</a>
+   <a id="gisLink" href="taipei-map.html?place=xinyi">臺北真實圖資（GIS，目前位置）</a>
+   <button id="gisSave">存回 GIS 部署</button>
+   <small id="gisSaveNote" class="menu-note">把水箱車（第一車組）與雲梯車位置寫入 GIS 頁的部署試用。</small>
   </nav>
   <div class="menu-body">
    <section data-page="settings">
@@ -68,6 +89,7 @@
     <div class="row"><span>畫質<small id="qualityNote">自動依裝置與實際幀率調整</small></span><div class="seg" id="quality"><button data-v="auto">自動</button><button data-v="low">低</button><button data-v="medium">中</button><button data-v="high">高</button></div></div>
     <div class="row"><span>畫面更新率<small>30 FPS 較省電</small></span><div class="seg" id="fpsCap"><button data-v="60">60 FPS</button><button data-v="30">30 省電</button></div></div>
     <div class="row"><span>顯示 FPS</span><label class="switch"><input type="checkbox" id="showFps"><i></i></label></div>
+    <div class="row"><span>派遣類型<small>大量傷患：街側另有 8–12 名傷患需檢傷與後送</small></span><div class="seg" id="missionType"><button data-v="fire">一般火警</button><button data-v="mci">大量傷患</button></div></div>
     <div class="row"><span>時段</span><div class="seg" id="timeSeg"><button data-v="afternoon">下午</button><button data-v="dusk">黃昏</button><button data-v="night">夜間</button></div></div>
     <h2>音效</h2>
     <div class="row"><span>靜音</span><label class="switch"><input type="checkbox" id="muted"><i></i></label></div>
@@ -79,6 +101,9 @@
     <h2>操作</h2>
     <div class="row"><span>視角靈敏度 <b id="sensValue">1.0×</b></span><input type="range" id="sens" min="0.4" max="2" step="0.1" value="1"></div>
     <div class="row"><span>反轉上下視角</span><label class="switch"><input type="checkbox" id="invertY"><i></i></label></div>
+    <h2>雲梯籃架載重</h2>
+    <div class="load-grid"><label>消防員體重<input type="number" id="load-firefighter" min="0" step="1"> kg</label><label>消防衣與 SCBA<input type="number" id="load-gear" min="0" step="1"> kg</label><label>籃內器材<input type="number" id="load-equipment" min="0" step="1"> kg</label><label>擔架<input type="number" id="load-stretcher" min="0" step="1"> kg</label><label>容許籃載重<input type="number" id="load-capacity" min="0" step="1"> kg</label><button id="loadReset">回復示意預設</button></div>
+    <p class="note">籃內 1 名消防員（轉台操作員不計入籃載重）＋待救者估計體重＋擔架（昏迷、重傷時）。預設值為示意；容許籃載重預設為 Rosenbauer L32A-XS 原廠最高額定 500 kg（5 人），<b>不等於該作業半徑與仰角的可用值</b>，請依原廠作業曲線輸入。超過時不能配置救援或升梯。</p>
     <h2>街道生活層（示意）</h2>
     <div class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 車流與機車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 車道標線</label><label><input type="checkbox" id="lifeTrees" checked> 補植行道樹</label></div>
     <p class="note">以上皆為示意，非實際店家、車流、樹位或已核對標線。設定會記在這台裝置的瀏覽器。</p>
@@ -89,21 +114,26 @@
     <table class="keys"><tr><td>移動</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或方向鍵</td></tr><tr><td>跑步</td><td><kbd>Shift</kbd></td></tr><tr><td>上消防車</td><td><kbd>E</kbd>（靠近時）</td></tr><tr><td>視角</td><td>滑鼠拖曳；滾輪縮放</td></tr></table>
     <h2>駕駛消防車</h2>
     <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
-    <h2>雲梯車（在車旁步行時）</h2>
-    <table class="keys"><tr><td>支腿展開並落地／收回</td><td><kbd>O</kbd>（停妥後；腳座壓到建物或車輛時拒絕）</td></tr><tr><td>升梯／收梯</td><td><kbd>L</kbd>（支腿落地後才可升梯；先升起、再迴轉、對準後伸梯）</td></tr></table>
-    <p class="note">升梯目標：受困窗口 → 起火樓層外側 → 無任務時最近立面約 3 樓高（練習）。梯架與籃架全程與官方量體外牆保持淨距，超出作業範圍或路徑碰牆即拒絕，請調整停車位置。</p>
     <h2>共通</h2>
-    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>任務選單（火警／受困救援／協同出勤）</td><td><kbd>T</kbd>，再按 <kbd>1</kbd>–<kbd>4</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時依鏡頭方向瞄準；雲梯升起時在車旁按住，由籃架水砲射出）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
-    <h2>手把（Xbox／PlayStation 標準配置）</h2>
-    <table class="keys"><tr><td>移動／轉向</td><td>左搖桿</td></tr><tr><td>視角</td><td>右搖桿；按下左／右搖桿拉遠／拉近</td></tr><tr><td>油門／倒車</td><td>RT ／ LT</td></tr><tr><td>上下車</td><td>A（✕）</td></tr><tr><td>跑步（步行）／煞車（駕駛）</td><td>按住 B（○）</td></tr><tr><td>水線</td><td>X（□）</td></tr><tr><td>警示燈</td><td>Y（△）</td></tr><tr><td>出水</td><td>按住 RB（R1）</td></tr><tr><td>雲梯支腿</td><td>LB（L1）</td></tr><tr><td>雲梯升梯／收梯</td><td>十字鍵 ↑</td></tr><tr><td>切換時段</td><td>十字鍵 ←</td></tr><tr><td>任務選單</td><td>十字鍵 →（↑↓ 選擇、A 確定、B 取消）</td></tr><tr><td>全區地圖</td><td>Back／View（Share）</td></tr><tr><td>暫停選單</td><td>Start／Menu（Options）</td></tr></table>
+    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>傷患檢傷與急救處置</td><td><kbd>K</kbd>（在傷患旁 5 m 內；窗口受困者需先救出交接）</td></tr><tr><td>後送管理（大量傷患）</td><td><kbd>J</kbd></td></tr><tr><td>雲梯車：配置／確認車位／升梯出水／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置。有受困者時先以籃架救人）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>瞄子：直線水柱／水霧</td><td><kbd>V</kbd></td></tr><tr><td>消防栓供水（拉水帶／連接／拆除）</td><td><kbd>G</kbd>（消防車旁拉出，示意消防栓旁連接）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <h2>建物內部（示意平面）</h2>
+    <table class="keys"><tr><td>攜帶裝備（最多 3 項）</td><td><kbd>U</kbd>（消防車旁）</td></tr><tr><td>進入建物／撤出</td><td><kbd>E</kbd>（停妥後，黃色入口標示旁；空氣 ≥ 100 bar；撤出在 1 樓樓梯間西側出入口）</td></tr><tr><td>開關門窗</td><td><kbd>E</kbd></td></tr><tr><td>微開門（觀察門後、門縫冷卻）</td><td><kbd>X</kbd>（再按一次全開）</td></tr><tr><td>破門／放排煙機／放照明燈</td><td>按住 <kbd>F</kbd>（上鎖門前／樓梯間門口／任意處）</td></tr><tr><td>蹲低</td><td><kbd>C</kbd></td></tr><tr><td>熱顯像儀</td><td><kbd>I</kbd></td></tr><tr><td>隊員：跟隨／搜索／開窗排煙／撤離／架設水線射水（熱煙高溫時先水霧冷卻）／掩護射水</td><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd></td></tr><tr><td>受困者呼救</td><td>意識清楚者定時喊「救命！」（合成示意聲，左右聲道表示方向）；面板顯示方向與距離，小地圖以「?」標示房間；隔門越多越難聽到。按 2 搜索時隊員先往呼救房間</td></tr><tr><td>上下樓</td><td>走進樓梯間的梯段（右側上行、左側下行）</td></tr><tr><td>連結送水管送水口接水線</td><td>按住 <kbd>F</kbd>（樓梯間紅色箱旁，需攜帶水帶背包）</td></tr><tr><td>出水（直線水柱打火點；水霧朝上冷卻熱煙）</td><td>按住 <kbd>Space</kbd>；<kbd>V</kbd> 切換瞄子；滑鼠拖曳上下看</td></tr></table>
+    <p class="note">室內為依起火立面寬度產生的示意平面，不是該建物實際格局；溫度、煙層、含氧量、熱暴露與時間為遊戲化示意，閃燃（上層 600 °C）、滾燃（500 °C）、回燃（含氧低、未燃氣體多、溫度高時開口）皆為示意門檻，不能作為現場判斷依據。</p>
+    <h2>遊戲手把</h2>
+    <table class="keys"><tr><td>移動／轉向</td><td>左搖桿（按下左搖桿跑步）</td></tr><tr><td>視角</td><td>右搖桿；十字鍵 ←／→ 拉近／拉遠</td></tr><tr><td>上／下車</td><td><kbd>A</kbd>（PS：✕）</td></tr><tr><td>油門／倒車</td><td><kbd>RT</kbd>／<kbd>LT</kbd>（亦可用左搖桿上下）</td></tr><tr><td>煞車</td><td>按住 <kbd>B</kbd>（PS：○）</td></tr><tr><td>警示燈</td><td><kbd>Y</kbd>（PS：△）</td></tr><tr><td>佈設／收回水線</td><td><kbd>X</kbd>（PS：□）；持水線時 <kbd>B</kbd> 切換瞄子</td></tr><tr><td>檢傷（K）／後送管理（J）</td><td><kbd>LB</kbd>（PS：L1）／按下右搖桿</td></tr><tr><td>雲梯車配置／確認／收梯</td><td><kbd>RB</kbd>（PS：R1）</td></tr><tr><td>出水</td><td>按住 <kbd>RT</kbd>（步行持水線時）</td></tr><tr><td>派遣火警／消防栓供水（G）</td><td>十字鍵 ↑／↓（時段改用鍵盤 N 或選單）</td></tr><tr><td>建物內部</td><td><kbd>A</kbd> 門窗／撤出、<kbd>X</kbd> 按住器材、<kbd>RB</kbd> 微開門、<kbd>Y</kbd> 蹲低、<kbd>LB</kbd> 熱顯像、十字鍵 ←／→／↑／↓ 隊員跟隨／搜索／開窗／撤離、按下右搖桿隊員射水</td></tr><tr><td>地圖／暫停選單</td><td><kbd>Back</kbd>（View）／<kbd>Start</kbd>（Menu）；<kbd>B</kbd> 關閉</td></tr></table>
+    <p class="note">依瀏覽器 Gamepad API 的標準配置（Xbox、PlayStation、Switch Pro 等經 USB／藍牙連線）；按任一鍵後才會被瀏覽器偵測。非標準配置的手把按鍵位置可能不同。撞擊時若手把支援會短暫震動。</p>
+    <h2>與 GIS 部署頁整合</h2>
+    <p>在「臺北真實圖資」信義的部署試用中選搶救建物、第一正面入口並放置車組後，按「在信義街景開啟此部署」：街景會顯示各車組（GIS 頁同一批車型）與人員，第一車組就是可駕駛的水箱車，「🔥 任務」會以該搶救建物起火、起火面取最靠近第一正面入口的牆面。暫停選單「存回 GIS 部署」把水箱車與雲梯車位置寫回 GIS 頁；兩頁同時開啟時會自動同步。資料只存在這台裝置的瀏覽器。</p>
     <h2>手機觸控</h2>
-    <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；單指拖曳畫面轉視角、雙指開合縮放。右下按鈕依狀態顯示：步行時「上車」「跑」，靠近雲梯車時「支腿」「升梯」，拿水線時「水線」「出水」；駕駛時「下車」「煞車」（按住）「警示燈」。上方「任務」「地圖」「選單」；時段與回出生點在「選單」內。任務面板點一下可展開／收合步驟。直式手機會自動放寬視角，看得到街道兩側。</p>
+    <p>單指拖曳畫面轉視角、雙指開合縮放；直式手機自動放寬視角。右下按鈕依狀態顯示：步行時「上車」「跑」，拿水線時「水線」「出水」「瞄子」，任務中「雲梯」「供水」、消防車旁「裝備」、傷患旁「檢傷」；駕駛時「下車」「煞車」（按住）「警示燈」；室內「門窗／撤出」「出水」及室內面板按鈕。上方只留「任務」「地圖」「選單」，時段與回出生點在選單內；任務面板點一下展開／收合步驟。</p>
+    <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「地圖」開啟全區地圖（點地圖設定目標、雙指縮放）；「選單」開啟本頁。</p>
    </section>
    <section data-page="sources" hidden>
  <h2>資料來源與限制</h2>
  <p>本頁與「臺北真實圖資」信義預設畫面共用同一套建構程式與資料：建物外觀（中心約 250 m 精修石材／玻璃、其餘整區配色窗格）、OSM 路面寬度與配色、中心鋪面材質、OSM 已標記 zebra 斑馬線、市府路燈（含桿高）、OSM 路樹、市府號誌設施桿位。</p>
  <p>建物位置與高度：臺北市都發局 2024 LOD1 官方量體。外牆、窗格、鋪面為<b>示意外觀</b>，非實景；窗格不代表實際樓層或救援開口。道路寬度多為估算，不可據此量測支腿空間。GIS 頁的核對樣板（雙黃線、停等框、騎樓試作、ATT 外牆）預設關閉，本頁同樣不顯示。</p>
  <p>差異：GIS 頁地形為 world-elevation，本頁無法離線取得，改由官方牆腳高程內插示意地面。消防車輪的轉動與前輪轉向，是載入時把原車型的車輪零件重組到輪軸中心而成，車型檔未修改，靜止外觀與原車型相同。</p>
+ <p><b>雲梯車作業</b>：沿用首頁已確認的雲梯車型、支腿機構、籃架與砲塔及升梯運動程式；避碰邊界改用信義官方 LOD1 量體（屋頂三角形到牆腳的實心柱體）、水箱車與示意地面，梯架與籃架各零件外接框需與量體保持 0.3 m 以上。車位核對：車身與起火面平行、右側面向建物，支腿墊板外緣距外牆 ≥ 0.5 m，車身與支腿不得壓到建物或水箱車，四支腿處地面高差 ≤ 0.25 m（以墊板補足）。以上皆為模型幾何示意，<b>非原廠作業曲線、支腿反力或地盤承載核定</b>；LOD1 量體沒有陽臺、雨遮、招牌、騎樓、電線與行道樹，現場仍須逐項確認。</p>
  <p>風格參考 taipei-gta，但未使用該網站的地圖、程式或素材。</p>
  <p><a href="index.html">回消防演練首頁</a>　<a href="taipei-map.html?place=xinyi">臺北真實圖資（GIS部署）</a></p>
    </section>
@@ -112,7 +142,7 @@
 </div>
 <div id="fps" hidden>— FPS</div>
 <div id="stick" aria-hidden="true"><i></i></div>
-<div id="touchButtons"><button id="tSpray" hidden>出水</button><button id="tHose" hidden>水線</button><button id="tJack" hidden>支腿</button><button id="tLadder" hidden>升梯</button><button id="tBrake" hidden>煞車</button><button id="tSiren" hidden>警示燈</button><button id="tRun">跑</button><button id="tEnter">上車</button></div>
+<div id="touchButtons"><button id="tSpray" hidden>出水</button><button id="tHose" hidden>水線</button><button id="tNozzle" hidden>瞄子</button><button id="tSupply" hidden>供水</button><button id="tAerial" hidden>雲梯</button><button id="tTriage" hidden>檢傷</button><button id="tEquip" hidden>裝備</button><button id="tBrake" hidden>煞車</button><button id="tSiren" hidden>警示燈</button><button id="tRun">跑</button><button id="tEnter">上車</button></div>
 <script>
 // 載入失敗時顯示原因，而不是一直停在「載入中」。版本號 ?v= 讓每次更新整套檔案一起重新下載，避免新舊檔案混用。
 (function(){var shown=false;function fail(msg){if(shown||document.getElementById('loading').hidden)return;shown=true;var e=document.getElementById('error');e.hidden=false;e.innerHTML='<b>街景載入失敗</b><span>'+String(msg).replace(/[<>&]/g,'')+'</span><span>請按 Ctrl+Shift+R（手機請關閉分頁後重新開啟）再試一次；若仍失敗，請截圖這個畫面。</span><button onclick="location.reload()">重新載入</button>';document.getElementById('loading').hidden=true;}
@@ -120,6 +150,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s12"></script>
+<script type="module" src="xinyi-street.js?v=s23"></script>
 </body>
 </html>
