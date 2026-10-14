@@ -2,9 +2,9 @@
 // 煙層與能見度（樓梯間煙囪效應）、熱顯像儀、隊員指令（跟隨、搜索、開窗排煙、撤離、架設水線射水）、連結送水管送水口、
 // 排煙機與照明燈、閃燃／回燃徵兆。室內格局不是該建物實際平面；溫度、煙、含氧量與時間皆為遊戲化示意（規則見 xinyi-street-interior-rules.js）。
 import * as T from 'three';
-import {createPatient} from './xinyi-street-aerial.js?v=s24';
+import {createPatient} from './xinyi-street-aerial.js?v=s25';
 import {INTERIOR,ENV,EXPOSURE,FORCE,STAIR,seeded,makeFloorPlan,spaceOf,spaceById,wallSegments,resolveCircle,makeEnv,stepEnv,backdraftRisk,applyBackdraft,openingOutcome,
- layerHeight,feltTemp,visibility,stepExposure,pathDoors,searchTime,thermalColor,ppvState,stairY,stairTransition,stairSegments,stackExchange,stairRoute,samplePath,pathLength,CALL,canCall,hearing,directionWord} from './xinyi-street-interior-rules.js?v=s24';
+ layerHeight,feltTemp,visibility,stepExposure,pathDoors,searchTime,thermalColor,ppvState,stairY,stairTransition,stairSegments,stackExchange,stairRoute,samplePath,pathLength,CALL,canCall,hearing,directionWord} from './xinyi-street-interior-rules.js?v=s25';
 
 const H=INTERIOR.ceiling,FH=INTERIOR.floorHeight,PACK=40;
 function tex(size,draw){const c=document.createElement('canvas');c.width=c.height=size;draw(c.getContext('2d'),size);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;return t;}

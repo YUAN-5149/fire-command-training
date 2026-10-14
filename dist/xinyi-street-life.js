@@ -2,7 +2,7 @@
 // 車道標線、一樓店面招牌、補植行道樹、NPC 車流與行人、時段光影。
 // 只加在本頁；不改動 GIS 頁的官方量體、道路寬度與既有樣板。
 import * as T from 'three';
-import {project} from './xinyi-street-world.js?v=s24';
+import {project} from './xinyi-street-world.js?v=s25';
 
 const key=p=>p[0].toFixed(7)+','+p[1].toFixed(7);
 const isOneway=t=>['yes','1','-1'].includes(t?.oneway);
@@ -190,12 +190,13 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
  life.update=(dt,t,blockers,{siren=null}={})=>{
   if(life.groups.traffic.visible)for(const veh of vehicles){if(!veh.active)continue;
    const gap=obstacleAhead(veh,vehicles,blockers);let target=gap<veh.kit.length/2+1.5?0:gap<veh.kit.length/2+8?veh.max*.3:veh.max;
-   // 消防車（含自動出勤的分隊車輛，可傳入多部）鳴警笛接近（35 m 內）時，NPC 車輛減速讓道（示意）。
-   if([siren].flat().some(sv=>sv&&Math.hypot(sv.x-veh.x,sv.z-veh.z)<35))target=Math.min(target,2);
+   // 消防車（含自動出勤的分隊車輛，可傳入多部）鳴警笛接近（35 m 內）時，NPC 車輛停車並靠右讓道（示意）。
+   // 讓道：減速停車並往右側路邊靠（示意），讓消防車從旁通過。
+   const yieldNow=[siren].flat().some(sv=>sv&&Math.hypot(sv.x-veh.x,sv.z-veh.z)<35);if(yieldNow)target=0;veh.pull=Math.max(0,Math.min(1,(veh.pull??0)+(yieldNow?1:-.5)*dt));
    veh.v+=Math.max(-8*dt,Math.min(3*dt,target-veh.v));veh.s+=veh.v*dt;
    while(veh.s>veh.lane.length){veh.s-=veh.lane.length;const next=veh.lane.next.length?veh.lane.next[Math.floor(rand()*veh.lane.next.length)]:veh.lane.back??pickLane();veh.lane=next;veh.max=(next.speed+rand()*3)*(veh.kind==='scooter'?1.1:1);}
    const p=lanePose(veh.lane,veh.s),rx=Math.cos(p.heading),rz=-Math.sin(p.heading);
-   veh.x=p.x+rx*veh.side;veh.z=p.z+rz*veh.side;veh.heading+=Math.atan2(Math.sin(p.heading-veh.heading),Math.cos(p.heading-veh.heading))*Math.min(1,dt*8);
+   const side=veh.side+(veh.pull??0)*2.2;veh.x=p.x+rx*side;veh.z=p.z+rz*side;veh.heading+=Math.atan2(Math.sin(p.heading-veh.heading),Math.cos(p.heading-veh.heading))*Math.min(1,dt*8);
    tmp.position.set(veh.x,ground.at(veh.x,veh.z),veh.z);tmp.rotation.set(0,veh.heading,0);tmp.updateMatrix();for(const m of Object.values(veh.meshes))m.setMatrixAt(veh.i,tmp.matrix);
   }
   for(const m of traffic.children)m.instanceMatrix.needsUpdate=true;
@@ -206,7 +207,7 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
    legs.forEach((leg,j)=>{const side=j?.11:-.11;tmp.position.set(x+Math.cos(h)*side,y+.82,z-Math.sin(h)*side);tmp.rotation.set(j?-swing:swing,h,0,'YXZ');tmp.updateMatrix();leg.setMatrixAt(i,tmp.matrix);});});
    for(const m of people.children)m.instanceMatrix.needsUpdate=true;}
  };
- life.circles=()=>life.groups.traffic.visible?vehicles.filter(v=>v.active).map(v=>[v.x,v.z,v.kit.radius]):[];
+ life.circles=()=>life.groups.traffic.visible?vehicles.filter(v=>v.active).map(v=>[v.x,v.z,v.kit.radius,(v.pull??0)>.6]):[];// 第 4 欄：已靠邊讓道
  // 畫質密度：只繪製與模擬前 ratio 比例的車輛與行人。
  life.pedActive=pedCount;
  life.setDensity=ratio=>{for(const v of vehicles){const keep=Math.ceil(v.n*ratio);v.active=v.i<keep;for(const m of Object.values(v.meshes))m.count=keep;}life.pedActive=Math.ceil(pedCount*ratio);for(const m of people.children)m.count=life.pedActive;};
