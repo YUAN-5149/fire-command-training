@@ -4,7 +4,7 @@
 // 不是實際消防分隊位置或派遣規定；自動駕駛只沿路網中心線前進並在前方有車或人時停等，未做完整避障。
 import * as T from 'three';
 
-export const SQUAD={count:3,vehicles:2,turnout:30,speed:11,water:2000,flow:6,knock:.05,stagingMin:12,stagingMax:70,spacing:11,laneOffset:2.2,homeMin:320,homeMax:700};
+export const SQUAD={count:3,vehicles:2,turnout:15,speed:11,water:2000,flow:6,knock:.05,stagingMin:12,stagingMax:70,spacing:11,laneOffset:2.2,homeMin:320,homeMax:700};
 // 分隊人員（制服依 MASTER SPEC：隊員深藍；小隊長一圈紅帶；分隊長兩圈紅帶）。size 4 時不含分隊長。
 export function squadCrew(size=5){return size>=5?['分隊長','小隊長','隊員','隊員','隊員']:['小隊長','隊員','隊員','隊員'];}
 export const SQUAD_NAMES=['第一分隊','第二分隊','第三分隊'];
@@ -72,7 +72,7 @@ export function createSquads({scene,template,createPerson,ground,colliders,graph
     place(v,start.x,start.z,start.heading);v.delay=i===0?0:SQUAD.turnout+k*4;v.state=i===0&&k===0?'player':'wait';v.path=null;if(v.state==='player')v.root.visible=false;});
    for(const p of sq.people){p.g.visible=false;p.inside=false;p.goal=null;}sq.hose.visible=false;sq.water3d.visible=false;});
   return poses;}
- function route(v){if(!v.pose)return;const r=findRouteSafe(v.x,v.z,v.pose.x,v.pose.z);if(!r){v.path=[[v.x,v.z],[v.pose.x,v.pose.z]];}else v.path=offsetRight(r.points);v.path.push([v.pose.x,v.pose.z]);v.s=0;v.len=polyLength(v.path);v.state='driving';}
+ function route(v){if(!v.pose)return;const r=findRouteSafe(v.x,v.z,v.pose.x,v.pose.z);if(!r){v.path=[[v.x,v.z],[v.pose.x,v.pose.z]];}else v.path=offsetRight(r.points);v.path.push([v.pose.x,v.pose.z]);v.s=0;v.len=polyLength(v.path);v.state='driving';v.routeT=0;}
  let findRouteSafe=()=>null;
  function arrive(sq,v,now){place(v,v.pose.x,v.pose.z,v.pose.heading);v.state='parked';v.v=0;
   if(sq.vehicles.every(x=>x.state==='parked'||x.state==='player')&&!sq.arrived){sq.arrived=now;sq.task='standby';sq.log.push({t:now,text:'抵達現場、人員下車待命'});
@@ -105,11 +105,15 @@ export function createSquads({scene,template,createPerson,ground,colliders,graph
     if(v.state==='wait'){if(v.followPlayer?ctx.playerDeparted:(v.delay-=dt)<=0)route(v);continue;}
     if(v.state!=='driving')continue;
     const fx=-Math.sin(v.heading),fz=-Math.cos(v.heading),rx=Math.cos(v.heading),rz=-Math.sin(v.heading);let blocked=false;
-    for(const [bx,bz,br] of ctx.blockers(v)){const dx=bx-v.x,dz=bz-v.z,ahead=dx*fx+dz*fz,lat=Math.abs(dx*rx+dz*rz);if(ahead>0&&ahead<9+br&&lat<1.6+br){blocked=true;break;}}
-    v.wait=blocked?(v.wait??0)+dt:0;if(v.wait>6)blocked=false;// 停等過久（示意）：視為讓道完成繼續前進
+    for(const [bx,bz,br,pulled] of ctx.blockers(v)){if(pulled)continue;const dx=bx-v.x,dz=bz-v.z,ahead=dx*fx+dz*fz,lat=Math.abs(dx*rx+dz*rz);if(ahead>0&&ahead<9+br&&lat<1.6+br){blocked=true;break;}}
+    // 卡住保護（示意）：停等超過 6 秒，或 5 秒內前進不到 3 m，就暫時不理會前方障礙 4 秒繼續前進。
+    v.wait=blocked?(v.wait??0)+dt:0;v.prog??={s:v.s,t:0};v.prog.t+=dt;if(v.prog.t>5){if(v.s-v.prog.s<3)v.ghost=4;v.prog={s:v.s,t:0};}
+    if(v.ghost>0){v.ghost-=dt;blocked=false;}if(v.wait>6)blocked=false;
     const target=blocked?0:(v.len-v.s<25?4:SQUAD.speed);v.v+=Math.max(-8*dt,Math.min(3*dt,target-v.v));v.s+=v.v*dt;
     const q=along(v.path,v.s);const dh=Math.atan2(Math.sin(q.heading-v.heading),Math.cos(q.heading-v.heading));place(v,q.x,q.z,v.heading+dh*Math.min(1,dt*6));
-    if(q.done&&arrive(sq,v,ctx.now)){ctx.onArrive?.(sq);}}
+    // 最後保險：超過預估時間 2.5 倍＋30 秒仍未到，直接停到停車點（示意，紀錄註明）。
+    v.routeT=(v.routeT??0)+dt;const late=v.routeT>v.len/SQUAD.speed*2.5+30;if(late){sq.log.push({t:ctx.now,text:`${v.k+1} 號車行駛受阻，改以示意方式到位`});}
+    if((q.done||late)&&(late&&(v.s=v.len),true)&&arrive(sq,v,ctx.now)){ctx.onArrive?.(sq);}}
    // 人員
    const att=attackers(sq);let spraying=false;
    for(const p of sq.people){if(p.inside||!p.g.visible)continue;let moving=false;
