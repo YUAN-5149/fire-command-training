@@ -19,7 +19,9 @@ Stages (each one includes everything before it):
   4  street furniture - street trees and median palms, mast-arm signals
      with switchable lenses, side-arm and ring lamps, Zhongxiao median
      barrier, utility cabinets, yellow box grid in front of the bays
-  5  background towers and lighting               (todo)
+  5  backdrop and lighting - far ground, ring of generic blocks, the
+     sign-banded mid-rise up Songren, Xinyi towers and a simplified
+     Taipei 101; day sky and a night pass for the previews
 
 Run:
   blender -b -P blender/build_xinyi_street.py -- --stage 4 --outdir blender
@@ -1687,6 +1689,235 @@ def build_box_grid(M, g, x0, x1, y0, y1, step=2.4, w=0.15):
     return Yb.emit(g)
 
 
+# ------------------------------------------ stage 5: backdrop and lighting
+# Everything outside the 150 m window is backdrop: low-detail massing that
+# only has to read from street level.
+#   - a far ground plane and the two avenues continued out to the horizon
+#   - a ring of generic mid-rise blocks around the window
+#   - the dark mid-rise with stacked sign bands ~60 m up Songren (west side)
+#     and the stepped white tower to the north-west, both seen in the panos
+#   - the Xinyi planning district to the south: generic glass towers and a
+#     simplified Taipei 101 at its real offset (~400 m W, ~780 m S)
+# Lighting lives in the preview setup: a sky for the day renders, and a
+# night pass that lights the lamp lenses, signs and windows.  The GLB is
+# exported before either, so it carries daytime materials; night is a
+# material switch for the sim (see README).
+
+T101 = (-397.0, -780.0)            # Taipei 101 relative to the origin
+
+
+def back_materials(M):
+    M.update({
+        'ground_far': mat("Far ground", (0.085, 0.086, 0.09, 1), rough=0.95),
+        'bld_conc':   mat("Backdrop concrete", (0.50, 0.48, 0.45, 1), rough=0.85),
+        'bld_tile':   mat("Backdrop tile warm", (0.45, 0.36, 0.28, 1), rough=0.70),
+        'bld_white':  mat("Backdrop white", (0.72, 0.72, 0.70, 1), rough=0.60),
+        'bld_dark':   mat("Backdrop charcoal", (0.10, 0.10, 0.11, 1), rough=0.50),
+        'bld_win':    mat("Backdrop window band", (0.03, 0.04, 0.05, 1),
+                          metallic=0.4, rough=0.15),
+        'tower_glass': mat("Tower glass blue", (0.10, 0.20, 0.30, 1),
+                           metallic=0.6, rough=0.08),
+        'tower_green': mat("Tower glass green", (0.12, 0.28, 0.26, 1),
+                           metallic=0.6, rough=0.08),
+        't101':       mat("Taipei 101 glass", (0.16, 0.30, 0.28, 1),
+                          metallic=0.6, rough=0.10),
+    })
+
+
+def banded_block(B, rng, x0, y0, x1, y1, h, body, win_m, fh=3.4, gf=4.5):
+    """A box with a dark window band on every floor."""
+    B.box(body, x0, y0, 0, x1, y1, h)
+    z = gf
+    while z + 2.0 < h - 1.0:
+        B.box(win_m, x0 - 0.05, y0 - 0.05, z + 0.9, x1 + 0.05, y1 + 0.05, z + 2.4)
+        z += fh
+    B.box(body, x0 - 0.2, y0 - 0.2, h - 0.8, x1 + 0.2, y1 + 0.2, h)
+
+
+def square_frustum(k, m, cx, cy, z0, z1, side0, side1):
+    """Axis-aligned square frustum (create_cone with 4 segments, turned 45)."""
+    mx = (Matrix.Translation((cx, cy, (z0 + z1) / 2)) @
+          Matrix.Rotation(math.radians(45), 4, 'Z'))
+    res = bmesh.ops.create_cone(k.bm, cap_ends=True, cap_tris=False, segments=4,
+                                radius1=side0 / math.sqrt(2),
+                                radius2=side1 / math.sqrt(2),
+                                depth=z1 - z0, matrix=mx)
+    k._assign(res['verts'], m)
+
+
+def build_taipei101(M, g):
+    k = Kit()
+    cx, cy = T101
+    gm, sm = M['t101'], M['bld_conc']
+    k.box(sm, (cx + 40, cy + 10, 30), (150, 110, 60))          # mall podium
+    square_frustum(k, gm, cx, cy, 0, 95, 62, 50)               # base pyramid
+    z = 95.0
+    for i in range(8):                                          # the 8 "bowls"
+        square_frustum(k, gm, cx, cy, z, z + 30.0, 40, 47)
+        k.box(sm, (cx, cy, z + 0.6), (41, 41, 1.2))
+        z += 30.0
+    square_frustum(k, gm, cx, cy, z, z + 30, 34, 22)            # crown
+    square_frustum(k, gm, cx, cy, z + 30, z + 50, 16, 10)
+    k.cyl(M['pole'], (cx, cy, z + 50), (cx, cy, 508.0), 1.6, 0.4, seg=8)
+    ob = inst("Taipei 101 (simplified)", k.mesh("Taipei 101 simplified"),
+              (0, 0, 0), parent=g)
+    ob["kind"] = "landmark"
+
+
+def build_backdrop(M, root):
+    back_materials(M)
+    font = load_font()
+    g = group("S5 Backdrop", root)
+    rng = random.Random(1015)
+
+    # far ground just under the window, and the avenues carried on
+    gk = Kit()
+    gk.poly(M['ground_far'], [(-1500, -1500, -0.03), (1500, -1500, -0.03),
+                              (1500, 1500, -0.03), (-1500, 1500, -0.03)])
+    for x0_, y0_, x1_, y1_ in ((-SR_HW, Y1, SR_HW, 1500), (-SR_HW, -1500, SR_HW, Y0),
+                               (X1, -ZX_HW, 1500, ZX_HW), (-1500, -ZX_HW, X0, ZX_HW)):
+        gk.poly(M['asphalt'], [(x0_, y0_, -0.01), (x1_, y0_, -0.01),
+                               (x1_, y1_, -0.01), (x0_, y1_, -0.01)])
+    inst("Backdrop ground", gk.mesh("Backdrop ground"), (0, 0, 0), parent=g)
+
+    # ring of generic blocks: 45 m cells out to ~420 m, avoiding the window
+    # and the two avenue corridors; taller towards the Xinyi district (south)
+    B = MBuf("Backdrop city blocks")
+    bodies = [M['bld_conc'], M['bld_tile'], M['bld_white'], M['bld_conc']]
+    cell = 45.0
+    keep_clear = [(-34.0, 63.0), (-95.0, 62.0), (40, -540), (160, -150), (120, -420)]
+    for i in range(-10, 11):
+        for j in range(-10, 11):
+            cx, cy = i * cell, j * cell
+            if math.hypot(cx, cy) > 430:
+                continue
+            if X0 - 30 < cx < X1 + 30 and Y0 - 30 < cy < Y1 + 30:
+                continue
+            if abs(cx) < SR_HW + 20 or abs(cy) < ZX_HW + 20:
+                continue
+            if any(math.hypot(cx - kx, cy - ky) < 40 for kx, ky in keep_clear):
+                continue
+            w = rng.uniform(18, 34)
+            d = rng.uniform(16, 32)
+            south = max(0.0, -cy) / 400.0
+            h = rng.uniform(12, 32) + south * rng.uniform(10, 70)
+            ox, oy = rng.uniform(-5, 5), rng.uniform(-5, 5)
+            banded_block(B, rng, cx + ox - w / 2, cy + oy - d / 2,
+                         cx + ox + w / 2, cy + oy + d / 2, h,
+                         rng.choice(bodies), M['bld_win'])
+    B.emit(g)
+
+    # mid-rise up Songren, west side: charcoal with stacked sign bands
+    D = MBuf("Backdrop Songren mid-rise")
+    x0, x1, y0, y1 = -46.0, -SR_HW - SR_WALK, Y1 + 12.0, Y1 + 34.0
+    h = 5.0 + 12 * 3.4
+    banded_block(D, rng, x0, y0, x1, y1, h, M['bld_dark'], M['tower_green'])
+    for k, (zb, sc, word) in enumerate(((4.6, 'sg_white', "燒肉餐廳"),
+                                        (7.9, 'sg_black', "美容中心"),
+                                        (11.2, 'sg_white', "百貨商場"))):
+        D.box(M[sc], x1, y0 + 1.0, zb, x1 + 0.4, y1 - 1.0, zb + 2.6)
+        make_text(f"Backdrop mid-rise band {k + 1}", word, font, 1.5,
+                  (x1 + 0.43, (y0 + y1) / 2, zb + 1.3), FACE_E,
+                  M['sg_red' if sc == 'sg_white' else 'sg_yellow'],
+                  extrude=0.01, spacing=1.2, parent=g)
+    D.box(M['sg_white'], x1 - 1.6, y0 - 0.5, 15.0, x1 + 0.4, y0 + 0.3, h - 2.0)
+    make_text("Backdrop mid-rise vertical sign", "\n".join("商業大樓"), font, 2.2,
+              (x1 - 0.6, y0 - 0.53, (15.0 + h - 2.0) / 2), FACE_S, M['sg_blue'],
+              extrude=0.01, parent=g)
+    D.emit(g)
+
+    # stepped white tower to the north-west: stacked boxes shifted floor-wise
+    W = MBuf("Backdrop stepped tower NW")
+    bx, by = -95.0, 62.0
+    for f in range(14):
+        z0 = f * 3.6
+        off = 1.2 if (f // 2) % 2 else -1.2
+        W.box(M['bld_white'], bx - 11 + off, by - 9, z0, bx + 11 + off, by + 9, z0 + 3.6)
+        W.box(M['bld_win'], bx - 11.05 + off, by - 9.05, z0 + 0.9, bx + 11.05 + off,
+              by + 9.05, z0 + 2.9)
+    W.emit(g)
+
+    # Xinyi district towers round Taipei 101 (generic glass slabs)
+    X = MBuf("Backdrop Xinyi towers")
+    for (tx, ty, w, d, h, m) in ((-250, -660, 40, 30, 180, 'tower_glass'),
+                                 (-170, -720, 36, 36, 150, 'tower_green'),
+                                 (-470, -620, 44, 34, 200, 'tower_glass'),
+                                 (-320, -560, 38, 28, 140, 'tower_green'),
+                                 (-90, -610, 34, 30, 120, 'tower_glass'),
+                                 (40, -540, 30, 30, 160, 'tower_glass'),
+                                 (-560, -760, 40, 40, 170, 'tower_green'),
+                                 (-230, -880, 46, 30, 210, 'tower_glass'),
+                                 (120, -420, 32, 28, 95, 'tower_green'),
+                                 (160, -150, 30, 30, 110, 'tower_glass')):
+        X.box(M[m], tx - w / 2, ty - d / 2, 0, tx + w / 2, ty + d / 2, h)
+        X.box(M['bld_conc'], tx - w / 2 - 0.5, ty - d / 2 - 0.5, h,
+              tx + w / 2 + 0.5, ty + d / 2 + 0.5, h + 3)
+        z = 4.0
+        while z < h - 2:                         # floor lines
+            X.box(M['bld_conc'], tx - w / 2 - 0.1, ty - d / 2 - 0.1, z,
+                  tx + w / 2 + 0.1, ty + d / 2 + 0.1, z + 0.35)
+            z += 4.0
+    X.emit(g)
+    build_taipei101(M, g)
+    return g
+
+
+# ------------------------------------------------------------- night pass
+def set_night(M, cam_parent=None):
+    """Switch the preview scene to night: dark sky, lamps, signs, windows."""
+    sc = bpy.context.scene
+    nt = sc.world.node_tree
+    for nd in list(nt.nodes):
+        if nd.type == 'TEX_SKY':
+            nt.nodes.remove(nd)
+    bg = next(nd for nd in nt.nodes if nd.type == 'BACKGROUND')
+    bg.inputs[0].default_value = (0.010, 0.014, 0.030, 1)
+    bg.inputs[1].default_value = 1.0
+    sun = bpy.data.objects.get("Sun")
+    if sun:
+        sun.data.energy = 0.08
+        sun.data.color = (0.6, 0.7, 1.0)
+
+    def glow(key, colour=None, strength=1.0):
+        if key not in M:
+            return
+        b = next(nd for nd in M[key].node_tree.nodes if nd.type == 'BSDF_PRINCIPLED')
+        c = colour or tuple(b.inputs["Base Color"].default_value)
+        b.inputs["Emission Color"].default_value = c
+        b.inputs["Emission Strength"].default_value = strength
+
+    glow('lamp_lens', (1.0, 0.85, 0.6, 1), 40.0)
+    for key in ('sg_yellow', 'sg_red', 'sg_green', 'sg_white', 'sg_blue',
+                'sg_orange', 'name_blue'):
+        glow(key, None, 2.5)
+    glow('win', (1.0, 0.78, 0.50, 1), 0.9)
+    glow('teal', (0.5, 0.9, 0.85, 1), 1.5)
+    glow('curtain', (0.35, 0.55, 0.9, 1), 0.35)
+    glow('bld_win', (1.0, 0.82, 0.55, 1), 0.30)
+    glow('tower_glass', (0.5, 0.65, 0.9, 1), 0.5)
+    glow('tower_green', (0.5, 0.85, 0.75, 1), 0.5)
+    glow('t101', (0.5, 0.9, 0.8, 1), 1.2)
+    glow('ceiling', (1.0, 0.92, 0.8, 1), 0.8)
+
+    # pools of light under the street lamps (preview only, not exported)
+    for ob in list(bpy.data.objects):
+        if not ob.name.startswith("Street lamp ") or ob.type != 'MESH':
+            continue
+        heads = ([(2.4, 0, 9.6)] if "side-arm" in ob.data.name
+                 else [(0, 2.8, 10.1), (0, -2.8, 10.1)])
+        for i, hp in enumerate(heads):
+            ld = bpy.data.lights.new(f"{ob.name} light {i}", 'SPOT')
+            ld.energy = 9000
+            ld.color = (1.0, 0.82, 0.58)
+            ld.spot_size = math.radians(120)
+            ld.spot_blend = 0.6
+            ld.use_shadow = False               # 26 shadowed spots overflow EEVEE
+            lo = bpy.data.objects.new(ld.name, ld)
+            bpy.context.collection.objects.link(lo)
+            lo.location = ob.matrix_world @ Vector(hp)
+            lo.rotation_euler = (0, 0, 0)          # spots point down -Z
+
+
 # ------------------------------------------------------------------ preview
 def setup_preview():
     sc = bpy.context.scene
@@ -1708,6 +1939,18 @@ def setup_preview():
         nt.links.new(bg.outputs[0], out.inputs[0])
     bg.inputs[0].default_value = (0.55, 0.68, 0.85, 1)
     bg.inputs[1].default_value = 0.9
+    if STAGE >= 5:
+        # physical sky once there is a skyline to see against it
+        try:
+            sky = nt.nodes.new('ShaderNodeTexSky')
+            sky.sky_type = 'NISHITA'
+            sky.sun_elevation = math.radians(48)
+            sky.sun_rotation = math.radians(145)
+            sky.sun_disc = False
+            nt.links.new(sky.outputs[0], bg.inputs[0])
+            bg.inputs[1].default_value = 0.30
+        except Exception as e:
+            print("SKY fallback:", e)
     sc.world = world
 
     sd = bpy.data.lights.new("Sun", 'SUN')
@@ -1719,6 +1962,7 @@ def setup_preview():
     sun.rotation_euler = (math.radians(42), 0, math.radians(35))
 
     cam_d = bpy.data.cameras.new("Preview camera")
+    cam_d.clip_end = 4000.0                 # the backdrop runs out past 1 km
     cam = bpy.data.objects.new("Preview camera", cam_d)
     bpy.context.collection.objects.link(cam)
     sc.camera = cam
@@ -1755,6 +1999,7 @@ BUILDERS = [
     (2, build_hq),
     (3, build_shophouses),
     (4, build_furniture),
+    (5, build_backdrop),
 ]
 
 
@@ -1818,6 +2063,25 @@ def main():
         render_to(os.path.join(prev, f"{tag}_pano_nw_corner.png"))
         aim(cam, (105.0, -12.0, 38.0), (15.0, 30.0, 6.0), lens=24)
         render_to(os.path.join(prev, f"{tag}_aerial_north.png"))
+
+    if STAGE >= 5:
+        # from the NE corner looking south down Songren towards Taipei 101
+        ne = (9.0, 31.0, 1.7)            # in the SB lanes, clear of the NB signal pole
+        aim(cam, ne, look_heading(ne, 207, dist=200, pitch_z=40.0), lens=22)
+        render_to(os.path.join(prev, f"{tag}_skyline_south.png"))
+        aim(cam, (170.0, 150.0, 120.0), (-110.0, -330.0, 40.0), lens=24)
+        render_to(os.path.join(prev, f"{tag}_aerial_wide.png"))
+        # night pass
+        set_night(M)
+        aim(cam, (-55.0, -125.0, 70.0), (12.0, -28.0, 0.0), lens=28)
+        render_to(os.path.join(prev, f"{tag}_night_aerial.png"))
+        aim(cam, PANO, look_heading(PANO, 345, pitch_z=1.8), lens=16)
+        render_to(os.path.join(prev, f"{tag}_night_pano_north.png"))
+        zp = (47.0, -13.5, 2.45)
+        aim(cam, zp, look_heading(zp, 10, dist=30, pitch_z=6.0), lens=14)
+        render_to(os.path.join(prev, f"{tag}_night_north_row.png"))
+        aim(cam, ne, look_heading(ne, 207, dist=200, pitch_z=40.0), lens=22)
+        render_to(os.path.join(prev, f"{tag}_night_skyline_south.png"))
 
 
 main()

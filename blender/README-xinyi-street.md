@@ -11,7 +11,7 @@
 ## 重建
 
 ```sh
-blender -b -P blender/build_xinyi_street.py -- --stage 4 --outdir blender
+blender -b -P blender/build_xinyi_street.py -- --stage 5 --outdir blender
 ```
 
 `--stage N` 只建到第 N 階段（每階段包含之前所有內容），輸出：
@@ -24,7 +24,7 @@ blender -b -P blender/build_xinyi_street.py -- --stage 4 --outdir blender
 | 2 | 消防局：花崗岩基座、玻璃帶塔樓、兩處雨庇門廊、忠孝路側 3 個車道 |
 | 3 | 忠孝路北側騎樓店屋（每棟獨立物件）、西北角辦公大樓 |
 | 4 | 行道樹與棕櫚、號誌、路燈、電箱、忠孝路分隔護欄、消防局前黃色網狀線 |
-| 5 | 背景高樓與燈光（未完成） |
+| 5 | 背景：遠景地面、周邊街廓量體、松仁路北段招牌中層樓、信義計畫區高樓與簡化台北101；白天天空與夜間燈光預覽 |
 
 ## 座標與可操作節點
 
@@ -35,6 +35,11 @@ blender -b -P blender/build_xinyi_street.py -- --stage 4 --outdir blender
 - `Shophouse NE nn`、`Shophouse NW nn`、`Office NW corner`：每棟建物一個物件，
   extras 帶 `kind`、`floors`，可指定為火災建物。
 - `Utility cabinets HQ corner`、`Utility box Songren`：extras `kind = electrical`。
+- 夜間：GLB 匯出的是白天材質。夜間把下列材質的 emissive 打開即可：
+  `Lamp lens`（路燈燈面）、`Sign *`（招牌）、`Window glass dark`（窗）、
+  `Backdrop window band`、`Tower glass *`、`Taipei 101 glass`。預覽圖的路燈光池是
+  Blender 聚光燈，只在預覽使用，未匯出到 GLB。
+- 台北101 依實際相對位置（約西 400 m、南 780 m）放置，外形為簡化示意。
 
 ## 待驗證
 
