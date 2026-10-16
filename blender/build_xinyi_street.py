@@ -2084,4 +2084,7 @@ def main():
         render_to(os.path.join(prev, f"{tag}_night_skyline_south.png"))
 
 
-main()
+# Run only as the Blender entry script, so other scene builders (e.g.
+# build_taipei_eoc.py) can import the helpers above without building this.
+if __name__ == "__main__":
+    main()
