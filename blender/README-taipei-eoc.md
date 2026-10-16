@@ -46,3 +46,33 @@ blender -b -P blender/build_taipei_eoc.py -- --outdir blender
 - 周邊建物 extras `kind` 為 `apartment`、`shophouse`、`school`，帶 `floors`。
 
 GLB 以 Draco 壓縮匯出（約 2.7 MB）；網站以 `dist/vendor/draco/` 的解碼器載入。
+
+## 臺北真實地圖整合（之後修訂以此為準）
+
+應變中心已放進兩個以官方圖資為底的場景，**之後的修訂以這兩個場景的呈現為準**：
+
+- 臺北真實地圖（`dist/taipei-map.html`，ArcGIS）：側欄「臺北市災害應變中心」可定位、切換精細模型與官方白模
+- 信義街景漫遊（`dist/xinyi-street.html`）：選單「前往災害應變中心」，或網址加 `?at=eoc`
+
+定位資料統一放在 `dist/assets/eoc-anchor.json`：
+- 模型原點（主體西南角）經緯度、方位角、地面高程
+- 被精細模型取代、需要隱藏的官方 LOD1 量體編號 `officialIds`
+
+主體尺寸 37.6 × 69.2 m、東翼位置與高度，都依官方量體 264827、263382、264826、263363、264825 擬合。兩個頁面共用 `dist/eoc-real.js` 載入與擺放模型。
+
+修訂流程：
+1. 改 `build_taipei_eoc.py`，執行建模（會同時產生完整模型與 `taipei-eoc.blend`）
+2. 匯出真實地圖用的本體模型（只含建物與自身設施，不含示意的周邊街屋、樹與車）：
+   `blender -b blender/taipei-eoc.blend -P blender/export_eoc_core.py -- --outdir <repo>`
+3. 把 `assets/taipei-eoc-core.glb`、`assets/taipei-eoc.glb` 複製到 `dist/assets/`
+4. 調高 `dist/eoc-real.js` 裡模型網址的 `?v=`，讓瀏覽器抓到新版
+5. 若改了占地或位置，同步更新 `eoc-anchor.json`（`officialIds` 不要漏掉，否則官方白模會和模型重疊）
+
+信義範圍已由北緯 25.0293 往南延伸到 25.0275，納入應變中心周邊：
+- 官方建物：`scripts/fetch-lod1.py` 下載
+- 路網：OSM
+- 合併：`scripts/extend-xinyi-south.py` 只新增南側資料，原有建物與路段不變，因為既有的第一批清單、設施與測試都引用舊編號
+
+限制：
+- 真實地圖的地面不透明，所以地下停車場車道的下坡段在 ArcGIS 頁看不到，只看得到擋土牆與欄杆
+- 完整車道請看模型檢視頁

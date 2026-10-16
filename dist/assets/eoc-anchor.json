@@ -1,0 +1,28 @@
+{
+  "name": "臺北市災害應變中心",
+  "model": "assets/taipei-eoc-core.glb",
+  "detailPage": "taipei-eoc.html",
+  "lon": 121.5659615,
+  "lat": 25.0287073,
+  "base": 9.66,
+  "heading": -1.244,
+  "footprint": {
+    "w": 37.6,
+    "d": 69.2
+  },
+  "officialIds": [
+    264827,
+    263382,
+    264826,
+    263363,
+    264825,
+    263384,
+    263383,
+    263400,
+    263401,
+    265088,
+    265228,
+    265254
+  ],
+  "note": "Model origin = SW corner of the main block, fitted to the official LOD1 2024 volumes listed; heading in degrees, negative = clockwise seen from above. base = official wall-foot elevation (EGM96, m)."
+}
