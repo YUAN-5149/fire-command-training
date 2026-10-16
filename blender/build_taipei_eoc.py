@@ -70,7 +70,7 @@ TOP_H = 3.6                      # glazed top storey under the helipad
 DECK_Z = ROOF + TOP_H + 1.0      # helipad surface (~38 m)
 DECK = (BW / 2, 15.0, 30.0)      # helipad centre x, y and side (south edge over the facade)
 PODIUM_H = GF + FH               # two-storey corner glazing and canopy
-WING = (BW, 2.0, BW + 12.0, 34.0, 5)   # east wing x0, y0, x1, y1, storeys
+WING = (BW, 20.0, BW + 12.0, 44.0, 4)  # east wing x0, y0, x1, y1, storeys (north-middle, Earth 3D)
 
 STREET_Y = (-16.0, -8.0)         # 莊敬路423巷7弄 (8 m paved forecourt to the facade)
 JUNCTION = (-14.0, -12.0)        # meets 391巷11弄 here
@@ -82,7 +82,7 @@ LOT_WEST = -60.0                 # west edge of the parking lot
 RAMP_X = (-7.6, -0.8)
 RAMP_Y = (22.0, 44.0, 50.0)      # top of slope, foot of slope, portal wall
 RAMP_DEPTH = 3.8
-PLAZA_C = (60.0, 16.0)           # round fountain island
+PLAZA_C = (58.0, 12.0)           # round fountain island, SE of the wing
 PLAZA_R = 5.0
 
 # Taipei 101 relative to this origin
@@ -104,6 +104,7 @@ def eoc_materials(M):
                           metallic=0.3, rough=0.06),
         'granite':    mat("EOC granite beige", (0.50, 0.47, 0.42, 1), rough=0.40),
         'louvre_beige': mat("EOC vent louvre beige", (0.55, 0.53, 0.48, 1), rough=0.55),
+        'band_blue':  mat("EOC facade band blue", (0.35, 0.55, 0.75, 1), rough=0.40),
         'stone':      mat("EOC pier stone grey", (0.36, 0.36, 0.36, 1), rough=0.45),
         'panel_dark': mat("EOC frame dark grey", (0.10, 0.11, 0.12, 1),
                           metallic=0.5, rough=0.45),
@@ -186,9 +187,14 @@ def build_building(M, g, font):
     B.box(P, sx, 0, 0, BW, BD, ROOF)
     B.box(P, 0, sy, 0, sx, BD, ROOF)
     B.box(P, 0, 0, 0, sx, sy, low)
-    B.box(P, sx - 0.15, -0.15, ROOF, BW + 0.15, BD + 0.15, ROOF + 1.1)       # parapets
-    B.box(P, -0.15, sy - 0.15, ROOF, sx, BD + 0.15, ROOF + 1.1)
-    B.box(P, -0.15, -0.15, low, sx, sy, low + 1.1)
+    # dark overhanging top band all round (street view and Earth 3D)
+    o, i = 0.6, 0.3                       # overhang out, wall thickness in
+    for (x0, y0, x1, y1) in ((sx - o, -o, BW + o, i), (-o, BD - i, BW + o, BD + o),
+                             (BW - i, -o, BW + o, BD + o), (-o, sy - o, i, BD + o),
+                             (-o, sy - o, sx + i, sy + i), (sx - o, -o, sx + i, sy + i)):
+        B.box(D, x0, y0, ROOF - 0.2, x1, y1, ROOF + 1.5)
+    for (x0, y0, x1, y1) in ((-o, -o, sx, i), (-o, -o, i, sy)):
+        B.box(D, x0, y0, low - 0.2, x1, y1, low + 1.3)
     B.box(M['granite'], -0.10, -0.10, 0, BW + 0.10, BD + 0.10, 0.5)          # plinth
 
     def top_at(face, a):
@@ -201,12 +207,15 @@ def build_building(M, g, font):
     # windows on every face, one per bay, a few bays left blank
     skip_s = [(LOGGIA[0] - 0.6, LOGGIA[1] + 0.6), (STRIP[0] - 1.0, STRIP[1] + 1.0),
               (WEDGE[0] - 0.2, WEDGE[1] + 0.2)]
+    notch = (BW / 2 - 0.9, BW / 2 + 0.9)        # full-height slot in the north face
     for f in range(1, FLOORS):
         z = storey_z(f)
         for face, plane, length in (('S', 0.0, BW), ('N', BD, BW), ('W', 0.0, BD), ('E', BW, BD)):
-            n = int(length // 3.6)
+            n = int(length // (3.6 if face == 'S' else 3.0))
             for i in range(n):
                 a = (i + 0.5) * length / n
+                if face == 'N' and notch[0] - 0.9 < BW - a < notch[1] + 0.9:
+                    continue
                 if z + 2.6 > top_at(face, a):
                     continue
                 if f < 2 and ((face == 'S' and a < sx) or (face == 'W' and a < sy)):
@@ -215,9 +224,37 @@ def build_building(M, g, font):
                     continue
                 if face == 'E' and f < WING[4] and WING[1] - 1 < a < WING[3] + 1:
                     continue
-                if rng.random() < 0.18:
+                if face == 'S' and rng.random() < 0.18:
                     continue
                 eoc_window(B, M, face, a, z + 1.05, plane)
+
+    # W/N/E: shallow pilasters every three windows, a thin light-blue band
+    # round the building at the 7F sill, the north-face slot
+    blue = M['band_blue']
+    for face, plane, length in (('N', BD, BW), ('W', 0.0, BD), ('E', BW, BD)):
+        n = int(length // 3.0)
+        F = FaceFrame(B, (0.0, 0.0, BW, BD), face)
+        for i in range(0, n + 1, 3):
+            u = i * length / n
+            z0 = PODIUM_H if (face == 'W' and u > BD - sy) else GF
+            z1 = top_at(face, BD - u if face == 'W' else u) if face == 'W' else ROOF
+            F.box(P, u - 0.3, 0.0, z0, u + 0.3, 0.22, z1)
+        zb = storey_z(7) - 0.15
+        F.box(blue, 0.0, 0.0, zb, length, 0.06, zb + 0.12)
+    F = FaceFrame(B, (0.0, 0.0, BW, BD), 'S')
+    zb = storey_z(7) - 0.15
+    F.box(blue, sx, 0.0, zb, LOGGIA[0], 0.06, zb + 0.12)
+    F.box(blue, LOGGIA[1], 0.0, zb, BW, 0.06, zb + 0.12)
+    B.box(M['win'], notch[0], BD - 0.7, GF, notch[1], BD + 0.01, ROOF - 0.2)
+    for z in [storey_z(f) for f in range(2, FLOORS)]:
+        B.box(P, notch[0], BD - 0.7, z - 0.1, notch[1], BD, z + 0.1)
+    # louvred plant screen on the roof at the north-west corner
+    for i in range(14):
+        zz = ROOF + 0.3 + i * 0.28
+        B.box(M['louvre'], 0.3, 34.0, zz, 0.45, BD - 0.3, zz + 0.12)
+        B.box(M['louvre'], 0.3, BD - 0.45, zz, 14.0, BD - 0.3, zz + 0.12)
+    for y in range(34, int(BD), 4):
+        B.box(D, 0.3, y, ROOF, 0.5, y + 0.15, ROOF + 4.2)
 
     # ---- SW corner: two storeys of light-green curtain glass on both faces
     # under a thin, deep L canopy; a round dark column at the corner
@@ -356,18 +393,20 @@ def build_wing(M, g, font):
         z = storey_z(f)
         s, h = (z + 1.1, z + 3.6) if f == 0 else (z + 0.95, z + 2.75)
         for a in [y + 1.8 for y in range(int(y0), int(y1 - 1), 4)]:
-            if f == 0 and 14.0 < a < 22.0:
+            if f == 0 and y0 + 3.0 < a < y0 + 12.0:
                 continue
             paired_windows(W, M, 'E', a, s, h, x1)
         for a in (x0 + 2.6, x0 + 6.2, x0 + 9.8):
             paired_windows(W, M, 'S', a, s, h, y0)
             paired_windows(W, M, 'N', a, s, h, y1)
     # entrance facing the fountain island: glass doors, canopy, red sign
-    W.box(M['win_g'], x1 - 0.02, 14.5, 0, x1 + 0.08, 21.5, 3.4)
-    for y in (14.5, 16.25, 18.0, 19.75, 21.5):
+    e0, e1 = y0 + 4.0, y0 + 11.0
+    W.box(M['win_lite'], x1 - 0.02, e0, 0, x1 + 0.08, e1, 3.4)
+    for k in range(5):
+        y = e0 + k * (e1 - e0) / 4
         W.box(M['alu'], x1 + 0.08, y - 0.04, 0, x1 + 0.12, y + 0.04, 3.4)
-    W.box(D, x1, 13.5, 3.6, x1 + 3.0, 22.5, 3.9)
-    W.box(M['sg_red'], x1 + 0.02, 15.0, 4.0, x1 + 0.12, 21.0, 4.6)
+    W.box(D, x1, e0 - 1.0, 3.6, x1 + 3.0, e1 + 1.0, 3.9)
+    W.box(M['sg_red'], x1 + 0.02, e0 + 0.5, 4.0, x1 + 0.12, e1 - 0.5, 4.6)
     ob = W.emit(g)
     ob["kind"] = "eoc"
     ob["floors"] = n
@@ -395,9 +434,9 @@ def build_roof(M, g, font):
     # plant on the north half: AHUs, cooling towers, a stair/lift core
     rng = random.Random(77)
     R.box(M['panel'], 3.0, 33.0, ROOF, 9.0, 39.0, DECK_Z)                 # core
-    for i in range(7):
-        x = rng.uniform(11, 31)
-        y = rng.uniform(35, 52)
+    for i in range(18):
+        x = rng.uniform(10, 34)
+        y = rng.uniform(32, 53)
         w, d, h = rng.uniform(2, 5), rng.uniform(2, 4), rng.uniform(1.4, 3.0)
         R.box(M[rng.choice(('panel', 'louvre', 'ac'))], x, y, ROOF, x + w, y + d, ROOF + h)
     R.emit(g)
@@ -940,6 +979,13 @@ def main():
     render(os.path.join(prev, f"{tag}_pano_user_n.png"))
     aim(cam, PANO_USER, look(PANO_USER, 45, dist=40, pitch_z=6.0), lens=16)
     render(os.path.join(prev, f"{tag}_pano_user_ne.png"))
+    pw = (-34.6, 1.7, 2.45)                     # 391巷11弄 pano ophMHKP_OpDb1Zor-8fAWw
+    aim(cam, pw, look(pw, 75, dist=40, pitch_z=14.0), lens=16)
+    render(os.path.join(prev, f"{tag}_west_face.png"))
+    aim(cam, (60.0, 110.0, 55.0), (20.0, 28.0, 16.0), lens=24)
+    render(os.path.join(prev, f"{tag}_aerial_ne.png"))
+    aim(cam, (125.0, 22.0, 45.0), (25.0, 25.0, 16.0), lens=24)
+    render(os.path.join(prev, f"{tag}_aerial_e.png"))
 
 
 if __name__ == "__main__":
