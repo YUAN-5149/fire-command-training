@@ -4,6 +4,7 @@
 // 鋪面與柏油紋理、夜間隨機亮窗。GLB 本身不變。
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
+import {DRACOLoader} from './vendor/jsm/loaders/DRACOLoader.js';
 import {OrbitControls} from './vendor/OrbitControls.js';
 import {EffectComposer} from './vendor/jsm/postprocessing/EffectComposer.js';
 import {RenderPass} from './vendor/jsm/postprocessing/RenderPass.js';
@@ -18,9 +19,11 @@ const VIEWS={
  southeast:[[110,85,80],[24,12,-24]],
  corner:[[-17,2.5,7],[6,12,-10]],
  plaza:[[60,2.5,7],[52,10,-22]],
- helipad:[[-5,58,-62],[19,38,-16]]
+ helipad:[[-5,58,-62],[19,38,-16]],
+ ramp:[[-3.5,11,-8],[-4,-2.5,-42]]
 };
-const KIND={eoc:'臺北市災害應變中心',helipad:'頂樓停機坪',vehicle:'停放車輛'};
+const KIND={eoc:'臺北市災害應變中心',helipad:'頂樓停機坪',vehicle:'停放車輛',ramp:'地下停車場車道',
+ apartment:'鄰近住宅大樓',shophouse:'鄰近街屋',school:'信義國中校舍'};
 // 白天／夜間的天空與光線
 const TIMES={
  day:{top:'#4f86c6',horizon:'#cfdbe4',ground:'#5d5b55',sun:'#fff1dc',sunI:4.2,hemiSky:'#bcd3ea',hemiGround:'#57514a',hemiI:.42,env:.55,exposure:.82,fog:.0009,sunDir:[-.55,.72,.42]},
@@ -109,7 +112,9 @@ const MATERIAL_DETAIL={
  'Backdrop concrete':'backdrop','Backdrop tile warm':'backdrop','Backdrop white':'backdrop','School tile cream':'backdrop',
  'Tin roof blue':'tin','Tin roof grey':'tin','Sign red':'tin','Sign green':'tin','Sign orange':'tin','Sign blue':'tin',
  'Helipad surface teal':'helipad',
- 'Tree foliage':'foliage','Tree foliage light':'foliage','Hedge':'foliage'
+ 'Tree foliage':'foliage','Tree foliage light':'foliage','Hedge':'foliage','Shrub foliage':'foliage',
+ 'Brick tile red':'backdrop','Brick tile red light':'backdrop','Facade tile cream':'backdrop','Facade tile white':'backdrop',
+ 'Facade tile beige':'backdrop','Concrete frame white':'backdrop','Roller shutter steel':'tin','Arcade floor tile':'paving'
 };
 // 夜間亮窗：依世界座標格子雜湊，約四成亮燈
 const GLASS={'EOC window glass green':1,'Window glass dark':1,'Backdrop window band':1,'EOC curtain glass green':.6,'Taipei 101 glass':.4};
@@ -181,6 +186,8 @@ function describe(obj){
   const title=KIND[d.kind]||d.kind,name=o.name.replace(/_/g,' ');
   if(d.kind==='eoc')return name==='EOC east wing'?`<b>${title}</b><small>東翼・${d.floors} 層（示意）</small>`:`<b>${title}</b><small>主體・${d.floors-1} 層＋頂層（示意）</small>`;
   if(d.kind==='helipad')return `<b>${title}</b><small>停機坪面高約 ${Number(d.deck_height).toFixed(1)} m（示意）</small>`;
+  if(d.kind==='ramp')return `<b>${title}</b><small>西側雙向車道，往北下坡，深約 ${Number(d.depth).toFixed(1)} m（示意）</small>`;
+  if(d.floors)return `<b>${title}</b><small>${d.floors} 層（示意，非該棟實際資料）</small>`;
   return `<b>${title}</b><small>${name}</small>`;}
  return '<b>周邊環境</b><small>道路、鄰棟或植栽（示意）</small>';
 }
@@ -189,7 +196,8 @@ function resize(){const w=innerWidth,h=innerHeight;if(!w||!h)return;renderer.set
  camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);renderer.setPixelRatio(Math.min(devicePixelRatio,high?2:1.5));resize();
 
-new GLTFLoader().load('assets/taipei-eoc.glb',gltf=>{
+const draco=new DRACOLoader().setDecoderPath('vendor/draco/');
+new GLTFLoader().setDRACOLoader(draco).load('assets/taipei-eoc.glb',gltf=>{
  const root=gltf.scene;scene.add(root);const seen=new Set();
  root.traverse(o=>{
   if(o.isMesh){o.castShadow=o.receiveShadow=true;
@@ -199,7 +207,7 @@ new GLTFLoader().load('assets/taipei-eoc.glb',gltf=>{
   if(o.userData?.kind==='helipad'&&o.userData.deck_height)$('deckH').textContent=Math.round(o.userData.deck_height);
  });
  applyQuality();applyLighting();setWind(+$('wind').value);setView('aerial');
- $('loading').hidden=true;
+ $('loading').hidden=true;draco.dispose();
 },ev=>{if(ev.total)$('loadStep').textContent=Math.round(ev.loaded/ev.total*100)+'%';},
 err=>{console.error(err);$('loading').hidden=true;$('error').textContent='模型載入失敗，請重新整理頁面。';$('error').hidden=false;});
 

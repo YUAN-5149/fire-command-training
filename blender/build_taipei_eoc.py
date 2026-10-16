@@ -77,6 +77,11 @@ JUNCTION = (-14.0, -8.0)         # meets 391巷11弄 here
 ALLEY_DIR = (-0.83, 0.55)        # 391巷11弄 runs off to the north-west
 ALLEY_W = 8.0
 LOT_WEST = -60.0                 # west edge of the parking lot
+# basement car park ramp: sunken, two-way, along the west face, going down
+# northward from the west driveway (Google Earth 3D / satellite)
+RAMP_X = (-7.6, -0.8)
+RAMP_Y = (22.0, 44.0, 50.0)      # top of slope, foot of slope, portal wall
+RAMP_DEPTH = 3.8
 PLAZA_C = (60.0, 16.0)           # round fountain island
 PLAZA_R = 5.0
 
@@ -364,12 +369,277 @@ def car_mesh(M, colour, name):
     return k.mesh(name)
 
 
+def holed_box(B, m, rect, z0, z1, hole):
+    """A flat slab over rect with a rectangular hole cut out (four boxes)."""
+    x0, y0, x1, y1 = rect
+    hx0, hy0, hx1, hy1 = hole
+    B.box(m, x0, y0, z0, x1, hy0, z1)
+    B.box(m, x0, hy1, z0, x1, y1, z1)
+    B.box(m, x0, hy0, z0, hx0, hy1, z1)
+    B.box(m, hx1, hy0, z0, x1, hy1, z1)
+
+
+def build_ramp(M, g):
+    """Sunken two-way ramp to the basement car park along the west face."""
+    k = X.Kit()
+    x0, x1 = RAMP_X
+    y0, y1, y2 = RAMP_Y
+    d = -RAMP_DEPTH
+    zw = X.CURB_H
+    # ramp floor: slope, then a level landing in front of the portal
+    k.poly(M['asphalt'], [(x0, y0, zw), (x1, y0, zw), (x1, y1, d), (x0, y1, d)])
+    k.poly(M['asphalt'], [(x0, y1, d), (x1, y1, d), (x1, y2, d), (x0, y2, d)])
+    xc = (x0 + x1) / 2
+
+    def on_slope(y):
+        return zw + (d - zw) * min(max((y - y0) / (y1 - y0), 0.0), 1.0) + 0.02
+    # dashed centre line and two painted arrows (down east lane, up west lane)
+    for t in range(12):
+        ya, yb = y0 + 2 + t * 4.0, y0 + 4 + t * 4.0
+        if yb > y2 - 1:
+            break
+        k.poly(M['yellow'], [(xc - 0.06, ya, on_slope(ya)), (xc + 0.06, ya, on_slope(ya)),
+                             (xc + 0.06, yb, on_slope(yb)), (xc - 0.06, yb, on_slope(yb))])
+    for (ax, yy, sgn) in ((xc + 1.6, y0 + 9.0, 1), (xc - 1.6, y0 + 13.0, -1)):
+        z = on_slope(yy)
+        tip, base = yy + sgn * 1.4, yy - sgn * 1.4
+        k.poly(M['white'], [(ax - 0.15, base, on_slope(base)), (ax + 0.15, base, on_slope(base)),
+                            (ax + 0.15, yy, z), (ax - 0.15, yy, z)])
+        k.poly(M['white'], [(ax - 0.55, yy, z), (ax + 0.55, yy, z), (ax, tip, on_slope(tip))])
+    # retaining walls with a 1.1 m parapet, and the portal wall at the end
+    top = zw + 1.1
+    for (wx0, wx1) in ((x0 - 0.3, x0), (x1, x1 + 0.3)):
+        k.box(M['stone'], ((wx0 + wx1) / 2, (y0 + y2) / 2, (d + top) / 2),
+              (wx1 - wx0, y2 - y0, top - d))
+    k.box(M['stone'], (xc, y2 + 0.2, (d + top) / 2), (x1 - x0 + 0.6, 0.4, top - d))
+    k.box(M['win'], (xc, y2 - 0.01, d + 1.4), (x1 - x0 - 0.8, 0.04, 2.8))       # dark portal
+    k.box(M['panel_dark'], (xc, y2 - 0.3, d + 3.0), (x1 - x0, 0.6, 0.4))        # header beam
+    k.box(M['sg_yellow'], (xc, y2 - 0.62, d + 3.0), (2.6, 0.04, 0.32))         # clearance bar
+    for xx in (x0 + 0.05, x1 - 0.05):                                          # handrails
+        k.box(M['alu'], (xx, (y0 + y2) / 2, top + 0.05), (0.06, y2 - y0, 0.06))
+    for yy in range(int(y0) + 6, int(y2), 6):                                  # wall lamps
+        k.box(M['sg_white'], (x1 - 0.02, yy, on_slope(yy) + 2.2), (0.06, 0.8, 0.12))
+    ob = X.inst("EOC basement ramp", k.mesh("EOC basement ramp"), (0, 0, 0), parent=g)
+    ob["kind"] = "ramp"
+    ob["depth"] = RAMP_DEPTH
+
+
+# ------------------------------------------------------------- neighbours
+class FaceFrame:
+    """Boxes in a facade-local frame: u along the face from its left corner
+    (seen from outside), n outward, z up."""
+
+    def __init__(self, B, rect, side):
+        self.B, (self.x0, self.y0, self.x1, self.y1), self.side = B, rect, side
+        self.length = (self.x1 - self.x0) if side in 'SN' else (self.y1 - self.y0)
+
+    def p(self, u, n):
+        if self.side == 'S':
+            return self.x0 + u, self.y0 - n
+        if self.side == 'N':
+            return self.x1 - u, self.y1 + n
+        if self.side == 'W':
+            return self.x0 - n, self.y1 - u
+        return self.x1 + n, self.y0 + u
+
+    def box(self, m, u0, n0, z0, u1, n1, z1):
+        ax, ay = self.p(u0, n0)
+        bx, by = self.p(u1, n1)
+        self.B.box(m, min(ax, bx), min(ay, by), z0, max(ax, bx), max(ay, by), z1)
+
+
+def apartment_block(M, g, name, rect, floors, rng, body=None, gf=3.8, fh=3.0,
+                    balconies=True, shops=True, detail=True):
+    """Taiwanese mid-rise apartment: tiled walls, framed windows, balconies
+    with white cages, window AC units, rooftop stair room and water tanks."""
+    B = X.MBuf(name)
+    x0, y0, x1, y1 = rect
+    body = body or M[rng.choice(('tile_cream', 'tile_beige', 'tile_white', 'bld_tile'))]
+    top = gf + (floors - 1) * fh
+    B.box(body, x0, y0, 0, x1, y1, top)
+    B.box(M['frame'], x0 - 0.12, y0 - 0.12, top, x1 + 0.12, y1 + 0.12, top + 1.0)
+    for side in 'SNWE':
+        F = FaceFrame(B, rect, side)
+        bays = max(1, int(F.length // 3.6))
+        bw = F.length / bays
+        long_face = F.length >= 12
+        for f in range(1, floors):
+            z = gf + (f - 1) * fh
+            F.box(M['frame'], -0.05, 0.0, z - 0.1, F.length + 0.05, 0.1, z + 0.12)
+            for i in range(bays):
+                u0, u1 = i * bw + 0.5, (i + 1) * bw - 0.5
+                if not long_face and i % 2:
+                    continue
+                if balconies and long_face and side in 'SN' and (i + f) % 3 == 0:
+                    F.box(M['frame'], u0 - 0.2, 0.0, z - 0.05, u1 + 0.2, 1.2, z + 0.12)
+                    F.box(M['win'], u0, -0.05, z + 0.12, u1, 0.02, z + 2.5)
+                    step = 0.3 if detail else u1 - u0
+                    for k in range(int((u1 - u0) / step) + 1):
+                        uu = u0 + k * step
+                        F.box(M['cage_white'], uu, 1.12, z + 0.12, uu + 0.03, 1.15, z + 2.4)
+                    F.box(M['cage_white'], u0 - 0.2, 0.0, z + 2.4, u1 + 0.2, 1.2, z + 2.46)
+                    continue
+                s, h = z + 0.9, z + 2.3
+                F.box(M['win'], u0, -0.04, s, u1, 0.03, h)
+                F.box(M['win_frame'], u0 - 0.06, 0.0, s - 0.07, u1 + 0.06, 0.08, s)
+                if not detail:
+                    continue
+                F.box(M['win_frame'], (u0 + u1) / 2 - 0.03, 0.03, s, (u0 + u1) / 2 + 0.03, 0.07, h)
+                r = rng.random()
+                if r < 0.35:                                   # iron window cage
+                    cm = M[rng.choice(('cage_white', 'iron'))]
+                    F.box(cm, u0 - 0.08, 0.0, h + 0.05, u1 + 0.08, 0.45, h + 0.1)
+                    for k in range(int((u1 - u0) / 0.3) + 1):
+                        uu = u0 + k * 0.3
+                        F.box(cm, uu, 0.42, s - 0.1, uu + 0.025, 0.45, h + 0.05)
+                elif r < 0.6:                                  # window AC unit
+                    ua = rng.uniform(u0, max(u0 + 0.1, u1 - 0.8))
+                    F.box(M['ac'], ua, 0.0, s - 0.6, ua + 0.75, 0.38, s - 0.05)
+        # ground storey: shopfronts and shutters on the long faces
+        if shops and long_face:
+            for i in range(bays):
+                u0, u1 = i * bw + 0.3, (i + 1) * bw - 0.3
+                kind = rng.choice(('shutter', 'glass', 'glass'))
+                F.box(M['shutter' if kind == 'shutter' else 'win'], u0, -0.03, 0.0, u1, 0.03,
+                      gf - 0.9)
+                if rng.random() < 0.6:
+                    sc, _ = rng.choice(X.SIGN_COLOURS)
+                    F.box(M[sc], u0, 0.0, gf - 0.85, u1, 0.25, gf - 0.1)
+    # roof: stair room, water tanks, sometimes a tin shed
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    B.box(body, cx - 2.0, cy - 1.8, top, cx + 2.0, cy + 1.8, top + 2.8)
+    for t in range(rng.randint(1, 3)):
+        tx = rng.uniform(x0 + 1, x1 - 2)
+        ty = rng.uniform(y0 + 1, y1 - 2)
+        B.box(M['tank'], tx, ty, top + 0.4, tx + 1.0, ty + 1.0, top + 1.8)
+    if rng.random() < 0.5:
+        sh = M[rng.choice(('sheet_blue', 'sheet_grey', 'sheet_blue'))]
+        sx = rng.uniform(x0 + 0.3, max(x0 + 0.4, x1 - 6))
+        B.box(sh, sx, y0 + 0.3, top, min(x1 - 0.3, sx + rng.uniform(4, 9)), y1 - 0.3, top + 2.4)
+    ob = B.emit(g)
+    ob["kind"] = "apartment"
+    ob["floors"] = floors
+    return ob
+
+
+def school_block(M, g, name, rect, floors, corridor_side, rng):
+    """Classroom block: open corridor with a parapet on one long face,
+    windows on the other."""
+    B = X.MBuf(name)
+    x0, y0, x1, y1 = rect
+    body = M['school']
+    fh = 3.6
+    top = floors * fh
+    B.box(body, x0, y0, 0, x1, y1, top)
+    B.box(M['frame'], x0 - 0.1, y0 - 0.1, top, x1 + 0.1, y1 + 0.1, top + 1.0)
+    F = FaceFrame(B, rect, corridor_side)
+    for f in range(floors):
+        z = f * fh
+        F.box(M['frame'], 0, 0, z + fh - 0.25, F.length, 2.4, z + fh)        # slab
+        F.box(body, 0, 2.2, z + fh, F.length, 2.4, z + fh + 1.1)             # parapet
+        for u in range(0, int(F.length) + 1, 4):
+            F.box(M['frame'], u, 2.1, z, u + 0.4, 2.4, z + fh)
+        for u in range(1, int(F.length) - 2, 4):
+            F.box(M['win'], u + 0.4, -0.03, z + 1.0, u + 3.0, 0.02, z + 2.6)
+            F.box(M['shutter'], u + 3.1, -0.03, z, u + 3.7, 0.02, z + 2.4)    # door
+    back = {'S': 'N', 'N': 'S', 'E': 'W', 'W': 'E'}[corridor_side]
+    F = FaceFrame(B, rect, back)
+    for f in range(floors):
+        z = f * fh
+        for u in range(1, int(F.length) - 2, 4):
+            F.box(M['win'], u, -0.03, z + 1.0, u + 3.2, 0.03, z + 2.8)
+            F.box(M['win_frame'], u - 0.05, 0.0, z + 0.94, u + 3.25, 0.08, z + 1.0)
+    ob = B.emit(g)
+    ob["kind"] = "school"
+    ob["floors"] = floors
+    return ob
+
+
+def shop_row(M, font, parent, name, origin, heading, length, rng, floors=(2, 3, 3, 4)):
+    """A row of arcaded shophouses from the street builder, placed in its own
+    rotated frame: local +x runs along the street, the fronts face local -y."""
+    # make_text keeps world coordinates, so build in an untransformed frame
+    # and move the frame into place afterwards; signs are flat to save size
+    grp = X.group(name, parent)
+    X.FRONT_Y = 0.0
+    make_text = X.make_text
+    X.make_text = lambda *a, **kw: make_text(*a, **{**kw, 'extrude': 0.0})
+    try:
+        u, i = 0.0, 1
+        while u < length - 4.0:
+            w = rng.uniform(4.6, 8.0)
+            X.build_shophouse(M, font, grp, f"{name} {i:02d}", u, w, rng.choice(floors), rng)
+            u += w
+            i += 1
+    finally:
+        X.make_text = make_text
+    grp.location = (origin[0], origin[1], 0.0)
+    grp.rotation_euler = (0.0, 0.0, math.radians(heading))
+    return grp
+
+
+def build_neighbours(M, g, font, rng):
+    jx, jy = JUNCTION
+    dx, dy = ALLEY_DIR
+    nx, ny = dy, -dx
+    hw = ALLEY_W / 2
+    gn = X.group("EOC neighbours", g)
+    # shophouses across 423巷7弄, fronts facing north onto the street
+    front = STREET_Y[0] - 3.0
+    shop_row(M, font, gn, "Shophouse 423 south", (190.0, front), 180.0, 330.0, rng)
+    # the block behind them: older walk-ups, mostly roofs and backs
+    x = -140.0
+    while x < 190.0:
+        w = rng.uniform(9, 15)
+        apartment_block(M, gn, f"Walk-up south {int(x + 200):03d}",
+                        (x, front - 46.0, x + w - 0.4, front - 32.0),
+                        rng.choice((4, 5, 5, 6)), rng, shops=False, detail=False)
+        x += w
+    # shophouses on the SW side of 391巷11弄, facing north-east onto the alley:
+    # the row frame runs up the alley (NW), so local -y (the fronts) is NE
+    off = hw + 2.6
+    start, length = 16.0, 110.0
+    o = (jx - nx * off + dx * start, jy - ny * off + dy * start)
+    shop_row(M, font, gn, "Shophouse alley SW", o, math.degrees(math.atan2(dy, dx)),
+             length, rng, floors=(3, 4, 4, 5))
+    # mid-rise apartments on the NE side of the alley, beyond the parking lot
+    t0 = (LOT_WEST - jx) / dx + 4.0
+    for t in (t0, t0 + 18.0, t0 + 36.0):
+        cx = jx + nx * (hw + 9.0) + dx * (t + 7.0)
+        cy = jy + ny * (hw + 9.0) + dy * (t + 7.0)
+        apartment_block(M, gn, f"Apartment alley NE {int(t):03d}",
+                        (cx - 7.5, cy - 6.0, cx + 7.5, cy + 6.0), rng.choice((7, 8)), rng)
+    # 世貿新城 towers north of the parking lot
+    for i, (x0, y0, w, d, fl) in enumerate(((-58, 70, 34, 15, 13), (-20, 74, 30, 15, 12),
+                                            (-100, 64, 30, 15, 14), (-70, 100, 34, 15, 15)), 1):
+        apartment_block(M, gn, f"World Trade Garden tower {i}", (x0, y0, x0 + w, y0 + d),
+                        fl, rng, body=M['bld_tile'], shops=False, detail=i < 3)
+    # 三張里活動中心 behind the EOC
+    apartment_block(M, gn, "Sanzhang community centre", (6.0, BD + 8.0, 34.0, BD + 22.0), 3,
+                    rng, body=M['tile_white'], balconies=False, shops=False)
+    # 信義國中 classroom blocks round the court, corridors facing in
+    for i, (rect, side) in enumerate((((52, 52, 112, 62), 'N'), ((52, 62, 62, 112), 'E'),
+                                      ((102, 62, 112, 96), 'W'), ((14, 92, 46, 102), 'S')), 1):
+        school_block(M, gn, f"Xinyi JHS block {i}", rect, 4, side, rng)
+    # park strip east of the plaza: grass and dense trees
+    P = X.MBuf("EOC park east")
+    P.box(M['field'], 78.0, -1.0, 0.0, 100.0, 48.0, X.CURB_H + 0.05)
+    P.emit(g)
+    trees = [X.mesh_broadleaf(M, s) for s in (7, 8, 9)]
+    gt = X.group("EOC park trees", g)
+    for i in range(34):
+        X.inst(f"Park tree {i:02d}", rng.choice(trees),
+               (rng.uniform(80, 98), rng.uniform(1, 46), X.CURB_H + 0.05),
+               rz=rng.uniform(0, math.tau), s=rng.uniform(0.75, 1.05), parent=gt)
+
+
 def build_site(M, g, font):
     rng = random.Random(1110)
     zw = X.CURB_H
     S = X.MBuf("EOC site ground")
-    S.box(M['ground_far'], -2000, -2000, -0.12, 2000, 2000, -0.08)
-    S.box(M['plot'], -150, -120, -0.05, 200, 200, 0.0)
+    hole = (RAMP_X[0] - 0.4, RAMP_Y[0], RAMP_X[1] + 0.4, RAMP_Y[2] + 0.4)
+    holed_box(S, M['ground_far'], (-2000, -2000, 2000, 2000), -0.12, -0.08, hole)
+    holed_box(S, M['plot'], (-150, -120, 200, 200), -0.05, 0.0, hole)
     # 423巷7弄 with its yellow centre line and the sidewalk on the EOC side
     S.box(M['asphalt'], -150, STREET_Y[0], 0.0, 200, STREET_Y[1], 0.01)
     yc = (STREET_Y[0] + STREET_Y[1]) / 2
@@ -378,11 +648,12 @@ def build_site(M, g, font):
     S.box(M['curb_red'], JUNCTION[0] + 4, STREET_Y[1], 0.0, 200, STREET_Y[1] + 0.2, zw + 0.01)
     S.box(M['walk'], -150, STREET_Y[0] - 3.0, 0.0, 200, STREET_Y[0], zw)
     # west driveway, hedge, east plaza, north service yard
-    S.box(M['paving'], -9.0, 0.0, 0.0, 0.0, BD + 2, zw)
+    holed_box(S, M['paving'], (-9.0, 0.0, 0.0, BD + 2), 0.0, zw, hole)
     S.box(M['hedge'], -9.6, 2.0, zw, -9.0, BD, zw + 1.1)
     S.box(M['paving'], BW, 0.0, 0.0, 78.0, 44.0, zw)
     S.box(M['paving'], 0.0, BD, 0.0, BW + 12, BD + 6, zw)
     S.emit(g)
+    build_ramp(M, g)
 
     # 391巷11弄 running off north-west from the junction, and the parking lot
     k = X.Kit()
@@ -456,37 +727,14 @@ def build_site(M, g, font):
         yb.box(M['pole'], (x, -2.8, zw + 0.05), (0.5, 1.0, 0.1))
     X.inst("YouBike station", yb.mesh("YouBike station"), (0, 0, 0), parent=g)
 
-    # neighbours
-    N = X.MBuf("EOC neighbours")
-    tins = ('sheet_blue', 'sheet_grey', 'mast_white', 'sg_green', 'sg_red', 'sg_orange')
-    # dense walk-ups across 423巷7弄, coloured tin roofs on top
-    for y0 in (STREET_Y[0] - 17.0, STREET_Y[0] - 40.0):
-        x = -140.0
-        while x < 190.0:
-            w = rng.uniform(7, 13)
-            h = rng.choice((12.5, 12.5, 15.8, 15.8, 19.1))
-            X.banded_block(N, rng, x, y0, x + w - 0.3, y0 + 14.0, h,
-                           rng.choice((M['bld_conc'], M['bld_tile'], M['bld_white'])),
-                           M['bld_win'], fh=3.3, gf=3.6)
-            N.box(M[rng.choice(tins)], x + 0.3, y0 + 1.5, h, x + w - 0.6, y0 + 13.0,
-                  h + rng.uniform(2.0, 2.8))
-            x += w
-    # 世貿新城 towers to the north-west, across the alley
-    for (x0, y0, w, d, h) in ((-100, 70, 20, 16, 46), (-75, 95, 20, 16, 46),
-                              (-110, 105, 20, 16, 52), (-62, 125, 22, 16, 40)):
-        X.banded_block(N, rng, x0, y0, x0 + w, y0 + d, h, M['bld_tile'], M['bld_win'],
-                       fh=3.2)
-    # walk-ups south-west of the alley
-    for (x0, y0, w, d, h) in ((-50, -1, 14, 10, 15.8), (-72, 12, 14, 12, 19.1),
-                              (-94, 26, 14, 12, 15.8)):
-        X.banded_block(N, rng, x0, y0, x0 + w, y0 + d, h, M['bld_conc'], M['bld_win'],
-                       fh=3.3, gf=3.6)
-    # 信義國中: classroom blocks to the north-east, 4 storeys
-    for (x0, y0, x1, y1) in ((52, 50, 110, 62), (52, 62, 64, 110), (98, 62, 110, 96),
-                             (20, 70, 46, 82)):
-        X.banded_block(N, rng, x0, y0, x1, y1, 15.5, M['school'], M['bld_win'],
-                       fh=3.6, gf=3.8)
-    N.emit(g)
+    # SW-side sidewalk of the alley, where the shophouse row stands
+    k2 = X.Kit()
+    h0, h1 = hw, hw + 2.6
+    k2.poly(M['walk'], [(jx - nx * h0, jy - ny * h0, zw), (jx - nx * h1, jy - ny * h1, zw),
+                        (jx - nx * h1 + dx * L, jy - ny * h1 + dy * L, zw),
+                        (jx - nx * h0 + dx * L, jy - ny * h0 + dy * L, zw)])
+    X.inst("Alley SW sidewalk", k2.mesh("Alley SW sidewalk"), (0, 0, 0), parent=g)
+    build_neighbours(M, g, font, rng)
     # the school track and field
     tk = X.Kit()
     cx, cy, a, b = 140.0, 100.0, 40.0, 24.0
@@ -525,7 +773,12 @@ def main():
     glb = os.path.join(OUT_DIR, "assets", "taipei-eoc.glb")
     bpy.ops.export_scene.gltf(filepath=glb, export_format='GLB', export_apply=True,
                               use_selection=False, use_renderable=True,
-                              export_extras=True)
+                              export_extras=True,
+                              export_draco_mesh_compression_enable=True,
+                              export_draco_mesh_compression_level=6,
+                              export_draco_position_quantization=14,
+                              export_draco_normal_quantization=10,
+                              export_draco_texcoord_quantization=10)
     print("GLB_BYTES=", os.path.getsize(glb))
 
     X.STAGE = 5                                   # physical sky in the previews
@@ -546,6 +799,8 @@ def main():
     hx, hy, _ = DECK
     aim(cam, (hx - 24.0, hy + 46.0, DECK_Z + 20.0), (hx, hy, DECK_Z), lens=22)
     render(os.path.join(prev, f"{tag}_helipad.png"))
+    aim(cam, (-14.0, 10.0, 7.0), (-4.0, RAMP_Y[2], -1.5), lens=20)
+    render(os.path.join(prev, f"{tag}_ramp.png"))
 
 
 if __name__ == "__main__":
