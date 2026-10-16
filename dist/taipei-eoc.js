@@ -198,7 +198,7 @@ function resize(){const w=innerWidth,h=innerHeight;if(!w||!h)return;renderer.set
 addEventListener('resize',resize);renderer.setPixelRatio(Math.min(devicePixelRatio,high?2:1.5));resize();
 
 const draco=new DRACOLoader().setDecoderPath('vendor/draco/');
-new GLTFLoader().setDRACOLoader(draco).load('assets/taipei-eoc.glb',gltf=>{
+new GLTFLoader().setDRACOLoader(draco).load('assets/taipei-eoc.glb?v=6',gltf=>{
  const root=gltf.scene;scene.add(root);const seen=new Set();
  root.traverse(o=>{
   if(o.isMesh){o.castShadow=o.receiveShadow=true;
