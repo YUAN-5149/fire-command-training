@@ -45,3 +45,16 @@ blender -b -P blender/build_xinyi_street.py -- --stage 5 --outdir blender
 
 道路與標線實際尺寸、分隔護欄在消防局前是否有開口、樹木與設施實際位置、消防栓位置
 （未建，需實際資料）。
+
+## 臺北真實地圖整合
+
+消防局本體（`S2 Fire HQ` 群組：基座、塔樓、兩處入口、名牌、車庫、前庭）另外匯出成
+`assets/fire-hq-core.glb`，放進臺北真實地圖與信義街景漫遊：
+
+```sh
+blender -b blender/xinyi-street.blend -P blender/export_hq_core.py -- --outdir <repo>
+```
+
+- 定位在 `dist/assets/hq-anchor.json`：以基座西北角對齊官方 LOD1 量體 288171／288599 的西北角。本模型的道路寬度估得比實際寬，所以模型原點不是真實路口
+- 官方塔樓 288599 只有屋頂資料、沒有牆面，所以街景漫遊另加占地碰撞
+- 模型高度約 56 m，高於官方 LOD1 的約 44 m

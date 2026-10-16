@@ -1,4 +1,5 @@
 {
+  "key": "eoc",
   "name": "臺北市災害應變中心",
   "model": "assets/taipei-eoc-core.glb",
   "detailPage": "taipei-eoc.html",
@@ -6,10 +7,6 @@
   "lat": 25.0287073,
   "base": 9.66,
   "heading": -1.244,
-  "footprint": {
-    "w": 37.6,
-    "d": 69.2
-  },
   "officialIds": [
     264827,
     263382,
@@ -24,5 +21,18 @@
     265228,
     265254
   ],
-  "note": "Model origin = SW corner of the main block, fitted to the official LOD1 2024 volumes listed; heading in degrees, negative = clockwise seen from above. base = official wall-foot elevation (EGM96, m)."
+  "note": "Model origin = SW corner of the main block, fitted to the official LOD1 2024 volumes listed; heading in degrees, negative = clockwise seen from above; base = official wall-foot elevation (EGM96, m). footprint/entry in model metres (+x east, +y north). collider = add a footprint collision box in the street walk (only needed where the official volumes have no walls).",
+  "footprint": {
+    "x0": 0,
+    "y0": 0,
+    "x1": 37.6,
+    "y1": 69.2,
+    "h": 38
+  },
+  "entry": {
+    "x": 6,
+    "y": -6,
+    "facing": 0
+  },
+  "collider": false
 }
