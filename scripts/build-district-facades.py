@@ -5,7 +5,7 @@ from pathlib import Path
 import json,struct,sys,math
 import numpy as np
 ROOT=Path(__file__).resolve().parents[1];SRC=Path(sys.argv[1]);SCALE=np.array([100850.,110574.,1.])
-BOXES={'ximen':[121.5025,25.0375,121.5125,25.0465],'xinyi':[121.5604,25.0275,121.5704,25.0383]}
+BOXES={'ximen':[121.5025,25.0375,121.5125,25.0465],'xinyi':[121.5604,25.0275,121.5704,25.0425]}
 for place,box in BOXES.items():
  if len(sys.argv)>2 and place!=sys.argv[2]:continue
  leaves=json.loads((SRC/(place+'-leaves.json')).read_text());features={};walls=0
