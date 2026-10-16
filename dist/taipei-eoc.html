@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>臺北市災害應變中心｜消防訓練</title>
-<link rel="stylesheet" href="taipei-eoc.css?v=1">
+<link rel="stylesheet" href="taipei-eoc.css?v=3">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -26,6 +26,7 @@
  <button id="panelToggle" aria-expanded="true">資訊與控制 ▾</button>
  <div id="panelBody">
   <div class="row"><span>時段</span><span class="seg"><button id="day" class="on">白天</button><button id="night">夜間</button></span></div>
+  <div class="row"><span>畫質</span><span class="seg"><button id="qHigh">高</button><button id="qStd">標準</button></span></div>
   <div class="row"><span>停機坪邊燈</span><span class="seg"><button id="lightsOff" class="on">關</button><button id="lightsOn">開</button></span></div>
   <label class="row" for="wind"><span>風向（風從）<b id="windLabel">北</b></span><input id="wind" type="range" min="0" max="345" step="15" value="0"></label>
   <div id="pick"><b>點選建物、停機坪或車輛查看資訊</b></div>
@@ -38,6 +39,6 @@
  </div>
 </aside>
 <div class="hint">拖曳旋轉 · 右鍵／雙指平移 · 滾輪／雙指縮放 · 點選物件</div>
-<script type="module" src="taipei-eoc.js?v=1"></script>
+<script type="module" src="taipei-eoc.js?v=3"></script>
 </body>
 </html>
