@@ -63,14 +63,16 @@ if "--outdir" in sys.argv:
     OUT_DIR = sys.argv[sys.argv.index("--outdir") + 1]
 
 # ------------------------------------------------------------------ layout
-BW, BD = 38.0, 56.0              # main block footprint (E-W, N-S)
+# footprint fitted to the official LOD1 2024 volumes 264827, 263382,
+# 264826, 263363 (main) and 264825 (east wing); see dist/assets/eoc-anchor.json
+BW, BD = 37.6, 69.2              # main block footprint (E-W, N-S)
 GF, FH, FLOORS = 4.6, 3.6, 9     # ground storey, typical storey, storeys
 ROOF = GF + (FLOORS - 1) * FH    # main roof (33.4 m)
 TOP_H = 3.6                      # glazed top storey under the helipad
 DECK_Z = ROOF + TOP_H + 1.0      # helipad surface (~38 m)
 DECK = (BW / 2, 15.0, 30.0)      # helipad centre x, y and side (south edge over the facade)
 PODIUM_H = GF + FH               # two-storey corner glazing and canopy
-WING = (BW, 20.0, BW + 12.0, 44.0, 4)  # east wing x0, y0, x1, y1, storeys (north-middle, Earth 3D)
+WING = (BW, 12.9, 44.5, 36.3, 4)  # east wing x0, y0, x1, y1, storeys (official 264825)
 
 STREET_Y = (-16.0, -8.0)         # 莊敬路423巷7弄 (8 m paved forecourt to the facade)
 JUNCTION = (-14.0, -12.0)        # meets 391巷11弄 here
@@ -178,7 +180,7 @@ GRANITE = (12.0, 17.5)           # granite block with the directory
 ARCH = (18.5, 24.5, 3.6)         # arched steel canopy: x0, x1, depth
 STRIP = (25.0, 27.0)             # green glass stair strip
 WEDGE = (32.5, 36.5)             # small balconies with sloped soffits
-VENT = (40.5, 43.5, -3.4, -0.4)  # louvred vent tower near the curb
+VENT = (35.3, 38.8, -4.4, -0.2)  # louvred vent tower near the curb (official 265088)
 
 
 def build_building(M, g, font):
@@ -255,9 +257,9 @@ def build_building(M, g, font):
     # louvred plant screen on the roof at the north-west corner
     for i in range(14):
         zz = ROOF + 0.3 + i * 0.28
-        B.box(M['louvre'], 0.3, 34.0, zz, 0.45, BD - 0.3, zz + 0.12)
+        B.box(M['louvre'], 0.3, BD - 22.0, zz, 0.45, BD - 0.3, zz + 0.12)
         B.box(M['louvre'], 0.3, BD - 0.45, zz, 14.0, BD - 0.3, zz + 0.12)
-    for y in range(34, int(BD), 4):
+    for y in range(int(BD - 22.0), int(BD), 4):
         B.box(D, 0.3, y, ROOF, 0.5, y + 0.15, ROOF + 4.2)
 
     # ---- SW corner: two storeys of light-green curtain glass on both faces
@@ -400,7 +402,7 @@ def build_wing(M, g, font):
             if f == 0 and y0 + 3.0 < a < y0 + 12.0:
                 continue
             paired_windows(W, M, 'E', a, s, h, x1)
-        for a in (x0 + 2.6, x0 + 6.2, x0 + 9.8):
+        for a in (x0 + 1.8, x0 + 5.1):
             paired_windows(W, M, 'S', a, s, h, y0)
             paired_windows(W, M, 'N', a, s, h, y1)
     # entrance facing the fountain island: glass doors, canopy, red sign
@@ -440,7 +442,7 @@ def build_roof(M, g, font):
     R.box(M['panel'], 3.0, 33.0, ROOF, 9.0, 39.0, DECK_Z)                 # core
     for i in range(18):
         x = rng.uniform(10, 34)
-        y = rng.uniform(32, 53)
+        y = rng.uniform(33, BD - 3)
         w, d, h = rng.uniform(2, 5), rng.uniform(2, 4), rng.uniform(1.4, 3.0)
         R.box(M[rng.choice(('panel', 'louvre', 'ac'))], x, y, ROOF, x + w, y + d, ROOF + h)
     R.emit(g)

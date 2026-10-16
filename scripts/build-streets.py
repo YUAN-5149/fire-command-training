@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import json,sys,re,datetime
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-BOXES={'ximen':[121.5025,25.0375,121.5125,25.0465],'xinyi':[121.5604,25.0293,121.5704,25.0383]}
+BOXES={'ximen':[121.5025,25.0375,121.5125,25.0465],'xinyi':[121.5604,25.0275,121.5704,25.0383]}
 DEFAULT={'primary':12,'secondary':10,'tertiary':8,'residential':6,'unclassified':6,'service':4,'living_street':5,'pedestrian':5,'footway':1.8,'path':1.5,'cycleway':2}
 def clip(a,b,box):
  x,y=a;dx,dy=b[0]-x,b[1]-y;lo,hi=0,1
@@ -15,6 +15,7 @@ def clip(a,b,box):
  if lo>hi:return
  return [[round(x+lo*dx,7),round(y+lo*dy,7)],[round(x+hi*dx,7),round(y+hi*dy,7)]]
 for place,box in BOXES.items():
+ if len(sys.argv)>2 and place!=sys.argv[2]:continue
  nodes={};ways=[];relations=False
  try:
   for event,e in ET.iterparse(Path(sys.argv[1])/f'{place}-osm.xml',events=['start','end']):
