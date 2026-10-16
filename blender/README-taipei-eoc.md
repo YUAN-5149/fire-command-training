@@ -27,8 +27,12 @@ blender -b -P blender/build_taipei_eoc.py -- --outdir blender
 - 南面：通高綠色樓梯玻璃帶、懸挑陽台與百葉牆
 - 屋頂南半部：玻璃頂層＋停機坪（綠色面、白框與 H、黃色圓環與角標、紅字 TAIPEI EOC、
   橘色邊燈、斜向安全網），東北角紅白桅桿與風向袋；北半部機房設備
-- 周邊：斜向的391巷11弄與西側大停車場、與423巷7弄交會處黃色網狀線、
-  東側圓形噴水池廣場與 YouBike、對街鐵皮加蓋老公寓、信義國中與跑道、世貿新城、台北101
+- 地下停車場車道：西側車道往北下坡的雙向坡道（深約 3.8 m），擋土牆、欄杆、車道箭頭與入口限高桿；
+  位置依 Google 地球 3D 判讀，坡長與深度為估計
+- 周邊：斜向的391巷11弄與西側大停車場、與423巷7弄交會處黃色網狀線、東側圓形噴水池廣場、
+  YouBike 與綠地公園；423巷7弄對街與391巷11弄西南側為騎樓街屋（沿用信義街景的街屋產生器，
+  含招牌、鐵窗、冷氣、屋頂鐵皮），後排老公寓、世貿新城住宅大樓、三張里活動中心、
+  信義國中走廊式校舍與跑道、台北101。周邊建物為示意風格，非逐棟實景
 
 ## 座標與可操作節點
 
@@ -38,3 +42,7 @@ blender -b -P blender/build_taipei_eoc.py -- --outdir blender
 - `EOC helipad edge lights`：邊燈，材質 `Helipad edge light` 的 emissive 打開即亮。
 - `EOC windsock`：風向袋，軸心在桅桿上，繞 Z 旋轉即可對應風向。
 - `Parked car nn`：停車場車輛，extras `kind = vehicle`。
+- `EOC basement ramp`：地下停車場車道，extras `kind = ramp`、`depth`。
+- 周邊建物 extras `kind` 為 `apartment`、`shophouse`、`school`，帶 `floors`。
+
+GLB 以 Draco 壓縮匯出（約 2.7 MB）；網站以 `dist/vendor/draco/` 的解碼器載入。

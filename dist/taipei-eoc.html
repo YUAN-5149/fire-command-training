@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>臺北市災害應變中心｜消防訓練</title>
-<link rel="stylesheet" href="taipei-eoc.css?v=1">
+<link rel="stylesheet" href="taipei-eoc.css?v=4">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -19,25 +19,29 @@
  <button data-view="aerial" class="active">西南鳥瞰</button>
  <button data-view="southeast">東南鳥瞰</button>
  <button data-view="corner">巷口入口</button>
+ <button data-view="street">423巷7弄街景</button>
  <button data-view="plaza">噴水池廣場</button>
  <button data-view="helipad">停機坪</button>
+ <button data-view="ramp">地下停車場入口</button>
+ <button data-view="north">北側公園</button>
 </nav>
 <aside id="panel">
  <button id="panelToggle" aria-expanded="true">資訊與控制 ▾</button>
  <div id="panelBody">
   <div class="row"><span>時段</span><span class="seg"><button id="day" class="on">白天</button><button id="night">夜間</button></span></div>
+  <div class="row"><span>畫質</span><span class="seg"><button id="qHigh">高</button><button id="qStd">標準</button></span></div>
   <div class="row"><span>停機坪邊燈</span><span class="seg"><button id="lightsOff" class="on">關</button><button id="lightsOn">開</button></span></div>
   <label class="row" for="wind"><span>風向（風從）<b id="windLabel">北</b></span><input id="wind" type="range" min="0" max="345" step="15" value="0"></label>
-  <div id="pick"><b>點選建物、停機坪或車輛查看資訊</b></div>
+  <div id="pick"><b>點選建物、停機坪、車道或車輛查看資訊</b></div>
   <dl class="facts">
    <dt>主體</dt><dd>9 層＋頂層，屋頂約 33 m</dd>
    <dt>東翼</dt><dd>5 層</dd>
    <dt>停機坪</dt><dd>約 30 × 30 m，面高約 <span id="deckH">38</span> m</dd>
   </dl>
-  <p class="note">示意模型：量體、樓層與停機坪尺寸由地圖比例尺、Google 地球 3D 與街景目測估算，非實測；北側屋頂設備與背面立面為推測，停車場車輛排列為示意。不可據此量測救援作業空間。</p>
+  <p class="note">示意模型：量體、樓層與停機坪尺寸由地圖比例尺、Google 地球 3D 與街景目測估算，非實測；北側屋頂設備與背面立面為推測；地下停車場車道位置依 Google 地球 3D 判讀，坡長與深度為估計；周邊建物為示意風格，非逐棟實景；停車場車輛排列為示意。不可據此量測救援作業空間。</p>
  </div>
 </aside>
 <div class="hint">拖曳旋轉 · 右鍵／雙指平移 · 滾輪／雙指縮放 · 點選物件</div>
-<script type="module" src="taipei-eoc.js?v=1"></script>
+<script type="module" src="taipei-eoc.js?v=7"></script>
 </body>
 </html>
