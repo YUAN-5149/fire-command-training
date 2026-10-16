@@ -20,7 +20,8 @@ const VIEWS={
  corner:[[-17,2.5,7],[6,12,-10]],
  plaza:[[60,2.5,7],[52,10,-22]],
  helipad:[[-5,58,-62],[19,38,-16]],
- ramp:[[-3.5,11,-8],[-4,-2.5,-42]],
+ ramp:[[-3.5,8,-12],[-3.4,-2,-46]],
+ north:[[22,2.5,-86.5],[22,8,-40]],
  street:[[2,1.7,13],[16,11,-8]]
 };
 const KIND={eoc:'臺北市災害應變中心',helipad:'頂樓停機坪',vehicle:'停放車輛',ramp:'地下停車場車道',
@@ -187,7 +188,7 @@ function describe(obj){
   const title=KIND[d.kind]||d.kind,name=o.name.replace(/_/g,' ');
   if(d.kind==='eoc')return name==='EOC east wing'?`<b>${title}</b><small>東翼・${d.floors} 層（示意）</small>`:`<b>${title}</b><small>主體・${d.floors-1} 層＋頂層（示意）</small>`;
   if(d.kind==='helipad')return `<b>${title}</b><small>停機坪面高約 ${Number(d.deck_height).toFixed(1)} m（示意）</small>`;
-  if(d.kind==='ramp')return `<b>${title}</b><small>西側雙向車道，往北下坡，深約 ${Number(d.depth).toFixed(1)} m（示意）</small>`;
+  if(d.kind==='ramp')return `<b>${title}</b><small>緊貼西牆的雙向坡道，往北下坡進入有頂蓋的入口，深約 ${Number(d.depth).toFixed(1)} m（示意）</small>`;
   if(d.floors)return `<b>${title}</b><small>${d.floors} 層（示意，非該棟實際資料）</small>`;
   return `<b>${title}</b><small>${name}</small>`;}
  return '<b>周邊環境</b><small>道路、鄰棟或植栽（示意）</small>';
@@ -198,7 +199,7 @@ function resize(){const w=innerWidth,h=innerHeight;if(!w||!h)return;renderer.set
 addEventListener('resize',resize);renderer.setPixelRatio(Math.min(devicePixelRatio,high?2:1.5));resize();
 
 const draco=new DRACOLoader().setDecoderPath('vendor/draco/');
-new GLTFLoader().setDRACOLoader(draco).load('assets/taipei-eoc.glb?v=6',gltf=>{
+new GLTFLoader().setDRACOLoader(draco).load('assets/taipei-eoc.glb?v=7',gltf=>{
  const root=gltf.scene;scene.add(root);const seen=new Set();
  root.traverse(o=>{
   if(o.isMesh){o.castShadow=o.receiveShadow=true;

@@ -76,11 +76,15 @@ STREET_Y = (-16.0, -8.0)         # 莊敬路423巷7弄 (8 m paved forecourt to t
 JUNCTION = (-14.0, -12.0)        # meets 391巷11弄 here
 ALLEY_DIR = (-0.83, 0.55)        # 391巷11弄 runs off to the north-west
 ALLEY_W = 8.0
-LOT_WEST = -60.0                 # west edge of the parking lot
+LOT_WEST = -48.0                 # west edge of the parking lot (松智路 beyond)
+SONGZHI_X = (-58.0, -50.0)       # 松智路, N-S along the west of the lot
+LANE39_Y = (BD + 27.0, BD + 34.0)  # 松智路39巷, E-W north of the lot and park
+WALK_E = (64.0, 72.0)            # tree-lined walkway between the EOC and 信義國中
 # basement car park ramp: sunken, two-way, along the west face, going down
 # northward from the west driveway (Google Earth 3D / satellite)
-RAMP_X = (-7.6, -0.8)
-RAMP_Y = (22.0, 44.0, 50.0)      # top of slope, foot of slope, portal wall
+RAMP_X = (-6.6, -0.15)           # right against the west wall
+RAMP_Y = (24.0, 44.0, 46.0)      # top of slope, foot of slope, tunnel mouth
+RAMP_COVER = 7.0                 # covered length past the mouth (driveway over it)
 RAMP_DEPTH = 3.8
 PLAZA_C = (58.0, 12.0)           # round fountain island, SE of the wing
 PLAZA_R = 5.0
@@ -563,17 +567,22 @@ def build_ramp(M, g):
         k.poly(M['white'], [(ax - 0.15, base, on_slope(base)), (ax + 0.15, base, on_slope(base)),
                             (ax + 0.15, yy, z), (ax - 0.15, yy, z)])
         k.poly(M['white'], [(ax - 0.55, yy, z), (ax + 0.55, yy, z), (ax, tip, on_slope(tip))])
-    # retaining walls with a 1.1 m parapet, and the portal wall at the end
+    # west retaining wall with a 1.1 m parapet (the east side is the
+    # building wall); the ramp runs into a covered tunnel mouth at the north
     top = zw + 1.1
-    for (wx0, wx1) in ((x0 - 0.3, x0), (x1, x1 + 0.3)):
-        k.box(M['stone'], ((wx0 + wx1) / 2, (y0 + y2) / 2, (d + top) / 2),
-              (wx1 - wx0, y2 - y0, top - d))
-    k.box(M['stone'], (xc, y2 + 0.2, (d + top) / 2), (x1 - x0 + 0.6, 0.4, top - d))
-    k.box(M['win'], (xc, y2 - 0.01, d + 1.4), (x1 - x0 - 0.8, 0.04, 2.8))       # dark portal
-    k.box(M['panel_dark'], (xc, y2 - 0.3, d + 3.0), (x1 - x0, 0.6, 0.4))        # header beam
-    k.box(M['sg_yellow'], (xc, y2 - 0.62, d + 3.0), (2.6, 0.04, 0.32))         # clearance bar
-    for xx in (x0 + 0.05, x1 - 0.05):                                          # handrails
-        k.box(M['alu'], (xx, (y0 + y2) / 2, top + 0.05), (0.06, y2 - y0, 0.06))
+    k.box(M['stone'], (x0 - 0.15, (y0 + y2) / 2, (d + top) / 2), (0.3, y2 - y0, top - d))
+    k.box(M['stone'], (x1 + 0.07, (y0 + y2) / 2, (d + zw) / 2), (0.15, y2 - y0, zw - d))
+    k.box(M['win'], (xc, y2 + 0.02, d + 1.5), (x1 - x0, 0.04, 3.0))             # dark mouth
+    k.box(M['stone'], (xc, y2 + 0.2, (d + 3.0 + top) / 2), (x1 - x0 + 0.3, 0.4, top - d - 3.0))
+    k.box(M['sg_yellow'], (xc, y2 - 0.05, d + 2.85), (x1 - x0 - 0.4, 0.06, 0.25))  # clearance
+    k.box(M['frame_w'], (xc, y2 - 0.08, d + 3.25), (3.0, 0.04, 0.35))           # "B1" sign
+    # tunnel walls and floor continue a little under the cover
+    k.poly(M['asphalt'], [(x0, y2, d), (x1, y2, d), (x1, y2 + RAMP_COVER, d),
+                          (x0, y2 + RAMP_COVER, d)])
+    # white stop line across the top, rails on the west parapet
+    k.poly(M['white'], [(x0, y0 - 0.4, zw + 0.02), (x1, y0 - 0.4, zw + 0.02),
+                        (x1, y0, zw + 0.02), (x0, y0, zw + 0.02)])
+    k.box(M['alu'], (x0 - 0.15, (y0 + y2) / 2, top + 0.05), (0.06, y2 - y0, 0.06))
     for yy in range(int(y0) + 6, int(y2), 6):                                  # wall lamps
         k.box(M['sg_white'], (x1 - 0.02, yy, on_slope(yy) + 2.2), (0.06, 0.8, 0.12))
     ob = X.inst("EOC basement ramp", k.mesh("EOC basement ramp"), (0, 0, 0), parent=g)
@@ -760,34 +769,22 @@ def build_neighbours(M, g, font, rng):
     shop_row(M, font, gn, "Shophouse alley SW", o, math.degrees(math.atan2(dy, dx)),
              length, rng, floors=(3, 4, 4, 5))
     # mid-rise apartments on the NE side of the alley, beyond the parking lot
-    t0 = (LOT_WEST - jx) / dx + 4.0
+    t0 = (SONGZHI_X[0] - jx) / dx + 16.0         # beyond 松智路
     for t in (t0, t0 + 18.0, t0 + 36.0):
         cx = jx + nx * (hw + 9.0) + dx * (t + 7.0)
         cy = jy + ny * (hw + 9.0) + dy * (t + 7.0)
         apartment_block(M, gn, f"Apartment alley NE {int(t):03d}",
                         (cx - 7.5, cy - 6.0, cx + 7.5, cy + 6.0), rng.choice((7, 8)), rng)
     # 世貿新城 towers north of the parking lot
-    for i, (x0, y0, w, d, fl) in enumerate(((-58, 70, 34, 15, 13), (-20, 74, 30, 15, 12),
-                                            (-100, 64, 30, 15, 14), (-70, 100, 34, 15, 15)), 1):
+    ny0 = LANE39_Y[1] + 5.0                     # across 松智路39巷
+    for i, (x0, y0, w, d, fl) in enumerate(((-44, ny0, 30, 15, 15), (-8, ny0, 30, 15, 14),
+                                            (28, ny0 + 2, 26, 15, 13), (-100, 64, 30, 15, 14)), 1):
         apartment_block(M, gn, f"World Trade Garden tower {i}", (x0, y0, x0 + w, y0 + d),
                         fl, rng, body=M['bld_tile'], shops=False, detail=i < 3)
-    # 三張里活動中心 behind the EOC
-    apartment_block(M, gn, "Sanzhang community centre", (6.0, BD + 8.0, 34.0, BD + 22.0), 3,
-                    rng, body=M['tile_white'], balconies=False, shops=False)
     # 信義國中 classroom blocks round the court, corridors facing in
-    for i, (rect, side) in enumerate((((52, 52, 112, 62), 'N'), ((52, 62, 62, 112), 'E'),
-                                      ((102, 62, 112, 96), 'W'), ((14, 92, 46, 102), 'S')), 1):
+    for i, (rect, side) in enumerate((((78, 52, 138, 62), 'N'), ((78, 62, 88, 112), 'E'),
+                                      ((128, 62, 138, 96), 'W'), ((78, 8, 120, 18), 'S')), 1):
         school_block(M, gn, f"Xinyi JHS block {i}", rect, 4, side, rng)
-    # park strip east of the plaza: grass and dense trees
-    P = X.MBuf("EOC park east")
-    P.box(M['field'], 78.0, -1.0, 0.0, 100.0, 48.0, X.CURB_H + 0.05)
-    P.emit(g)
-    trees = [X.mesh_broadleaf(M, s) for s in (7, 8, 9)]
-    gt = X.group("EOC park trees", g)
-    for i in range(34):
-        X.inst(f"Park tree {i:02d}", rng.choice(trees),
-               (rng.uniform(80, 98), rng.uniform(1, 46), X.CURB_H + 0.05),
-               rz=rng.uniform(0, math.tau), s=rng.uniform(0.75, 1.05), parent=gt)
 
 
 def build_site(M, g, font):
@@ -807,10 +804,34 @@ def build_site(M, g, font):
     # west driveway, hedge, east plaza, north service yard
     holed_box(S, M['paving'], (-9.0, 0.0, 0.0, BD + 2), 0.0, zw, hole)
     S.box(M['hedge'], -9.6, 2.0, zw, -9.0, BD, zw + 1.1)
-    S.box(M['paving'], BW, 0.0, 0.0, 78.0, 44.0, zw)
+    S.box(M['paving'], BW, 0.0, 0.0, WALK_E[0], 44.0, zw)
     S.box(M['paving'], 0.0, BD, 0.0, BW + 12, BD + 6, zw)
+    # 松智路 to the west and 松智路39巷 to the north, with sidewalks
+    S.box(M['asphalt'], SONGZHI_X[0], 6.0, 0.0, SONGZHI_X[1], 160.0, 0.01)
+    xs = (SONGZHI_X[0] + SONGZHI_X[1]) / 2
+    S.box(M['yellow'], xs - 0.06, 6.0, 0.01, xs + 0.06, 160.0, 0.016)
+    S.box(M['walk'], SONGZHI_X[1], 6.0, 0.0, SONGZHI_X[1] + 2.0, LANE39_Y[0], zw)
+    S.box(M['asphalt'], SONGZHI_X[0], LANE39_Y[0], 0.0, WALK_E[1], LANE39_Y[1], 0.012)
+    S.box(M['walk'], SONGZHI_X[1], LANE39_Y[0] - 2.0, 0.0, WALK_E[0], LANE39_Y[0], zw)
+    S.box(M['walk'], SONGZHI_X[0], LANE39_Y[1], 0.0, WALK_E[1], LANE39_Y[1] + 2.5, zw)
+    # tree-lined walkway between the EOC and the school
+    S.box(M['paving'], WALK_E[0], STREET_Y[1], 0.0, WALK_E[1], 160.0, zw)
+    # small park north of the building: lawn, a round lawn ringed by a path
+    S.box(M['field'], 4.0, BD + 6.0, 0.0, WALK_E[0], LANE39_Y[0] - 2.0, zw + 0.03)
     S.emit(g)
+    pk = X.Kit()
+    pc = (36.0, BD + 14.0)
+    pk.cyl(M['paving'], (pc[0], pc[1], zw), (pc[0], pc[1], zw + 0.05), 8.5, seg=40)
+    pk.cyl(M['field'], (pc[0], pc[1], zw), (pc[0], pc[1], zw + 0.07), 6.8, seg=40)
+    pk.box(M['paving'], ((pc[0] + 6.0) / 2, pc[1], zw + 0.045), (pc[0] - 6.0, 2.2, 0.03))
+    X.inst("EOC north park paths", pk.mesh("EOC north park paths"), (0, 0, 0), parent=g)
     build_ramp(M, g)
+    # black bollards between the west driveway and the parking-lot hedge
+    bk = X.Kit()
+    for i in range(28):
+        y = 1.5 + i * 1.6
+        bk.cyl(M['iron'], (-8.5, y, zw), (-8.5, y, zw + 0.8), 0.09, seg=8)
+    X.inst("EOC driveway bollards", bk.mesh("EOC driveway bollards"), (0, 0, 0), parent=g)
 
     # 391巷11弄 running off north-west from the junction, and the parking lot
     k = X.Kit()
@@ -830,8 +851,9 @@ def build_site(M, g, font):
 
     def kerb_y(x):                             # alley NE kerb, y at a given x
         return ey + (x - ex) / dx * dy
-    k.poly(M['asphalt'], [(ex, ey, 0.02), (-10.0, ey, 0.02), (-10.0, BD + 4, 0.02),
-                          (LOT_WEST, BD + 4, 0.02), (LOT_WEST, kerb_y(LOT_WEST), 0.02)])
+    lot_n = LANE39_Y[0] - 2.0
+    k.poly(M['asphalt'], [(ex, ey, 0.02), (-10.0, ey, 0.02), (-10.0, lot_n, 0.02),
+                          (LOT_WEST, lot_n, 0.02), (LOT_WEST, kerb_y(LOT_WEST), 0.02)])
     X.inst("EOC alley and parking lot", k.mesh("EOC alley and parking lot"), (0, 0, 0), parent=g)
     X.build_box_grid(M, g, jx - 6, jx + 6, STREET_Y[0] + 0.3, STREET_Y[1] - 0.3, step=2.0)
 
@@ -841,9 +863,9 @@ def build_site(M, g, font):
     gc = X.group("EOC parked cars", g)
     lines = X.MBuf("EOC parking bays")
     n = 0
-    for row_x in (-16.0, -24.0, -32.0, -40.0, -48.0, -56.0):
+    for row_x in (-14.0, -22.0, -30.0, -38.0, -45.0):
         y = 4.0
-        while y < BD:
+        while y < LANE39_Y[0] - 4.0:
             if kerb_y(row_x - 2.6) > y - 1.2:      # still south of the kerb line
                 y += 2.5
                 continue
@@ -870,8 +892,11 @@ def build_site(M, g, font):
     gt = X.group("EOC trees", g)
     curb = STREET_Y[1] + 0.9
     spots = [(x, curb) for x in range(2, 78, 7)]
-    spots += [(x, 42.0) for x in range(44, 78, 7)]
-    spots += [(76.0, y) for y in range(4, 40, 7)]
+    spots += [(x, 42.0) for x in range(44, 62, 7)]
+    spots += [(xx, y) for xx in (WALK_E[0] + 0.8, WALK_E[1] - 0.8) for y in range(-4, 150, 7)]
+    spots += [(36.0 + 10.5 * math.cos(t), BD + 14.0 + 10.5 * math.sin(t))
+              for t in [i * math.tau / 10 for i in range(10)]]
+    spots += [(x, LANE39_Y[0] - 4.0) for x in range(8, 62, 6)]
     spots += [(-9.3, y) for y in range(-1, int(BD), 10)]
     spots += [(x, BD + 4.0) for x in range(2, 48, 8)]
     for i, (x, y) in enumerate(spots, 1):
@@ -911,7 +936,7 @@ def build_site(M, g, font):
     build_neighbours(M, g, font, rng)
     # the school track and field
     tk = X.Kit()
-    cx, cy, a, b = 140.0, 100.0, 40.0, 24.0
+    cx, cy, a, b = 185.0, 105.0, 40.0, 24.0
     seg = 48
 
     def p(r, t):
@@ -973,7 +998,7 @@ def main():
     hx, hy, _ = DECK
     aim(cam, (hx - 24.0, hy + 46.0, DECK_Z + 20.0), (hx, hy, DECK_Z), lens=22)
     render(os.path.join(prev, f"{tag}_helipad.png"))
-    aim(cam, (-14.0, 10.0, 7.0), (-4.0, RAMP_Y[2], -1.5), lens=20)
+    aim(cam, (-3.5, 12.0, 8.0), (-3.4, RAMP_Y[2], -2.0), lens=20)
     render(os.path.join(prev, f"{tag}_ramp.png"))
     aim(cam, PANO_USER, look(PANO_USER, 15, dist=40, pitch_z=20.0), lens=14)
     render(os.path.join(prev, f"{tag}_pano_user_n.png"))
@@ -982,10 +1007,13 @@ def main():
     pw = (-34.6, 1.7, 2.45)                     # 391巷11弄 pano ophMHKP_OpDb1Zor-8fAWw
     aim(cam, pw, look(pw, 75, dist=40, pitch_z=14.0), lens=16)
     render(os.path.join(prev, f"{tag}_west_face.png"))
-    aim(cam, (60.0, 110.0, 55.0), (20.0, 28.0, 16.0), lens=24)
+    aim(cam, (95.0, 150.0, 85.0), (22.0, 40.0, 10.0), lens=24)
     render(os.path.join(prev, f"{tag}_aerial_ne.png"))
     aim(cam, (125.0, 22.0, 45.0), (25.0, 25.0, 16.0), lens=24)
     render(os.path.join(prev, f"{tag}_aerial_e.png"))
+    pn = (22.0, LANE39_Y[0] + 3.5, 2.45)       # standing in 松智路39巷
+    aim(cam, pn, look(pn, 175, dist=40, pitch_z=12.0), lens=16)
+    render(os.path.join(prev, f"{tag}_north_lane.png"))
 
 
 if __name__ == "__main__":
