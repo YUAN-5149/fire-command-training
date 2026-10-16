@@ -20,7 +20,8 @@ const VIEWS={
  corner:[[-17,2.5,7],[6,12,-10]],
  plaza:[[60,2.5,7],[52,10,-22]],
  helipad:[[-5,58,-62],[19,38,-16]],
- ramp:[[-3.5,11,-8],[-4,-2.5,-42]]
+ ramp:[[-3.5,11,-8],[-4,-2.5,-42]],
+ street:[[2,1.7,13],[16,11,-8]]
 };
 const KIND={eoc:'臺北市災害應變中心',helipad:'頂樓停機坪',vehicle:'停放車輛',ramp:'地下停車場車道',
  apartment:'鄰近住宅大樓',shophouse:'鄰近街屋',school:'信義國中校舍'};
@@ -40,7 +41,7 @@ renderer.toneMapping=T.ACESFilmicToneMapping;
 const scene=new T.Scene();
 const camera=new T.PerspectiveCamera(45,1,.5,4000);
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.enableDamping=true;controls.maxPolarAngle=Math.PI/2-.02;controls.minDistance=4;controls.maxDistance=600;
+controls.enableDamping=true;controls.maxPolarAngle=Math.PI*.68;controls.minDistance=4;controls.maxDistance=600;
 
 const hemi=new T.HemisphereLight('#fff','#000',1);scene.add(hemi);
 const sun=new T.DirectionalLight('#fff',1);sun.castShadow=true;
@@ -84,11 +85,11 @@ float grid(vec2 uv,vec2 cell,float w){vec2 f=abs(fract(uv/cell+.5)-.5)*cell;vec2
 // 每種表面：調整 diffuseColor 與 roughnessFactor
 const DETAIL={
  panel:`bool wall=abs(vWNrm.y)<.5;vec2 uv=wall?wallUV():vWPos.xz;
-  float j=wall?grid(uv,vec2(1.2,.9),.012):0.;
-  float v=h21(floor(uv/vec2(1.2,.9)))-.5;
+  float j=wall?grid(uv,vec2(.45,.45),.006):0.;
+  float v=h21(floor(uv/vec2(.45,.45)))-.5;
   float streak=wall?fbm(vec2(uv.x*.7,uv.y*.08))-.5:fbm(uv*.4)-.5;
   float grime=wall?(1.-smoothstep(.0,2.2,vWPos.y))*.10:0.;
-  col*=1.+v*.05+streak*.07-grime;col*=1.-j*.35;rough=clamp(rough+streak*.15+j*.2,0.,1.);`,
+  col*=1.+v*.03+streak*.06-grime;col*=1.-j*.18;rough=clamp(rough+streak*.15+j*.2,0.,1.);`,
  stone:`vec2 uv=abs(vWNrm.y)<.5?wallUV():vWPos.xz;float j=grid(uv,vec2(1.2,.6),.008);
   float v=h21(floor(uv/vec2(1.2,.6)))-.5;col*=(1.+v*.12+(fbm(uv*6.)-.5)*.12)*(1.-j*.4);rough=clamp(rough+(fbm(uv*9.)-.5)*.2,0.,1.);`,
  asphalt:`vec2 uv=vWPos.xz;float p=fbm(uv*.08);float sp=h21(floor(uv*45.));float cr=fbm(uv*.9);
@@ -104,8 +105,8 @@ const DETAIL={
  foliage:`col*=.75+fbm(vWPos.xz*.7+vWPos.y)*.5;`
 };
 const MATERIAL_DETAIL={
- 'EOC facade panel grey':'panel','Mast white':'panel','AC unit white':'panel',
- 'EOC pier stone grey':'stone','Utility cabinet grey':'stone',
+ 'EOC facade tile grey':'panel','Mast white':'panel','AC unit white':'panel',
+ 'EOC pier stone grey':'stone','EOC granite beige':'stone','EOC vent louvre beige':'tin','Utility cabinet grey':'stone',
  'Asphalt':'asphalt',
  'Sidewalk paving':'paving','Plaza paving':'paving',
  'Building plot':'ground','Far ground':'ground','Sports field':'ground','Running track blue':'ground',
@@ -117,7 +118,7 @@ const MATERIAL_DETAIL={
  'Facade tile beige':'backdrop','Concrete frame white':'backdrop','Roller shutter steel':'tin','Arcade floor tile':'paving'
 };
 // 夜間亮窗：依世界座標格子雜湊，約四成亮燈
-const GLASS={'EOC window glass green':1,'Window glass dark':1,'Backdrop window band':1,'EOC curtain glass green':.6,'Taipei 101 glass':.4};
+const GLASS={'EOC window glass green':1,'EOC window glass light':1,'EOC curtain glass light green':.7,'Window glass dark':1,'Backdrop window band':1,'EOC curtain glass green':.6,'Taipei 101 glass':.4};
 const litMats=[];
 
 function enhance(m){
@@ -235,4 +236,4 @@ renderer.domElement.addEventListener('pointerup',e=>{
 let t=0;
 renderer.setAnimationLoop(()=>{t+=1/60;if(!renderer.domElement.width)return;
  if(lightsOn&&night)for(const m of edgeMats)m.emissiveIntensity=4+2*Math.sin(t*4);
- controls.update();composer.render();});
+ controls.update();if(camera.position.y<1.2)camera.position.y=1.2;composer.render();});
