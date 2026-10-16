@@ -7,7 +7,7 @@
 都是從 Google 地圖比例尺、Google 地球 3D 鳥瞰與街景（pano `sdqgtREbuiqXtSfjqymmAA`、
 `1ZKh73tLCvz-JdIcN25Pxg`）目測估算，未描圖、未使用影像貼圖。
 北半部屋頂設備與背面立面沒有清楚參考，為推測。停車場車輛排列為示意。
-目前未接入 `dist/` 網站。
+網站頁面：`dist/taipei-eoc.html`（首頁「災害應變中心」連結），載入 `dist/assets/taipei-eoc.glb`；重建模型後要把新的 GLB 複製過去。
 
 ## 重建
 

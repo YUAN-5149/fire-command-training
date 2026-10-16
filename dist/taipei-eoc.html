@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>臺北市災害應變中心｜消防訓練</title>
+<link rel="stylesheet" href="taipei-eoc.css?v=1">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div id="loading"><b>應變中心模型載入中…</b><span id="loadStep">0%</span></div>
+<div id="error" hidden>3D場景無法啟動，請使用支援 WebGL 的瀏覽器重新開啟。</div>
+<header class="top">
+ <div class="brand"><span class="badge">119</span><div><strong>臺北市災害應變中心</strong><small>莊敬路391巷11弄2號・信義區</small></div></div>
+ <div class="actions"><a class="btn" href="./">返回消防訓練</a></div>
+</header>
+<nav class="views" aria-label="視角">
+ <button data-view="aerial" class="active">西南鳥瞰</button>
+ <button data-view="southeast">東南鳥瞰</button>
+ <button data-view="corner">巷口入口</button>
+ <button data-view="plaza">噴水池廣場</button>
+ <button data-view="helipad">停機坪</button>
+</nav>
+<aside id="panel">
+ <button id="panelToggle" aria-expanded="true">資訊與控制 ▾</button>
+ <div id="panelBody">
+  <div class="row"><span>時段</span><span class="seg"><button id="day" class="on">白天</button><button id="night">夜間</button></span></div>
+  <div class="row"><span>停機坪邊燈</span><span class="seg"><button id="lightsOff" class="on">關</button><button id="lightsOn">開</button></span></div>
+  <label class="row" for="wind"><span>風向（風從）<b id="windLabel">北</b></span><input id="wind" type="range" min="0" max="345" step="15" value="0"></label>
+  <div id="pick"><b>點選建物、停機坪或車輛查看資訊</b></div>
+  <dl class="facts">
+   <dt>主體</dt><dd>9 層＋頂層，屋頂約 33 m</dd>
+   <dt>東翼</dt><dd>5 層</dd>
+   <dt>停機坪</dt><dd>約 30 × 30 m，面高約 <span id="deckH">38</span> m</dd>
+  </dl>
+  <p class="note">示意模型：量體、樓層與停機坪尺寸由地圖比例尺、Google 地球 3D 與街景目測估算，非實測；北側屋頂設備與背面立面為推測，停車場車輛排列為示意。不可據此量測救援作業空間。</p>
+ </div>
+</aside>
+<div class="hint">拖曳旋轉 · 右鍵／雙指平移 · 滾輪／雙指縮放 · 點選物件</div>
+<script type="module" src="taipei-eoc.js?v=1"></script>
+</body>
+</html>
