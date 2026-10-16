@@ -1,8 +1,11 @@
+import {attachCommanderCharacter} from './commander-character.js';
 import {updateInteriorSearch,retreatRoute} from './interior-search.js';
 import {surfaceHeight,stairPath} from './walk-surfaces.js';
 import {staging} from './staging.js';
 import * as T from 'three';
 export function createActionScene(scene){
+const characters=[];
+const updateCharacters=dt=>characters.forEach(p=>p.updateCharacter(dt));
 const mat=c=>new T.MeshStandardMaterial({color:c,roughness:.65}),yellow=mat('#c5a253'),stripe=mat('#e4ed95'),black=mat('#202a30'),steel=mat('#9bafb7'),navy=mat('#172b46'),red=mat('#de303b'),helmet=mat('#e9e6d7'),glove=mat('#a59370');
 function mesh(g,geo,m,x,y,z){const o=new T.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 function limb(g,x,y,length,fabric,bands=0){
@@ -40,7 +43,9 @@ function person(parent,rank,x=0,z=0){
  const nozzle=mesh(arms[1],new T.CylinderGeometry(.055,.075,.32,8),steel,0,-.62,0);nozzle.visible=false;
  const beam=new T.Mesh(new T.ConeGeometry(.65,4,16,1,true),new T.MeshBasicMaterial({color:'#fff6bd',transparent:true,opacity:.07,depthWrite:false,side:T.DoubleSide}));
  beam.rotation.x=Math.PI/2;beam.position.set(.32,1,-2.2);body.add(beam);beam.visible=false;
- return {body,arms,legs,boots,nozzle,beam,rank};
+ const result={body,arms,legs,boots,nozzle,beam,rank};
+ if(rank==='中隊長')characters.push(attachCommanderCharacter(result));
+ return result;
 }
 // Command staff stands separately; operational vehicle staffing remains 4 / 4 / 4 / 2.
 const commandRoot=new T.Group();commandRoot.position.set(-17,.175,5.6);scene.add(commandRoot);
@@ -52,7 +57,7 @@ const actors=Array.from({length:4},(_,i)=>{const root=new T.Group();root.positio
 const ring=mesh(root,new T.TorusGeometry(1.1,.04,8,32),new T.MeshBasicMaterial({color:'#ffb567'}),0,.03,0);ring.rotation.x=-Math.PI/2;const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(new Float32Array(120*3),3));const water=new T.Points(geo,new T.PointsMaterial({color:'#b8eaff',size:.11,transparent:true,opacity:.8,depthWrite:false}));scene.add(water);const hose=new T.Mesh(new T.BufferGeometry(),mat('#e5cf94'));scene.add(hose);return {root,people,water,hose,ring,lastDue:0,route:[],elapsed:0};});
 const targets={front:[-3,.3,7],rear:[0,.3,-7],entry:[0,.3,4.8],floor:[0,6.71,2],water:[-13,.3,7],medical:[16,.3,5.8]};
 const roleExamples=['隊員','小隊長','分隊長'].map(rank=>actors.flatMap(a=>a.people).find(p=>p.rank===rank));roleExamples.push(commander);
-return {actors,commander,roleExamples,createPerson:person,update(dt,t,units,running,selected,onSearch){actors.forEach((a,i)=>{const u=units[i];if(u.searchFloor!==undefined){const event=updateInteriorSearch(a,u,dt,t,running);if(event)onSearch?.(i,event);return}const moving=u.status==='移動中';if(u.due&&u.due!==a.lastDue){a.lastDue=u.due;a.elapsed=0;const p=targets[u.location],end=new T.Vector3(p[0]+(i-1.5)*.5,p[1],p[2]);a.route=a.search?retreatRoute(a):[a.root.position.clone()];const wasSearching=!!a.search;a.search=null;a.people.forEach((p,j)=>p.body.position.set(j%2*.8-.4,0,-Math.floor(j/2)*.9));if(!wasSearching&&a.root.position.y>1)a.route.push(...[...stairPath].reverse().map(p=>new T.Vector3(...p)));if(u.location==='rear')a.route.push(new T.Vector3(7,.3,6),new T.Vector3(7,.3,-6));if(u.location==='floor')a.route.push(new T.Vector3(0,.175,5.5),...stairPath.map(p=>new T.Vector3(...p)));a.route.push(end)}a.ring.visible=i===selected;
+return {actors,commander,roleExamples,createPerson:person,updateCharacters,update(dt,t,units,running,selected,onSearch){updateCharacters(dt);actors.forEach((a,i)=>{const u=units[i];if(u.searchFloor!==undefined){const event=updateInteriorSearch(a,u,dt,t,running);if(event)onSearch?.(i,event);return}const moving=u.status==='移動中';if(u.due&&u.due!==a.lastDue){a.lastDue=u.due;a.elapsed=0;const p=targets[u.location],end=new T.Vector3(p[0]+(i-1.5)*.5,p[1],p[2]);a.route=a.search?retreatRoute(a):[a.root.position.clone()];const wasSearching=!!a.search;a.search=null;a.people.forEach((p,j)=>p.body.position.set(j%2*.8-.4,0,-Math.floor(j/2)*.9));if(!wasSearching&&a.root.position.y>1)a.route.push(...[...stairPath].reverse().map(p=>new T.Vector3(...p)));if(u.location==='rear')a.route.push(new T.Vector3(7,.3,6),new T.Vector3(7,.3,-6));if(u.location==='floor')a.route.push(new T.Vector3(0,.175,5.5),...stairPath.map(p=>new T.Vector3(...p)));a.route.push(end)}a.ring.visible=i===selected;
 if(running&&moving&&a.route.length){a.elapsed=Math.min(12,a.elapsed+dt);const lens=a.route.slice(1).map((v,k)=>v.distanceTo(a.route[k]));let d=lens.reduce((x,y)=>x+y,0)*a.elapsed/12;for(let k=0;k<lens.length;k++){if(d<=lens[k]||k===lens.length-1){const direction=a.route[k+1].clone().sub(a.route[k]);a.root.rotation.y=Math.atan2(-direction.x,-direction.z);a.root.position.lerpVectors(a.route[k],a.route[k+1],Math.min(1,d/(lens[k]||1)));break}d-=lens[k]}}
 const active=!moving&&u.task!=='未指派';if(active){if(a.route.length)a.root.position.copy(a.route.at(-1));a.root.rotation.y=u.location==='rear'?Math.PI:0}
 a.people.forEach((p,j)=>{const stride=moving?Math.sin(t*8+j*.7)*.55:0;p.legs[0].rotation.x=stride;p.legs[1].rotation.x=-stride;p.arms[0].rotation.x=-stride*.8;p.arms[1].rotation.x=stride*.8;p.body.position.y=moving?Math.abs(Math.sin(t*8))*.035:0;p.body.rotation.set(0,0,0);p.nozzle.visible=false;p.beam.visible=false;if(active&&u.task==='滅火'){p.arms.forEach(v=>v.rotation.x=1.25);p.body.rotation.x=.1;p.nozzle.visible=j===0}if(active&&u.task==='搜索'){p.body.rotation.set(.35,Math.sin(t*1.2+j)*.3,0);p.arms[1].rotation.x=1.4;p.beam.visible=true}if(active&&u.task==='救護'){p.body.position.y=-.3;p.body.rotation.x=.4;p.legs.forEach(v=>v.rotation.x=-.7);p.arms.forEach(v=>v.rotation.x=.9+Math.sin(t*3)*.1)}if(active&&u.task==='供水'){p.body.rotation.x=.22;p.arms.forEach(v=>v.rotation.x=.8+Math.sin(t*2)*.12)}});
