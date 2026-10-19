@@ -142,6 +142,31 @@ def main(osm_file, light_file):
         p = nearest_on_rings(x, z, grid, cell, walks, 22)
         if p:
             signals.append([x, z, *p])
+    # 地上式消防栓：OSM 點常落在車道或路口上；不在人行道內者移到最近人行道邊，再往內 0.5 m
+    def in_ring(x, z, r):
+        hit = False
+        n = len(r) // 2
+        for i in range(n):
+            x1, z1, x2, z2 = r[2 * i], r[2 * i + 1], r[(2 * i + 2) % len(r)], r[(2 * i + 3) % len(r)]
+            if (z1 > z) != (z2 > z) and x < (x2 - x1) * (z - z1) / (z2 - z1) + x1:
+                hit = not hit
+        return hit
+    moved = 0
+    for h in hydrants:
+        if h[2]:
+            continue
+        x, z = h[0], h[1]
+        cand = grid.get((int(x // cell), int(z // cell)), ())
+        if any(in_ring(x, z, walks[k]) for k in cand):
+            continue
+        p = nearest_on_rings(x, z, grid, cell, walks, 15)
+        if not p:
+            continue
+        dx, dz = p[0] - x, p[1] - z
+        d = math.hypot(dx, dz) or 1
+        h[0], h[1] = round(p[0] + dx / d * .5, 2), round(p[1] + dz / d * .5, 2)
+        moved += 1
+    print('hydrants moved onto sidewalks', moved)
     bus = []
     drive = lanes['lanes'].get('Driving', [])
     dgrid = {}

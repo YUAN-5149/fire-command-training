@@ -66,6 +66,36 @@ for(const f of JSON.parse(net.toIntersectionMarkingsGeojson()).features)out.corn
  let walks=0;
  for(const k of ['Footway','Sidewalk','SharedUse','Biking']){out.lanes[k]=(out.lanes[k]??[]).filter(r=>{let x=0,z=0;for(let i=0;i<r.length;i+=2){x+=r[i];z+=r[i+1];}const keep=!inJunction(x*2/r.length,z*2/r.length);if(!keep)walks++;return keep;});}
  console.error('markings inside junctions dropped',dropped,'walkway polygons dropped',walks);}
+// 中線：osm2streets 輸出為 2 m 一段、間隔 1 m 的單條虛線；臺灣分向限制線為連續雙黃線，
+// 所以把同向、首尾相距 1.6 m 內的短段串成折線，再畫成兩條 0.12 m 寬、相距 0.12 m 的實線。
+{const dashes=(out.markings.center??[]).map(r=>{
+  let cx=0,cz=0;const n=r.length/2;for(let i=0;i<r.length;i+=2){cx+=r[i];cz+=r[i+1];}cx/=n;cz/=n;
+  let xx=0,xz=0,zz=0;for(let i=0;i<r.length;i+=2){const dx=r[i]-cx,dz=r[i+1]-cz;xx+=dx*dx;xz+=dx*dz;zz+=dz*dz;}
+  const ang=.5*Math.atan2(2*xz,xx-zz),ux=Math.cos(ang),uz=Math.sin(ang);
+  let lo=Infinity,hi=-Infinity;for(let i=0;i<r.length;i+=2){const t=(r[i]-cx)*ux+(r[i+1]-cz)*uz;lo=Math.min(lo,t);hi=Math.max(hi,t);}
+  return {a:[cx+ux*lo,cz+uz*lo],b:[cx+ux*hi,cz+uz*hi],ux,uz};});
+ const cell=4,grid=new Map(),key=(x,z)=>Math.floor(x/cell)+','+Math.floor(z/cell);
+ dashes.forEach((d,i)=>{for(const [e,p] of [['a',d.a],['b',d.b]]){const k=key(...p);if(!grid.has(k))grid.set(k,[]);grid.get(k).push([i,e]);}});
+ // 由某段的某端點找下一段：距離 ≤1.6 m、方向夾角 <25°
+ const next=(i,end,used)=>{const p=dashes[i][end];let best=null,bd=1.6;const gx=Math.floor(p[0]/cell),gz=Math.floor(p[1]/cell);
+  for(let x=gx-1;x<=gx+1;x++)for(let z=gz-1;z<=gz+1;z++)for(const [j,e] of grid.get(x+','+z)??[]){
+   if(j===i||used[j])continue;const q=dashes[j][e],d=Math.hypot(q[0]-p[0],q[1]-p[1]);
+   if(d<bd&&Math.abs(dashes[i].ux*dashes[j].ux+dashes[i].uz*dashes[j].uz)>Math.cos(25*Math.PI/180)){bd=d;best=[j,e];}}
+  return best;};
+ const used=new Uint8Array(dashes.length),lines=[];
+ for(let s=0;s<dashes.length;s++){if(used[s])continue;used[s]=1;
+  // 往 b 端延伸，再往 a 端延伸
+  const fwd=[dashes[s].a,dashes[s].b];let cur=s,end='b';
+  for(let n;(n=next(cur,end,used));){const [j,e]=n;used[j]=1;const o=e==='a'?'b':'a';fwd.push(dashes[j][o]);cur=j;end=o;}
+  const back=[];cur=s;end='a';
+  for(let n;(n=next(cur,end,used));){const [j,e]=n;used[j]=1;const o=e==='a'?'b':'a';back.push(dashes[j][o]);cur=j;end=o;}
+  lines.push([...back.reverse(),...fwd]);}
+ const strips=[];
+ for(const pts of lines)for(let k=1;k<pts.length;k++){const [ax,az]=pts[k-1],[bx,bz]=pts[k],L=Math.hypot(bx-ax,bz-az);if(L<.05)continue;
+  const nx=-(bz-az)/L,nz=(bx-ax)/L;
+  for(const off of [.12,-.12]){const o0=off-.06,o1=off+.06;strips.push([ax+nx*o0,az+nz*o0,bx+nx*o0,bz+nz*o0,bx+nx*o1,bz+nz*o1,ax+nx*o1,az+nz*o1].map(r2));}}
+ console.error('centre dashes',dashes.length,'→ lines',lines.length,'strips',strips.length);
+ out.markings.center=strips;}
 const dest=path.join(ROOT,'dist/assets/lanes-xinyi.json');
 fs.writeFileSync(dest,JSON.stringify(out));
 const count=o=>Object.fromEntries(Object.entries(o).map(([k,v])=>[k,v.length]));
