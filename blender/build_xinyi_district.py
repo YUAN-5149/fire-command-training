@@ -114,6 +114,74 @@ def facade_material(style):
     return m
 
 
+def override_material(o):
+    """逐街精修建物：依窗距、窗寬高比、玻璃色畫窗格；底層 arcade 為拱廊陰影、lobby 為玻璃大廳；
+    variant 2 為玻璃帷幕（豎框 4%、層間帶 14%）。樓高用每面的 floorh 屬性。"""
+    name = f"Facade {o['name']}"
+    if name in bpy.data.materials:
+        return bpy.data.materials[name]
+    m = X.mat(name, (.6, .6, .6, 1), rough=.8)
+    nt = m.node_tree
+    N, Lk = nt.nodes, nt.links
+    bsdf = next(n for n in N if n.type == 'BSDF_PRINCIPLED')
+    col = N.new('ShaderNodeVertexColor'); col.layer_name = 'Col'
+    uv = N.new('ShaderNodeUVMap'); uv.uv_map = 'Facade'
+    sep = N.new('ShaderNodeSeparateXYZ'); Lk.new(uv.outputs[0], sep.inputs[0])
+    fh = N.new('ShaderNodeAttribute'); fh.attribute_type = 'GEOMETRY'; fh.attribute_name = 'floorh'
+
+    def op(kind, a, b=None, clamp=False):
+        n = N.new('ShaderNodeMath'); n.operation = kind; n.use_clamp = clamp
+        for i, v in enumerate((a, b)):
+            if v is None:
+                continue
+            if isinstance(v, (int, float)):
+                n.inputs[i].default_value = v
+            else:
+                Lk.new(v, n.inputs[i])
+        return n.outputs[0]
+    u, v, floor_h = sep.outputs[0], sep.outputs[1], fh.outputs['Fac']
+    pod = o['podium']['h'] if o.get('podium') else 0.0
+    kind = o['podium']['kind'] if o.get('podium') else ''
+    curtain = o.get('variant') == 2
+    bay = o['bay']
+    ww, wh = o['win']
+    vp = op('SUBTRACT', v, pod)
+    fy = op('FRACT', op('DIVIDE', vp, floor_h))
+    bx = op('FRACT', op('DIVIDE', u, bay))
+    above = op('GREATER_THAN', v, pod)
+    if curtain:
+        win = op('MULTIPLY', op('GREATER_THAN', bx, .04), op('LESS_THAN', fy, .86))
+    else:
+        win = op('MULTIPLY', op('MULTIPLY', op('GREATER_THAN', bx, .5 - ww / 2), op('LESS_THAN', bx, .5 + ww / 2)),
+                 op('MULTIPLY', op('GREATER_THAN', fy, .2), op('LESS_THAN', fy, .2 + wh)))
+    win = op('MULTIPLY', win, above)
+    below = op('LESS_THAN', v, pod)
+    if kind == 'arcade':
+        recess = op('MULTIPLY', op('MULTIPLY', op('GREATER_THAN', bx, .14), op('LESS_THAN', bx, .86)),
+                    op('LESS_THAN', v, pod * .78))
+        lobby = op('MULTIPLY', recess, 0.0)
+    else:
+        recess = op('MULTIPLY', below, 0.0)
+        lobby = op('MULTIPLY', below, op('LESS_THAN', v, max(pod - .7, 0)))
+    glass_mask = op('ADD', win, lobby, clamp=True)
+    g = srgb(o['glass'])
+    ramp = N.new('ShaderNodeValToRGB')
+    ramp.color_ramp.elements[0].color = tuple(c * .7 for c in g[:3]) + (1,)
+    ramp.color_ramp.elements[1].color = tuple(min(1, c * 1.35) for c in g[:3]) + (1,)
+    noise = N.new('ShaderNodeTexWhiteNoise'); noise.noise_dimensions = '2D'
+    comb = N.new('ShaderNodeCombineXYZ')
+    Lk.new(op('FLOOR', op('DIVIDE', u, bay)), comb.inputs[0]); Lk.new(op('FLOOR', op('DIVIDE', vp, floor_h)), comb.inputs[1])
+    Lk.new(comb.outputs[0], noise.inputs['Vector']); Lk.new(noise.outputs['Value'], ramp.inputs[0])
+    dark = N.new('ShaderNodeMix'); dark.data_type = 'RGBA'; dark.blend_type = 'MULTIPLY'
+    Lk.new(recess, dark.inputs[0]); Lk.new(col.outputs[0], dark.inputs[6]); dark.inputs[7].default_value = (.3, .3, .3, 1)
+    mix = N.new('ShaderNodeMix'); mix.data_type = 'RGBA'
+    Lk.new(glass_mask, mix.inputs[0]); Lk.new(dark.outputs[2], mix.inputs[6]); Lk.new(ramp.outputs[0], mix.inputs[7])
+    Lk.new(mix.outputs[2], bsdf.inputs['Base Color'])
+    rough = N.new('ShaderNodeMapRange'); rough.inputs['To Min'].default_value = .8; rough.inputs['To Max'].default_value = .1
+    Lk.new(glass_mask, rough.inputs['Value']); Lk.new(rough.outputs[0], bsdf.inputs['Roughness'])
+    return m
+
+
 def colour_material(name, rough=.6, metal=0.0, alpha=1.0):
     m = X.mat(name, (.6, .6, .6, 1), rough=rough, metallic=metal)
     nt = m.node_tree
@@ -146,12 +214,16 @@ def mesh_with_attrs(name, verts, faces, corner_cols, mats, face_mats, parent, uv
 
 
 def build_buildings(buildings, root, keep):
+    # 一般建物依外觀分類合成一個物件；逐街精修建物（override）各自一個物件與材質
     by_style = {}
     for b in buildings:
         if keep(b):
-            by_style.setdefault(b['style'], []).append(b)
+            o = b.get('override')
+            key = ('o', o['name']) if o and o.get('variant') else ('s', b['style'])
+            by_style.setdefault(key, []).append(b)
     total = 0
-    for style, items in sorted(by_style.items()):
+    for (kind, key), items in sorted(by_style.items(), key=lambda kv: (kv[0][0], str(kv[0][1]))):
+        style = items[0]['style']
         verts, faces, cols, uvs, fm, fh, shop = [], [], [], [], [], [], []
         roof_mat = X.mat(f"Roof style {style}", ROOF[style] + (1,), rough=.9)
         for b in items:
@@ -174,9 +246,12 @@ def build_buildings(buildings, root, keep):
                 cols += [c] * 3
                 uvs += [(0, 0)] * 3
                 fm.append(1); fh.append(3.0); shop.append(0.0)
-        ob = mesh_with_attrs(f"Buildings style {style}", verts, faces, cols, [facade_material(style), roof_mat], fm, root,
-                             uvs=uvs, face_attrs={'floorh': fh, 'shop': shop})
+        facade = override_material(items[0]['override']) if kind == 'o' else facade_material(style)
+        ob = mesh_with_attrs(f"Buildings {key}" if kind == 'o' else f"Buildings style {style}", verts, faces, cols,
+                             [facade, roof_mat], fm, root, uvs=uvs, face_attrs={'floorh': fh, 'shop': shop})
         ob["kind"] = "building"; ob["style"] = style
+        if kind == 'o':
+            ob["name_zh"] = key
         total += len(items)
     return total
 
@@ -300,6 +375,7 @@ def main():
         ("hq_junction", (hq[0] - 28, hq[1] - 30, 9), (hq[0] + 10, hq[1] + 8, 5), 22),
         ("eoc_blocks", (eoc[0] - 40, eoc[1] - 200, 45), (eoc[0], eoc[1] - 90, 10), 26),
         ("alley_street", (46.0, -614.0, 2.0), (26.0, -594.0, 6.0), 18),
+        ("songren_n", (322.0, 712.0, 2.5), (250.0, 650.0, 16.0), 20),
     ]
     if not centre:
         shots.append(("overview", (60, -900, 620), (60, -250, 0), 24))

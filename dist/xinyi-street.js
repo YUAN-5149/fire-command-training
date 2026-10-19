@@ -23,7 +23,7 @@ import {unproject} from './xinyi-street-world.js?v=s25';
 import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=1';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=2';
-import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps} from './xinyi-facades.js?v=2';
+import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings} from './xinyi-facades.js?v=3';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=1';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
@@ -63,18 +63,23 @@ step('讀取官方建物量體與路網');
 const [district,streets,fixtures,verified,firstBatch]=await Promise.all(['district-xinyi.json','streets-xinyi.json','street-fixtures-xinyi.json','verified-fixtures-xinyi.json','xinyi-first-batch.json'].map(f=>fetch('assets/'+f+'?v=s27').then(r=>{if(!r.ok)throw Error(f+' '+r.status);return r.json();})));
 // 精細地標（消防局、災害應變中心）：缺牆面的官方量體以占地碰撞補上，畫面改用精細模型。
 const landmarks=await loadLandmarks().catch(()=>[]);for(const a of landmarks)if(a.collider)district.buildings.push(footprintBuilding(a));
+// 逐街精修（building-overrides-xinyi.json）：官方 LOD1 缺漏的量體依 OSM 外框補建（含碰撞與地面高程）。
+const legacyFacades=new URLSearchParams(location.search).get('facades')==='legacy';
+const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=1').then(r=>r.ok?r.json():null).catch(()=>null);
+const overrides=overrideIndex(overrideData);if(overrideData)district.buildings.push(...fillBuildings(overrideData,district));
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox),colliders=buildColliders(district.buildings,ground);
 let detailMats,farMat,facadeSigns=null;
 // 建物：精修範圍（中心約 250 m）用 buildXinyiDetail，其餘用 buildDistrictBatch，與 GIS 頁預設相同。
 // 被精細地標取代的官方量體保留作地面高程與碰撞，畫面改用精細模型（landmarks-real.js）。
-{const shown=district.buildings.filter(b=>!isLandmarkVolume(landmarks,b.id)),refined=shown.filter(focusedBuilding),basic=shown.filter(b=>!focusedBuilding(b));
+// 逐街精修（building-overrides-xinyi.json）：有精修資料的量體一律用逐棟立面，即使位於中心精修範圍內。
+{const shown=district.buildings.filter(b=>!isLandmarkVolume(landmarks,b.id)),refined=shown.filter(b=>focusedBuilding(b)&&!overrides[b.id]),basic=shown.filter(b=>!focusedBuilding(b)||overrides[b.id]);
  // 遠處建物只接收陰影、不投射，減少陰影計算量。
  // 逐棟立面（xinyi-facades.js）：外觀分類由 OSM 推定；?facades=legacy 回到舊的通用窗格。
- const styles=new URLSearchParams(location.search).get('facades')==='legacy'?null:await fetch('assets/building-styles-xinyi.json?v=1').then(r=>r.ok?r.json():null).catch(()=>null);
+ const styles=legacyFacades?null:await fetch('assets/building-styles-xinyi.json?v=1').then(r=>r.ok?r.json():null).catch(()=>null);
  if(styles){
-  const fb=buildFacadeBatch(basic,styles.buildings);farMat=createFacadeMaterial(T);const far=new T.Mesh(facadeGeometry(T,fb,toLocal,ground,linearColors),farMat);far.castShadow=false;far.receiveShadow=true;far.name='xinyi facades';scene.add(far);
-  facadeSigns=addFacadeProps(T,scene,facadeProps(basic,styles.buildings,{project,facesStreet:(x,z)=>!!nearestStreet(streets.features,x,z,9)})).signMat;
+  const fb=buildFacadeBatch(basic,styles.buildings,overrides);farMat=createFacadeMaterial(T);const far=new T.Mesh(facadeGeometry(T,fb,toLocal,ground,linearColors),farMat);far.castShadow=false;far.receiveShadow=true;far.name='xinyi facades';scene.add(far);
+  facadeSigns=addFacadeProps(T,scene,facadeProps(basic,styles.buildings,{project,overrides,facesStreet:(x,z)=>!!nearestStreet(streets.features,x,z,9)})).signMat;
  }else{
  const batch=buildDistrictBatch(basic);farMat=litWindows(new T.MeshStandardMaterial({vertexColors:true,roughness:.85,side:T.DoubleSide,flatShading:true}),{byColor:true});const far=mesh(toLocal(batch.position,ground),{color:batch.color,index:batch.faces,material:farMat});far.castShadow=false;scene.add(far);}
  const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});detailMats=createDetailMaterials(GisMaterial);litWindows(detailMats.glass);scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:detailMats}));
