@@ -126,4 +126,6 @@ def main():
         X.render_to(os.path.join(prev, f"xinyi-lanes_{name}.png"))
 
 
-main()
+# 只在直接執行時建場景；build_xinyi_district.py 會匯入 build()。
+if __name__ == "__main__":
+    main()
