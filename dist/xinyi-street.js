@@ -21,7 +21,7 @@ import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s25';
 import {storeKey} from './deployment-store.js?v=s25';
 import {unproject} from './xinyi-street-world.js?v=s25';
 import {buildDistrictBatch} from './geo-district.js';
-import {loadEocAnchor,isEocVolume,eocLocalToLonLat,addEocToThree} from './eoc-real.js?v=2';
+import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=1';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
@@ -57,19 +57,20 @@ function mesh(position,{color,uv,index,groups,materials,material}){
 }
 
 step('讀取官方建物量體與路網');
-const [district,streets,fixtures,verified,firstBatch]=await Promise.all(['district-xinyi.json','streets-xinyi.json','street-fixtures-xinyi.json','verified-fixtures-xinyi.json','xinyi-first-batch.json'].map(f=>fetch('assets/'+f+'?v=s26').then(r=>{if(!r.ok)throw Error(f+' '+r.status);return r.json();})));
+const [district,streets,fixtures,verified,firstBatch]=await Promise.all(['district-xinyi.json','streets-xinyi.json','street-fixtures-xinyi.json','verified-fixtures-xinyi.json','xinyi-first-batch.json'].map(f=>fetch('assets/'+f+'?v=s27').then(r=>{if(!r.ok)throw Error(f+' '+r.status);return r.json();})));
+// 精細地標（消防局、災害應變中心）：缺牆面的官方量體以占地碰撞補上，畫面改用精細模型。
+const landmarks=await loadLandmarks().catch(()=>[]);for(const a of landmarks)if(a.collider)district.buildings.push(footprintBuilding(a));
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox),colliders=buildColliders(district.buildings,ground);
 let detailMats,farMat;
 // 建物：精修範圍（中心約 250 m）用 buildXinyiDetail，其餘用 buildDistrictBatch，與 GIS 頁預設相同。
-// 臺北市災害應變中心：官方量體保留作地面高程與碰撞，畫面改用精細模型（eoc-real.js）。
-const eocAnchor=await loadEocAnchor().catch(()=>null);
-{const shown=district.buildings.filter(b=>!isEocVolume(eocAnchor,b.id)),refined=shown.filter(focusedBuilding),basic=shown.filter(b=>!focusedBuilding(b));
+// 被精細地標取代的官方量體保留作地面高程與碰撞，畫面改用精細模型（landmarks-real.js）。
+{const shown=district.buildings.filter(b=>!isLandmarkVolume(landmarks,b.id)),refined=shown.filter(focusedBuilding),basic=shown.filter(b=>!focusedBuilding(b));
  // 遠處建物只接收陰影、不投射，減少陰影計算量。
  const batch=buildDistrictBatch(basic);farMat=litWindows(new T.MeshStandardMaterial({vertexColors:true,roughness:.85,side:T.DoubleSide,flatShading:true}),{byColor:true});const far=mesh(toLocal(batch.position,ground),{color:batch.color,index:batch.faces,material:farMat});far.castShadow=false;scene.add(far);
  const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});detailMats=createDetailMaterials(GisMaterial);litWindows(detailMats.glass);scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:detailMats}));
 }
-addEocToThree({T,scene,GLTFLoader,ground,project}).catch(e=>console.error(e));
+addLandmarksToThree({T,scene,GLTFLoader,ground,project}).catch(e=>console.error(e));
 // 街道：基本路面（整區）＋ 精修範圍鋪面材質＋ OSM 已標記 zebra 斑馬線，與 GIS 頁相同。
 for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:g.raised?-2:-1,polygonOffsetUnits:g.raised?-2:-1})});m.castShadow=false;scene.add(m);}
 {const d=buildStreetDetail(streets.features),mats=createStreetMaterials(GisMaterial);for(const m of Object.values(mats)){m.polygonOffset=true;m.polygonOffsetFactor=m.polygonOffsetUnits=-3;}
@@ -126,8 +127,8 @@ const routeGraphs={walk:buildRouteGraph(streets.features),drive:buildRouteGraph(
 const pois=(firstBatch.sites??[]).filter(s=>s.name&&s.polygon?.length).map(s=>{const pts=s.polygon.map(p=>project(p[0],p[1]));return {name:s.name,x:pts.reduce((a,p)=>a+p[0],0)/pts.length,z:pts.reduce((a,p)=>a+p[1],0)/pts.length};});
 const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',paused:false,keys:new Set(),stick:[0,0],run:false,walkT:0,pad:readPad(null),padPrev:[]};
 function placeTruck(){const g=gisEngine();if(g){truck.x=g.x;truck.z=g.z;truck.heading=g.heading;truck.v=0;return;}const f=[-Math.sin(spawn.heading),-Math.cos(spawn.heading)],r=[Math.cos(spawn.heading),-Math.sin(spawn.heading)];truck.x=spawn.x+f[0]*14+r[0]*1.5;truck.z=spawn.z+f[1]*14+r[1]*1.5;truck.heading=spawn.heading;truck.v=0;}
-// 前往災害應變中心：站在西南角入口前廣場，面向建物。
-function goToEoc(){if(!eocAnchor)return;if(state.mode==='interior')exitBuilding();if(state.mode==='drive')toggleVehicle();const [lon,lat]=eocLocalToLonLat(eocAnchor,6,-6),[x,z]=project(lon,lat),p=colliders.resolve(x,z,.4);state.mode='walk';state.x=p.x;state.z=p.z;state.facing=state.yaw=eocAnchor.heading*Math.PI/180;player.visible=true;syncUi();}
+// 前往精細地標（消防局、災害應變中心）：站在入口前，面向建物。
+function goToLandmark(key){const a=landmarks.find(l=>l.key===key);if(!a)return;if(state.mode==='interior')exitBuilding();if(state.mode==='drive')toggleVehicle();const [lon,lat]=localToLonLat(a,a.entry.x,a.entry.y),[x,z]=project(lon,lat),p=colliders.resolve(x,z,.4);state.mode='walk';state.x=p.x;state.z=p.z;state.facing=state.yaw=(a.heading+(a.entry.facing||0))*Math.PI/180;player.visible=true;syncUi();}
 function resetAll(){if(state.mode==='interior')exitBuilding();state.mode='walk';state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();standBesideTruck();player.visible=true;syncUi();}
 // GIS 部署頁的配置（同一瀏覽器）：車組、人員、搶救建物與第一正面入口。第一車組＝可駕駛的水箱車。
 const geoModels=await fetch('assets/geo-models.json').then(r=>r.ok?r.json():null).catch(()=>null);
@@ -190,8 +191,8 @@ function syncUi(){
 }
 
 // 小地圖：預先繪製路網與牆線，執行時依視角旋轉。
-// 地圖底圖涵蓋原點 ±725 m（信義範圍已往南延伸到臺北市災害應變中心）。
-const mini=$('minimap'),mctx=mini.getContext('2d'),MAP=2560,mapScale=MAP/1450,mapImg=document.createElement('canvas');
+// 地圖底圖涵蓋原點 ±1000 m（信義範圍已往南延伸到災害應變中心、往北延伸到消防局）。
+const mini=$('minimap'),mctx=mini.getContext('2d'),MAP=3072,mapScale=MAP/2000,mapImg=document.createElement('canvas');
 {mapImg.width=mapImg.height=MAP;const g=mapImg.getContext('2d');g.fillStyle='#26323a';g.fillRect(0,0,MAP,MAP);const P=(x,z)=>[MAP/2+x*mapScale,MAP/2+z*mapScale];
  g.lineCap='round';g.lineJoin='round';
  for(const f of streets.features){g.strokeStyle=f.kind==='road'?'#8e9aa2':f.kind==='crossing'?'#d9dcdc':'#55636b';g.lineWidth=Math.max(f.kind==='road'?(f.width||6):1.5,1)*mapScale;
@@ -716,7 +717,8 @@ $('tAerial').onclick=()=>aerialAction();$('tTriage').onclick=()=>openTriage();$(
 // 手機：任務面板點一下展開／收合步驟（點面板內按鈕不切換）。
 $('mission').addEventListener('click',e=>{if(TOUCH&&!e.target.closest('button'))$('mission').classList.toggle('open');});
 $('menuReset').onclick=()=>{setPaused(false);resetAll();};
-$('menuEoc').onclick=()=>{setPaused(false);goToEoc();};
+$('menuEoc').onclick=()=>{setPaused(false);goToLandmark('eoc');};
+$('menuHq').onclick=()=>{setPaused(false);goToLandmark('hq');};
 $('tSpray').addEventListener('pointerdown',()=>{state.touchSpray=true;});for(const ev of ['pointerup','pointercancel','pointerleave'])$('tSpray').addEventListener(ev,()=>{state.touchSpray=false;});
 $('mapBtn').onclick=()=>openMap();$('mapClose').onclick=()=>closeMap();$('mapIn').onclick=()=>bigmap.zoom(1.3);$('mapOut').onclick=()=>bigmap.zoom(1/1.3);$('mapMe').onclick=()=>bigmap.center();
 $('mapClear').onclick=()=>clearWaypoint();$('mapTruckWp').onclick=()=>setWaypoint(truck.x,truck.z,'消防車');
@@ -881,7 +883,7 @@ for(const k of ['firefighter','gear','equipment','stretcher','capacity']){const 
 $('loadReset').onclick=()=>{settings.load={...DEFAULTS.load};for(const k of Object.keys(settings.load))$('load-'+k).value=settings.load[k];saveSettings();renderLoad();};
 renderLoad();
 $('loading').hidden=true;
-if(new URLSearchParams(location.search).get('at')==='eoc')goToEoc();
+{const at=new URLSearchParams(location.search).get('at');if(at)goToLandmark(at);}
 // 測試用：以固定時間步推進模擬（不渲染）。
 window.__xinyiStreet={squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);}}};
 requestAnimationFrame(frame);

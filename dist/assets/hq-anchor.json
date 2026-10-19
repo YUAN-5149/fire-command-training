@@ -1,0 +1,31 @@
+{
+  "key": "hq",
+  "name": "臺北市政府消防局",
+  "model": "assets/fire-hq-core.glb",
+  "detailPage": null,
+  "lon": 121.5685283,
+  "lat": 25.0410951,
+  "base": 7.13,
+  "heading": -1.6,
+  "footprint": {
+    "x0": 30,
+    "y0": -51,
+    "x1": 72,
+    "y1": -27,
+    "h": 55.8
+  },
+  "entry": {
+    "x": 46,
+    "y": -22,
+    "facing": 180
+  },
+  "collider": true,
+  "officialIds": [
+    288171,
+    288599,
+    288958,
+    288957,
+    288170
+  ],
+  "note": "Model = HQ group of blender/build_xinyi_street.py (origin at the Songren / Zhongxiao intersection centre). Anchored by the podium's NW corner (model 30,-27) to the official NW corner (10.9 m E, 28.6 m S of the OSM intersection node 121.5687101, 25.0411021); the model's road widths were estimated wider than the real ones, so the anchor is not the real intersection. Official tower 288599 has roof points only (no walls), hence collider = true. Model height (~56 m) is taller than the official LOD1 (~44 m)."
+}

@@ -11,7 +11,7 @@ const [district,streets]=await Promise.all([load('district-xinyi.json'),load('st
 // 投影：往返誤差 < 1 mm；界框約 1 km 見方。
 const [lon,lat]=unproject(...project(121.5671,25.0355));assert.ok(Math.abs(lon-121.5671)<1e-8&&Math.abs(lat-25.0355)<1e-8);
 const [x0,z1]=project(district.bbox[0],district.bbox[1]),[x1,z0]=project(district.bbox[2],district.bbox[3]);
-assert.ok(Math.abs(x1-x0-1009)<15&&Math.abs(z1-z0-1194)<15,`bbox ${x1-x0} x ${z1-z0}`);
+assert.ok(Math.abs(x1-x0-1009)<15&&Math.abs(z1-z0-1659)<15,`bbox ${x1-x0} x ${z1-z0}`);
 
 // 地面高程：介於官方牆腳高程範圍內。
 const ground=buildHeightField(district.buildings,district.bbox);let lo=Infinity,hi=-Infinity;

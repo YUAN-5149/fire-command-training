@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import json,sys,re,datetime
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-BOXES={'ximen':[121.5025,25.0375,121.5125,25.0465],'xinyi':[121.5604,25.0275,121.5704,25.0383]}
+BOXES={'ximen':[121.5025,25.0375,121.5125,25.0465],'xinyi':[121.5604,25.0275,121.5704,25.0425]}
 DEFAULT={'primary':12,'secondary':10,'tertiary':8,'residential':6,'unclassified':6,'service':4,'living_street':5,'pedestrian':5,'footway':1.8,'path':1.5,'cycleway':2}
 def clip(a,b,box):
  x,y=a;dx,dy=b[0]-x,b[1]-y;lo,hi=0,1
