@@ -22,7 +22,7 @@ import {storeKey} from './deployment-store.js?v=s25';
 import {unproject} from './xinyi-street-world.js?v=s25';
 import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=1';
-import {addFurnitureToScene} from './xinyi-furniture.js?v=1';
+import {addFurnitureToScene} from './xinyi-furniture.js?v=2';
 import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps} from './xinyi-facades.js?v=2';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=1';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
@@ -83,7 +83,7 @@ addLandmarksToThree({T,scene,GLTFLoader,ground,project}).catch(e=>console.error(
 // 街道：預設為逐車道路面（osm2streets：車道、人行道、路口、中線、車道線、箭頭、停止線）；
 // ?roads=legacy 改回原本依 OSM 寬度展開的示意路面＋精修鋪面。兩者都保留 OSM zebra 斑馬線。
 const legacyRoads=new URLSearchParams(location.search).get('roads')==='legacy';
-const laneData=legacyRoads?null:await fetch('assets/lanes-xinyi.json?v=s28c').then(r=>r.ok?r.json():null).catch(()=>null);
+const laneData=legacyRoads?null:await fetch('assets/lanes-xinyi.json?v=s30').then(r=>r.ok?r.json():null).catch(()=>null);
 if(laneData)addLanesToScene({T,scene,data:laneData,ground});
 else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:g.raised?-2:-1,polygonOffsetUnits:g.raised?-2:-1})});m.castShadow=false;scene.add(m);}
 {if(!laneData){const d=buildStreetDetail(streets.features),mats=createStreetMaterials(GisMaterial);for(const m of Object.values(mats)){m.polygonOffset=true;m.polygonOffsetFactor=m.polygonOffsetUnits=-3;}
@@ -102,7 +102,7 @@ else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=me
 // OSM 路樹（樹幹 0.28×2.4 m、樹冠 3.2×3.8 m 自 2.2 m 起）、市府號誌設施桿位（0.12×3 m，桿形待核對）。
 const lampGlow=[],lampHeads=[];
 // 全區街道設施（xinyi-furniture.js）：市府路燈、OSM 路樹、號誌、消防栓、公車亭、草地；載入失敗時用下方原本的中心 250 m 設施。
-const furniture=await fetch('assets/street-furniture-xinyi.json?v=1').then(r=>r.ok?r.json():null).catch(()=>null);
+const furniture=await fetch('assets/street-furniture-xinyi.json?v=2').then(r=>r.ok?r.json():null).catch(()=>null);
 if(furniture){const f=addFurnitureToScene({T,scene,data:furniture,ground});lampHeads.push(f.headMat);lampGlow.push(...f.glow);}
 else{
  const dummy=new T.Object3D(),place=(inst,i,x,y,z,sx,sy,sz)=>{dummy.position.set(x,y,z);dummy.scale.set(sx,sy,sz);dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);};

@@ -204,7 +204,8 @@ SPEC = {  # kind: (材質, 預設色, 邊數, 粗糙度, 金屬度, 透明度)
     'trunk': ('Tree trunk', '#665544', 8, .9, 0, 1), 'crown': ('Tree crown', '#4a6950', 10, .9, 0, 1),
     'sigPole': ('Signal pole', '#8c9597', 8, .5, .4, 1), 'sigArm': ('Signal arm', '#8c9597', 4, .5, .4, 1),
     'sigBox': ('Signal box', '#1d2022', 4, .6, 0, 1), 'sigLamp': ('Signal lamp', '#2a2d2f', 4, .4, 0, 1),
-    'hydrant': ('Fire hydrant', '#c8211b', 10, .5, 0, 1), 'hydCap': ('Hydrant cap', '#f2c230', 10, .5, 0, 1),
+    'hydrant': ('Fire hydrant', '#c8211b', 10, .5, 0, 1), 'hydBase': ('Hydrant base', '#8e1813', 10, .6, 0, 1), 'hydOutlet': ('Hydrant outlet', '#c8211b', 4, .5, 0, 1),
+    'hydCap': ('Hydrant cap', '#f2c230', 10, .5, 0, 1),
     'hydMark': ('Hydrant marking', '#f2c230', 4, .8, 0, 1), 'shelter': ('Bus shelter roof', '#596066', 4, .6, 0, 1),
     'glass': ('Bus shelter glass', '#9fb6c0', 4, .15, 0, .45), 'busSign': ('Bus stop sign', '#2563b8', 8, .5, 0, 1),
 }

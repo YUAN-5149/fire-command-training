@@ -5,7 +5,7 @@ import {buildLaneGeometry} from './xinyi-lanes.js?v=1';
 
 // 純函式：每類實例 [{x,y,z,ry,sx,sy,sz,c}]（y 為離地高，加上地面高程後使用）。
 export function furnitureParts(data){
- const P={pole:[],head:[],trunk:[],crown:[],sigPole:[],sigArm:[],sigBox:[],sigLamp:[],hydrant:[],hydCap:[],hydMark:[],shelter:[],glass:[],busSign:[]};
+ const P={pole:[],head:[],trunk:[],crown:[],sigPole:[],sigArm:[],sigBox:[],sigLamp:[],hydrant:[],hydBase:[],hydOutlet:[],hydCap:[],hydMark:[],shelter:[],glass:[],busSign:[]};
  const add=(k,x,y,z,ry,sx,sy,sz,c)=>P[k].push({x,y,z,ry,sx,sy,sz,c});
  for(const [x,z,h] of data.lamps){add('pole',x,0,z,0,.16,h,.16);add('head',x,h,z,0,.5,.2,.3);}
  data.trees.forEach(([x,z],i)=>{const s=.85+((i*7919)%100)/250;add('trunk',x,0,z,0,.28,2.4*s,.28);add('crown',x,2.1*s,z,0,3.4*s,3.8*s,3.4*s,i%3?'#4a6950':'#56744f');});
@@ -20,7 +20,8 @@ export function furnitureParts(data){
  });
  for(const [x,z,under] of data.hydrants){
   if(under)add('hydMark',x,.03,z,0,.9,.02,.9,'#f2c230');
-  else{add('hydrant',x,0,z,0,.36,.72,.36,'#c8211b');add('hydCap',x,.72,z,0,.3,.12,.3,'#f2c230');}
+  // 地上式：底座法蘭、紅色栓身、兩側出水口、黃色圓頂蓋（約 0.8 m 高）
+  else{add('hydBase',x,0,z,0,.46,.08,.46,'#8e1813');add('hydrant',x,.08,z,0,.3,.6,.3,'#c8211b');add('hydOutlet',x,.4,z,0,.62,.13,.13,'#c8211b');add('hydCap',x,.6,z,0,.32,.26,.32,'#f2c230');}
  }
  for(const [x,z,ang] of data.busStops){
   // 候車亭背對道路：ang 指向道路
@@ -39,7 +40,7 @@ export function addFurnitureToScene({T,scene,data,ground}){
  const headMat=std({color:'#d9dedc',emissive:'#ffd9a0',emissiveIntensity:0});
  const SPEC={pole:[cyl,std({color:'#6e7477',roughness:.6})],head:[box,headMat],trunk:[cyl,std({color:'#665544'})],crown:[ball,std({roughness:.9})],
   sigPole:[cyl,std({color:'#8c9597',roughness:.5,metalness:.4})],sigArm:[box,std({color:'#8c9597',roughness:.5,metalness:.4})],sigBox:[box,std({color:'#1d2022',roughness:.6})],
-  sigLamp:[box,glowMat({roughness:.4})],hydrant:[cyl,std({roughness:.5})],hydCap:[cyl,std({roughness:.5})],hydMark:[box,std({roughness:.8,polygonOffset:true,polygonOffsetFactor:-4})],
+  sigLamp:[box,glowMat({roughness:.4})],hydrant:[cyl,std({roughness:.5})],hydBase:[cyl,std({roughness:.6})],hydOutlet:[cyl.clone().rotateZ(Math.PI/2).translate(.5,0,0),std({roughness:.5})],hydCap:[ball,std({roughness:.45})],hydMark:[box,std({roughness:.8,polygonOffset:true,polygonOffsetFactor:-4})],
   shelter:[box,std({roughness:.6})],glass:[box,std({roughness:.15,transparent:true,opacity:.45})],busSign:[cyl,std({roughness:.5})]};
  const parts=furnitureParts(data);
  const m4=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),c=new T.Color(),v=new T.Vector3(),sc=new T.Vector3();

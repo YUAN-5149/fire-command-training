@@ -20,5 +20,6 @@ const P=furnitureParts(d);
 assert.equal(P.pole.length,d.lamps.length);assert.equal(P.head.length,d.lamps.length);
 assert.equal(P.sigLamp.length,d.signals.length*3);
 assert.equal(P.hydrant.length+P.hydMark.length,d.hydrants.length);
+assert.equal(P.hydOutlet.length,P.hydrant.length);assert.equal(P.hydBase.length,P.hydrant.length);
 for(const list of Object.values(P))for(const p of list)assert([p.x,p.y,p.z,p.ry,p.sx,p.sy,p.sz].every(Number.isFinite)&&p.sx>0&&p.sy>0&&p.sz>0);
 console.log('furniture',Object.fromEntries(Object.entries(P).map(([k,v])=>[k,v.length])));
