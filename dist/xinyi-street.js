@@ -22,6 +22,8 @@ import {storeKey} from './deployment-store.js?v=s25';
 import {unproject} from './xinyi-street-world.js?v=s25';
 import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=1';
+import {addFurnitureToScene} from './xinyi-furniture.js?v=1';
+import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps} from './xinyi-facades.js?v=2';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=1';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
@@ -63,12 +65,18 @@ const [district,streets,fixtures,verified,firstBatch]=await Promise.all(['distri
 const landmarks=await loadLandmarks().catch(()=>[]);for(const a of landmarks)if(a.collider)district.buildings.push(footprintBuilding(a));
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox),colliders=buildColliders(district.buildings,ground);
-let detailMats,farMat;
+let detailMats,farMat,facadeSigns=null;
 // 建物：精修範圍（中心約 250 m）用 buildXinyiDetail，其餘用 buildDistrictBatch，與 GIS 頁預設相同。
 // 被精細地標取代的官方量體保留作地面高程與碰撞，畫面改用精細模型（landmarks-real.js）。
 {const shown=district.buildings.filter(b=>!isLandmarkVolume(landmarks,b.id)),refined=shown.filter(focusedBuilding),basic=shown.filter(b=>!focusedBuilding(b));
  // 遠處建物只接收陰影、不投射，減少陰影計算量。
- const batch=buildDistrictBatch(basic);farMat=litWindows(new T.MeshStandardMaterial({vertexColors:true,roughness:.85,side:T.DoubleSide,flatShading:true}),{byColor:true});const far=mesh(toLocal(batch.position,ground),{color:batch.color,index:batch.faces,material:farMat});far.castShadow=false;scene.add(far);
+ // 逐棟立面（xinyi-facades.js）：外觀分類由 OSM 推定；?facades=legacy 回到舊的通用窗格。
+ const styles=new URLSearchParams(location.search).get('facades')==='legacy'?null:await fetch('assets/building-styles-xinyi.json?v=1').then(r=>r.ok?r.json():null).catch(()=>null);
+ if(styles){
+  const fb=buildFacadeBatch(basic,styles.buildings);farMat=createFacadeMaterial(T);const far=new T.Mesh(facadeGeometry(T,fb,toLocal,ground,linearColors),farMat);far.castShadow=false;far.receiveShadow=true;far.name='xinyi facades';scene.add(far);
+  facadeSigns=addFacadeProps(T,scene,facadeProps(basic,styles.buildings,{project,facesStreet:(x,z)=>!!nearestStreet(streets.features,x,z,9)})).signMat;
+ }else{
+ const batch=buildDistrictBatch(basic);farMat=litWindows(new T.MeshStandardMaterial({vertexColors:true,roughness:.85,side:T.DoubleSide,flatShading:true}),{byColor:true});const far=mesh(toLocal(batch.position,ground),{color:batch.color,index:batch.faces,material:farMat});far.castShadow=false;scene.add(far);}
  const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});detailMats=createDetailMaterials(GisMaterial);litWindows(detailMats.glass);scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:detailMats}));
 }
 addLandmarksToThree({T,scene,GLTFLoader,ground,project}).catch(e=>console.error(e));
@@ -93,7 +101,10 @@ else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=me
 // 街道設施：與 GIS 頁相同尺寸與配色——市府路燈（桿徑 0.16 m、資料桿高、燈具 0.5×0.3×0.2 m）、
 // OSM 路樹（樹幹 0.28×2.4 m、樹冠 3.2×3.8 m 自 2.2 m 起）、市府號誌設施桿位（0.12×3 m，桿形待核對）。
 const lampGlow=[],lampHeads=[];
-{
+// 全區街道設施（xinyi-furniture.js）：市府路燈、OSM 路樹、號誌、消防栓、公車亭、草地；載入失敗時用下方原本的中心 250 m 設施。
+const furniture=await fetch('assets/street-furniture-xinyi.json?v=1').then(r=>r.ok?r.json():null).catch(()=>null);
+if(furniture){const f=addFurnitureToScene({T,scene,data:furniture,ground});lampHeads.push(f.headMat);lampGlow.push(...f.glow);}
+else{
  const dummy=new T.Object3D(),place=(inst,i,x,y,z,sx,sy,sz)=>{dummy.position.set(x,y,z);dummy.scale.set(sx,sy,sz);dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);};
  const cyl=new T.CylinderGeometry(.5,.5,1,10).translate(0,.5,0),box=new T.BoxGeometry(1,1,1).translate(0,.5,0),ball=new T.SphereGeometry(.5,14,10).translate(0,.5,0);
  const lamps=fixtures.lamps,pole=new T.InstancedMesh(cyl,new T.MeshStandardMaterial({color:'#6e7477',roughness:.6}),lamps.length),headMat=new T.MeshStandardMaterial({color:'#d9dedc',emissive:'#ffd9a0',emissiveIntensity:0}),head=new T.InstancedMesh(box,headMat,lamps.length);
@@ -187,7 +198,7 @@ function applyTime(name){
  sky.material.uniforms.top.value.set(p.top);sky.material.uniforms.horizon.value.set(p.horizon);scene.fog.color.set(p.horizon);scene.fog.near=p.fogNear;scene.fog.far=p.fogFar;
  hemi.intensity=p.hemiI;hemi.color.set(p.hemiSky);hemi.groundColor.set(p.hemiGround);sun.intensity=p.sunI;sun.color.set(p.sun);
  for(const m of lampHeads)m.emissiveIntensity=p.lights*2;glow.visible=p.lights>0;truck.headlight.intensity=p.lights*60;
- detailMats.glass.emissiveIntensity=p.windows*.9;farMat.emissiveIntensity=p.windows*1.2;life.setLights(p.lights);syncUi();
+ detailMats.glass.emissiveIntensity=p.windows*.9;farMat.emissiveIntensity=p.windows*1.2;if(facadeSigns)facadeSigns.emissiveIntensity=p.lights*.55;life.setLights(p.lights);syncUi();
 }
 function syncUi(){
  $('enter').textContent=state.mode==='drive'?'下車':'上車';$('siren').hidden=state.mode!=='drive';$('siren').classList.toggle('on',truck.siren);$('night').textContent='時段：'+TIME_PRESETS[state.time].label;
