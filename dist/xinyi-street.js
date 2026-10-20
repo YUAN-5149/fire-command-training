@@ -22,7 +22,7 @@ import {storeKey} from './deployment-store.js?v=s25';
 import {unproject} from './xinyi-street-world.js?v=s25';
 import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=1';
-import {addFurnitureToScene} from './xinyi-furniture.js?v=2';
+import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
 import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings} from './xinyi-facades.js?v=3';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=1';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
