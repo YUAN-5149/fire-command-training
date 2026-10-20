@@ -114,6 +114,74 @@ def facade_material(style):
     return m
 
 
+def override_material(o):
+    """逐街精修建物：依窗距、窗寬高比、玻璃色畫窗格；底層 arcade 為拱廊陰影、lobby 為玻璃大廳；
+    variant 2 為玻璃帷幕（豎框 4%、層間帶 14%）。樓高用每面的 floorh 屬性。"""
+    name = f"Facade {o['name']}"
+    if name in bpy.data.materials:
+        return bpy.data.materials[name]
+    m = X.mat(name, (.6, .6, .6, 1), rough=.8)
+    nt = m.node_tree
+    N, Lk = nt.nodes, nt.links
+    bsdf = next(n for n in N if n.type == 'BSDF_PRINCIPLED')
+    col = N.new('ShaderNodeVertexColor'); col.layer_name = 'Col'
+    uv = N.new('ShaderNodeUVMap'); uv.uv_map = 'Facade'
+    sep = N.new('ShaderNodeSeparateXYZ'); Lk.new(uv.outputs[0], sep.inputs[0])
+    fh = N.new('ShaderNodeAttribute'); fh.attribute_type = 'GEOMETRY'; fh.attribute_name = 'floorh'
+
+    def op(kind, a, b=None, clamp=False):
+        n = N.new('ShaderNodeMath'); n.operation = kind; n.use_clamp = clamp
+        for i, v in enumerate((a, b)):
+            if v is None:
+                continue
+            if isinstance(v, (int, float)):
+                n.inputs[i].default_value = v
+            else:
+                Lk.new(v, n.inputs[i])
+        return n.outputs[0]
+    u, v, floor_h = sep.outputs[0], sep.outputs[1], fh.outputs['Fac']
+    pod = o['podium']['h'] if o.get('podium') else 0.0
+    kind = o['podium']['kind'] if o.get('podium') else ''
+    curtain = o.get('variant') == 2
+    bay = o['bay']
+    ww, wh = o['win']
+    vp = op('SUBTRACT', v, pod)
+    fy = op('FRACT', op('DIVIDE', vp, floor_h))
+    bx = op('FRACT', op('DIVIDE', u, bay))
+    above = op('GREATER_THAN', v, pod)
+    if curtain:
+        win = op('MULTIPLY', op('GREATER_THAN', bx, .04), op('LESS_THAN', fy, .86))
+    else:
+        win = op('MULTIPLY', op('MULTIPLY', op('GREATER_THAN', bx, .5 - ww / 2), op('LESS_THAN', bx, .5 + ww / 2)),
+                 op('MULTIPLY', op('GREATER_THAN', fy, .2), op('LESS_THAN', fy, .2 + wh)))
+    win = op('MULTIPLY', win, above)
+    below = op('LESS_THAN', v, pod)
+    if kind == 'arcade':
+        recess = op('MULTIPLY', op('MULTIPLY', op('GREATER_THAN', bx, .14), op('LESS_THAN', bx, .86)),
+                    op('LESS_THAN', v, pod * .78))
+        lobby = op('MULTIPLY', recess, 0.0)
+    else:
+        recess = op('MULTIPLY', below, 0.0)
+        lobby = op('MULTIPLY', below, op('LESS_THAN', v, max(pod - .7, 0)))
+    glass_mask = op('ADD', win, lobby, clamp=True)
+    g = srgb(o['glass'])
+    ramp = N.new('ShaderNodeValToRGB')
+    ramp.color_ramp.elements[0].color = tuple(c * .7 for c in g[:3]) + (1,)
+    ramp.color_ramp.elements[1].color = tuple(min(1, c * 1.35) for c in g[:3]) + (1,)
+    noise = N.new('ShaderNodeTexWhiteNoise'); noise.noise_dimensions = '2D'
+    comb = N.new('ShaderNodeCombineXYZ')
+    Lk.new(op('FLOOR', op('DIVIDE', u, bay)), comb.inputs[0]); Lk.new(op('FLOOR', op('DIVIDE', vp, floor_h)), comb.inputs[1])
+    Lk.new(comb.outputs[0], noise.inputs['Vector']); Lk.new(noise.outputs['Value'], ramp.inputs[0])
+    dark = N.new('ShaderNodeMix'); dark.data_type = 'RGBA'; dark.blend_type = 'MULTIPLY'
+    Lk.new(recess, dark.inputs[0]); Lk.new(col.outputs[0], dark.inputs[6]); dark.inputs[7].default_value = (.3, .3, .3, 1)
+    mix = N.new('ShaderNodeMix'); mix.data_type = 'RGBA'
+    Lk.new(glass_mask, mix.inputs[0]); Lk.new(dark.outputs[2], mix.inputs[6]); Lk.new(ramp.outputs[0], mix.inputs[7])
+    Lk.new(mix.outputs[2], bsdf.inputs['Base Color'])
+    rough = N.new('ShaderNodeMapRange'); rough.inputs['To Min'].default_value = .8; rough.inputs['To Max'].default_value = .1
+    Lk.new(glass_mask, rough.inputs['Value']); Lk.new(rough.outputs[0], bsdf.inputs['Roughness'])
+    return m
+
+
 def colour_material(name, rough=.6, metal=0.0, alpha=1.0):
     m = X.mat(name, (.6, .6, .6, 1), rough=rough, metallic=metal)
     nt = m.node_tree
@@ -146,12 +214,16 @@ def mesh_with_attrs(name, verts, faces, corner_cols, mats, face_mats, parent, uv
 
 
 def build_buildings(buildings, root, keep):
+    # 一般建物依外觀分類合成一個物件；逐街精修建物（override）各自一個物件與材質
     by_style = {}
     for b in buildings:
         if keep(b):
-            by_style.setdefault(b['style'], []).append(b)
+            o = b.get('override')
+            key = ('o', o['name']) if o and o.get('variant') else ('s', b['style'])
+            by_style.setdefault(key, []).append(b)
     total = 0
-    for style, items in sorted(by_style.items()):
+    for (kind, key), items in sorted(by_style.items(), key=lambda kv: (kv[0][0], str(kv[0][1]))):
+        style = items[0]['style']
         verts, faces, cols, uvs, fm, fh, shop = [], [], [], [], [], [], []
         roof_mat = X.mat(f"Roof style {style}", ROOF[style] + (1,), rough=.9)
         for b in items:
@@ -174,9 +246,12 @@ def build_buildings(buildings, root, keep):
                 cols += [c] * 3
                 uvs += [(0, 0)] * 3
                 fm.append(1); fh.append(3.0); shop.append(0.0)
-        ob = mesh_with_attrs(f"Buildings style {style}", verts, faces, cols, [facade_material(style), roof_mat], fm, root,
-                             uvs=uvs, face_attrs={'floorh': fh, 'shop': shop})
+        facade = override_material(items[0]['override']) if kind == 'o' else facade_material(style)
+        ob = mesh_with_attrs(f"Buildings {key}" if kind == 'o' else f"Buildings style {style}", verts, faces, cols,
+                             [facade, roof_mat], fm, root, uvs=uvs, face_attrs={'floorh': fh, 'shop': shop})
         ob["kind"] = "building"; ob["style"] = style
+        if kind == 'o':
+            ob["name_zh"] = key
         total += len(items)
     return total
 
@@ -201,7 +276,6 @@ SPEC = {  # kind: (材質, 預設色, 邊數, 粗糙度, 金屬度, 透明度)
     'tank': ('Water tank', '#c8ccd0', 10, .3, .6, 1), 'shed': ('Rooftop shed', '#9aa2a4', 4, .7, .3, 1),
     'sign': ('Shop sign', '#d7262b', 4, .5, 0, 1),
     'pole': ('Lamp pole', '#6e7477', 8, .6, .3, 1), 'head': ('Lamp head', '#d9dedc', 4, .5, 0, 1),
-    'trunk': ('Tree trunk', '#665544', 8, .9, 0, 1), 'crown': ('Tree crown', '#4a6950', 10, .9, 0, 1),
     'sigPole': ('Signal pole', '#8c9597', 8, .5, .4, 1), 'sigArm': ('Signal arm', '#8c9597', 4, .5, .4, 1),
     'sigBox': ('Signal box', '#1d2022', 4, .6, 0, 1), 'sigLamp': ('Signal lamp', '#2a2d2f', 4, .4, 0, 1),
     'hydrant': ('Fire hydrant', '#c8211b', 10, .5, 0, 1), 'hydBase': ('Hydrant base', '#8e1813', 10, .6, 0, 1), 'hydOutlet': ('Hydrant outlet', '#c8211b', 4, .5, 0, 1),
@@ -234,6 +308,120 @@ def build_instances(groups, root, keep_xy):
         ob["kind"] = kind
         n_total += len(faces)
     return n_total
+
+
+# 行道樹：與網頁 xinyi-trees.js 相同的三種樹形（樟樹、榕樹、台灣欒樹），每種一個網格，
+# 各棵樹以連結資料的物件放置（隨機旋轉、縮放）。葉團為凹凸的二十面體球，上亮下暗；
+# 材質用噪聲紋理加葉面明暗與凹凸。
+TREE_KINDS = {
+    'camphor':    dict(trunkH=2.4, trunkR=(.13, .22), crown=(5.2, 2.4, 1.5), lumps=8, lumpR=(1.4, 2.0), leaf='#6a9a55', bark='#463a2e'),
+    'banyan':     dict(trunkH=2.2, trunkR=(.16, .28), crown=(4.7, 3.3, 1.2), lumps=9, lumpR=(1.3, 1.9), leaf='#58884a', bark='#544839'),
+    'goldenrain': dict(trunkH=3.0, trunkR=(.11, .18), crown=(6.2, 1.7, 2.2), lumps=7, lumpR=(1.1, 1.6), leaf='#88a95a', bark='#3f362c'),
+}
+
+
+def tree_mesh(kind):
+    import bmesh
+    import random
+    from mathutils import Vector, Matrix, noise
+    k = TREE_KINDS[kind]
+    rnd = random.Random(list(TREE_KINDS).index(kind) * 977 + 13)
+    bm = bmesh.new()
+    col = bm.loops.layers.color.new('Col')
+    leaf, bark = srgb(k['leaf']), srgb(k['bark'])
+
+    def paint(faces, fn):
+        for f in faces:
+            for lp in f.loops:
+                lp[col] = fn(lp.vert.co)
+
+    def cone(r0, r1, length, base, direction, seg=8):
+        d = Vector(direction).normalized()
+        rot = Vector((0, 0, 1)).rotation_difference(d).to_matrix().to_4x4()
+        res = bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r1, radius2=r0, depth=length,
+                                    matrix=Matrix.Translation(Vector(base) + d * length / 2) @ rot)
+        verts = res['verts']
+        return list({f for v in verts for f in v.link_faces})
+    bark_col = lambda co: tuple(min(1, c * 1.8 * (.85 + .15 * math.sin(co.z * 9 + co.x * 13))) for c in bark[:3]) + (1,)  # AgX 下樹皮偏黑，提亮
+    paint(cone(k['trunkR'][0], k['trunkR'][1], k['trunkH'] + .6, (0, 0, 0), (0, 0, 1), 9), bark_col)
+    cy, rx, ry = k['crown']
+    centres = []
+    for i in range(k['lumps']):
+        a = i / k['lumps'] * math.pi * 2 + rnd.random() * .6
+        rad = .35 + rnd.random() * .65
+        centres.append((math.cos(a) * rx * rad, math.sin(a) * rx * rad, cy + (rnd.random() - .4) * ry * 1.2,
+                        k['lumpR'][0] + rnd.random() * (k['lumpR'][1] - k['lumpR'][0])))
+    centres.append((0, 0, cy + ry * .55, k['lumpR'][1] * 1.05))
+    for i in range(3):
+        cx, cyy, cz, _ = centres[i * 2 % len(centres)]
+        frm = Vector((0, 0, k['trunkH'] * .85))
+        to = Vector((cx * .7, cyy * .7, cz - .6))
+        paint(cone(k['trunkR'][0] * .45, k['trunkR'][0] * .85, (to - frm).length, frm, to - frm, 6), bark_col)
+    lo, hi = cy - ry - 1.5, cy + ry + 2
+    for j, (cx, cyy, cz, R) in enumerate(centres):
+        res = bmesh.ops.create_icosphere(bm, subdivisions=3, radius=1.0, matrix=Matrix.Identity(4))
+        seed = Vector((j * 1.7, list(TREE_KINDS).index(kind) * 3.0, 0))
+        for v in res['verts']:
+            d = v.co.copy()
+            f = R * (1 + .22 * noise.noise(d * 1.6 + seed) + .08 * noise.noise(d * 4.0 + seed))
+            v.co = Vector((cx + d.x * f, cyy + d.y * f, cz + d.z * f * .82))
+        shade = .88 + rnd.random() * .2
+
+        def leaf_col(co, shade=shade):
+            h = min(1, max(0, (co.z - lo) / (hi - lo)))
+            out = min(1, math.hypot(co.x, co.y) / (rx + 1.5))
+            v = (.78 + .42 * h) * (.9 + .2 * out) * shade
+            return tuple(min(1, c * v) for c in leaf[:3]) + (1,)
+        paint({f for v in res['verts'] for f in v.link_faces}, leaf_col)
+    me = bpy.data.meshes.new(f"Tree {kind}")
+    bm.to_mesh(me)
+    bm.free()
+    for poly in me.polygons:
+        poly.use_smooth = True
+    return me
+
+
+def tree_material():
+    if "Street tree" in bpy.data.materials:
+        return bpy.data.materials["Street tree"]
+    m = X.mat("Street tree", (.5, .5, .5, 1), rough=.85)
+    nt = m.node_tree
+    N, Lk = nt.nodes, nt.links
+    bsdf = next(n for n in N if n.type == 'BSDF_PRINCIPLED')
+    col = N.new('ShaderNodeVertexColor'); col.layer_name = 'Col'
+    tex = N.new('ShaderNodeTexNoise'); tex.inputs['Scale'].default_value = 6.0; tex.inputs['Detail'].default_value = 6.0
+    ramp = N.new('ShaderNodeValToRGB')
+    ramp.color_ramp.elements[0].position = .3; ramp.color_ramp.elements[0].color = (.55, .55, .55, 1)
+    ramp.color_ramp.elements[1].position = .75; ramp.color_ramp.elements[1].color = (1.15, 1.15, 1.15, 1)
+    Lk.new(tex.outputs['Fac'], ramp.inputs[0])
+    mul = N.new('ShaderNodeMix'); mul.data_type = 'RGBA'; mul.blend_type = 'MULTIPLY'; mul.inputs[0].default_value = 1.0
+    Lk.new(col.outputs[0], mul.inputs[6]); Lk.new(ramp.outputs[0], mul.inputs[7])
+    Lk.new(mul.outputs[2], bsdf.inputs['Base Color'])
+    bump = N.new('ShaderNodeBump'); bump.inputs['Strength'].default_value = .6
+    tex2 = N.new('ShaderNodeTexNoise'); tex2.inputs['Scale'].default_value = 14.0
+    Lk.new(tex2.outputs['Fac'], bump.inputs['Height']); Lk.new(bump.outputs['Normal'], bsdf.inputs['Normal'])
+    return m
+
+
+def build_trees(items, root, keep_xy):
+    """items：[x, y, z, ry, s, s, s, kind]（export-scene-props.mjs 的 furniture.tree）。"""
+    meshes, mat = {}, tree_material()
+    grp = X.group("Street trees", root)
+    n = 0
+    for x, y, z, ry, sx, sy, sz, kind in items:
+        if not keep_xy(x, y):
+            continue
+        if kind not in meshes:
+            meshes[kind] = tree_mesh(kind)
+            meshes[kind].materials.append(mat)
+        ob = bpy.data.objects.new(f"Tree {kind} {n}", meshes[kind])
+        bpy.context.collection.objects.link(ob)
+        ob.parent = grp
+        ob.location = (x, y, z - .05)
+        ob.rotation_euler = (0, 0, ry)
+        ob.scale = (sx, sx, sx)
+        n += 1
+    return n
 
 
 def build_green(rings, root, keep_xy):
@@ -276,6 +464,8 @@ def main():
     nb = build_buildings(scene['buildings'], root, keep_b)
     np_ = build_instances(scene['props'], root, keep_xy)
     nf = build_instances(scene['furniture'], root, keep_xy)
+    nt = build_trees(scene['furniture'].get('tree', []), root, keep_xy)
+    print("TREES=", nt)
     build_green(scene['green'], root, keep_xy)
     ground = X.mat("Lane ground", (0.05, 0.06, 0.05, 1), rough=1.0)
     X.new_obj("Ground", [(-1200, -1200, -0.06), (1200, -1200, -0.06), (1200, 1200, -0.06), (-1200, 1200, -0.06)],
@@ -300,6 +490,8 @@ def main():
         ("hq_junction", (hq[0] - 28, hq[1] - 30, 9), (hq[0] + 10, hq[1] + 8, 5), 22),
         ("eoc_blocks", (eoc[0] - 40, eoc[1] - 200, 45), (eoc[0], eoc[1] - 90, 10), 26),
         ("alley_street", (46.0, -614.0, 2.0), (26.0, -594.0, 6.0), 18),
+        ("songren_n", (322.0, 712.0, 2.5), (250.0, 650.0, 16.0), 20),
+        ("songren_trees", (318.0, 650.0, 2.0), (330.0, 740.0, 6.0), 20),
     ]
     if not centre:
         shots.append(("overview", (60, -900, 620), (60, -250, 0), 24))

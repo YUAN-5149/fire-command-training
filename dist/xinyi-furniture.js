@@ -2,13 +2,16 @@
 // 市府路燈、OSM 路樹、號誌（桿＋懸臂＋燈箱）、消防栓（地上式紅色、地下式黃色標線）、公車候車亭、草地公園。
 // 每類一個 InstancedMesh。桿位、朝向依 OSM 與車道推定，非實測；消防栓實際以消防局水源資料為準。
 import {buildLaneGeometry} from './xinyi-lanes.js?v=1';
+import {treeInstances,addTreesToScene} from './xinyi-trees.js?v=5';
+import {mergeGeometries,mergeVertices} from './vendor/BufferGeometryUtils.js';
 
 // 純函式：每類實例 [{x,y,z,ry,sx,sy,sz,c}]（y 為離地高，加上地面高程後使用）。
 export function furnitureParts(data){
- const P={pole:[],head:[],trunk:[],crown:[],sigPole:[],sigArm:[],sigBox:[],sigLamp:[],hydrant:[],hydBase:[],hydOutlet:[],hydCap:[],hydMark:[],shelter:[],glass:[],busSign:[]};
+ const P={pole:[],head:[],tree:[],sigPole:[],sigArm:[],sigBox:[],sigLamp:[],hydrant:[],hydBase:[],hydOutlet:[],hydCap:[],hydMark:[],shelter:[],glass:[],busSign:[]};
  const add=(k,x,y,z,ry,sx,sy,sz,c)=>P[k].push({x,y,z,ry,sx,sy,sz,c});
  for(const [x,z,h] of data.lamps){add('pole',x,0,z,0,.16,h,.16);add('head',x,h,z,0,.5,.2,.3);}
- data.trees.forEach(([x,z],i)=>{const s=.85+((i*7919)%100)/250;add('trunk',x,0,z,0,.28,2.4*s,.28);add('crown',x,2.1*s,z,0,3.4*s,3.8*s,3.4*s,i%3?'#4a6950':'#56744f');});
+ // 行道樹：樹形、旋轉、縮放見 xinyi-trees.js（c 欄放樹種，供 Blender 使用）
+ for(const t of treeInstances(data.trees))add('tree',t.x,0,t.z,t.ry,t.s,t.s,t.s,t.kind);
  data.signals.forEach(([nx,nz,px,pz],i)=>{
   const dx=nx-px,dz=nz-pz,d=Math.hypot(dx,dz)||1,len=Math.min(d,6.5),ry=Math.atan2(dx,dz),ex=px+dx/d*len,ez=pz+dz/d*len;
   add('sigPole',px,0,pz,0,.22,6,.22);
@@ -38,17 +41,18 @@ export function addFurnitureToScene({T,scene,data,ground}){
  const std=o=>new T.MeshStandardMaterial(o);
  const glowMat=o=>{const m=std({emissive:'#ffffff',emissiveIntensity:1,...o});m.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n#if defined(USE_COLOR)||defined(USE_INSTANCING_COLOR)\ntotalEmissiveRadiance*=vColor.rgb;\n#endif');};return m;};
  const headMat=std({color:'#d9dedc',emissive:'#ffd9a0',emissiveIntensity:0});
- const SPEC={pole:[cyl,std({color:'#6e7477',roughness:.6})],head:[box,headMat],trunk:[cyl,std({color:'#665544'})],crown:[ball,std({roughness:.9})],
+ const SPEC={pole:[cyl,std({color:'#6e7477',roughness:.6})],head:[box,headMat],
   sigPole:[cyl,std({color:'#8c9597',roughness:.5,metalness:.4})],sigArm:[box,std({color:'#8c9597',roughness:.5,metalness:.4})],sigBox:[box,std({color:'#1d2022',roughness:.6})],
   sigLamp:[box,glowMat({roughness:.4})],hydrant:[cyl,std({roughness:.5})],hydBase:[cyl,std({roughness:.6})],hydOutlet:[cyl.clone().rotateZ(Math.PI/2).translate(.5,0,0),std({roughness:.5})],hydCap:[ball,std({roughness:.45})],hydMark:[box,std({roughness:.8,polygonOffset:true,polygonOffsetFactor:-4})],
   shelter:[box,std({roughness:.6})],glass:[box,std({roughness:.15,transparent:true,opacity:.45})],busSign:[cyl,std({roughness:.5})]};
  const parts=furnitureParts(data);
  const m4=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),c=new T.Color(),v=new T.Vector3(),sc=new T.Vector3();
  for(const [k,list] of Object.entries(parts)){
-  if(!list.length)continue;const [geo,mat]=SPEC[k],im=new T.InstancedMesh(geo,mat,list.length);im.name='furniture '+k;
+  if(!list.length||!SPEC[k])continue;const [geo,mat]=SPEC[k],im=new T.InstancedMesh(geo,mat,list.length);im.name='furniture '+k;
   list.forEach((p,i)=>{e.set(0,p.ry,0);q.setFromEuler(e);m4.compose(v.set(p.x,ground.at(p.x,p.z)+p.y,p.z),q,sc.set(p.sx,p.sy,p.sz));im.setMatrixAt(i,m4);if(p.c)im.setColorAt(i,c.set(p.c));});
   im.castShadow=!['hydMark','glass','sigLamp'].includes(k);im.receiveShadow=true;group.add(im);
  }
+ addTreesToScene({T,scene:group,trees:data.trees,ground,utils:{mergeGeometries,mergeVertices}});
  // 草地與公園：貼地多邊形
  if(data.green?.length){
   const triangulate=pts=>T.ShapeUtils.triangulateShape(pts.map(p=>new T.Vector2(p.x,p.y)),[]);
