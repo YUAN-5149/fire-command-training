@@ -21,10 +21,11 @@ for(const b of district.buildings){
  if(!b.walls.length)continue;
  const s=styleOf(styles,b,overrides),base=Math.min(...b.walls.map(w=>Math.min(w.a[2],w.b[2]))),top=Math.max(...b.walls.map(w=>w.h));
  baseOf.set(b.id,base);
- const walls=b.walls.map(({a,b:e,h})=>{const [ax,az]=project(a[0],a[1]),[bx,bz]=project(e[0],e[1]);return [r2(ax),r2(-az),r2(bx),r2(-bz),r2(a[2]-base),r2(h)];});
+ // 第 7 欄：臨街牆（牆中點往外 4 m 處 10 m 內有具名道路），Blender 精細立面只做臨街牆
+ const walls=b.walls.map(({a,b:e,h,n,w})=>{const [ax,az]=project(a[0],a[1]),[bx,bz]=project(e[0],e[1]);const mx=(ax+bx)/2+n[0]*4,mz=(az+bz)/2-n[1]*4;return [r2(ax),r2(-az),r2(bx),r2(-bz),r2(a[2]-base),r2(h),w>=3&&nearestStreet(streets.features,mx,mz,10)?1:0];});
  const roofs=[];for(const p of b.roofs){const [x,z]=project(p[0],p[1]);roofs.push(r2(x),r2(-z),r2(p[2]-base));}
  const o=overrides[b.id]?{name:s.name,variant:s.variant||0,bay:s.bay,win:s.win,podium:s.podium,glass:s.glass}:null;
- buildings.push({id:b.id,style:s.style,shop:s.shop,colour:s.colour,floorH:r2(Math.max(2.8,Math.min(5,top/Math.max(1,s.levels)))),walls,roofs,override:o});
+ buildings.push({id:b.id,style:s.style,shop:s.shop,colour:s.colour,levels:s.levels,floorH:r2(Math.max(2.8,Math.min(5,top/Math.max(1,s.levels)))),walls,roofs,override:o,refined:!!overrides[b.id]});
 }
 // 立面小物件的高度是絕對高程，逐棟減掉該棟牆腳高程；招牌只掛臨街面（與網頁相同的判斷）。
 const facesStreet=(x,z)=>!!nearestStreet(streets.features,x,z,9);

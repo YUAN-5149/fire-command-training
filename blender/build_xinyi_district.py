@@ -24,6 +24,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_xinyi_street as X                      # materials, preview camera, render
 import build_xinyi_lanes as L                       # 第一階段車道
+import taipei_facade as TF                          # 臨街精細立面、屋頂鐵皮加蓋
+import random
 
 ARGS = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 def arg(name, default=None):
@@ -216,6 +218,11 @@ def mesh_with_attrs(name, verts, faces, corner_cols, mats, face_mats, parent, uv
     return ob
 
 
+def detailed(b):
+    """逐街精修過的老公寓與住宅大樓：臨街牆改用 taipei_facade 的實際幾何。"""
+    return b.get('refined') and b['style'] in (0, 1)
+
+
 def build_buildings(buildings, root, keep):
     # 一般建物依外觀分類合成一個物件；逐街精修建物（override）各自一個物件與材質
     by_style = {}
@@ -231,7 +238,10 @@ def build_buildings(buildings, root, keep):
         roof_mat = X.mat(f"Roof style {style}", ROOF[style] + (1,), rough=.9)
         for b in items:
             c = srgb(b['colour'])
-            for x0, y0, x1, y1, z0, h in b['walls']:
+            for wl in b['walls']:
+                x0, y0, x1, y1, z0, h = wl[:6]
+                if detailed(b) and len(wl) > 6 and wl[6]:
+                    continue                   # 由精細立面取代
                 w = math.hypot(x1 - x0, y1 - y0)
                 if w < .05 or h < .05:
                     continue
@@ -465,7 +475,58 @@ def main():
     lane_root, n_lanes = L.build(lanes, centre, radius)
     lane_root.parent = root
     nb = build_buildings(scene['buildings'], root, keep_b)
-    np_ = build_instances(scene['props'], root, keep_xy)
+    # 屋頂鐵皮加蓋（衛星影像：老公寓屋頂多被鐵皮屋覆蓋）與臨街精細立面
+    M = TF.materials()
+    rng = random.Random(20261022)
+    roof_buf, face_buf, texts, shed_boxes, detail_walls = TF.OBuf(), TF.OBuf(), [], [], []
+    for b in scene['buildings']:
+        if not keep_b(b):
+            continue
+        xs = [w[0] for w in b['walls']]
+        ys = [w[1] for w in b['walls']]
+        cx, cy = sum(xs) / len(xs), sum(ys) / len(ys)
+        if b['style'] == 0 and rng.random() < .85:
+            h = TF.roof_shed(roof_buf, b, rng, M)
+            if h:
+                shed_boxes.append((min(xs), min(ys), max(xs), max(ys), h))
+        if detailed(b):
+            for wl in b['walls']:
+                if len(wl) > 6 and wl[6]:
+                    F = TF.Frame(wl[0], wl[1], wl[2], wl[3], wl[4], cx, cy)
+                    if F.W < 3:
+                        continue
+                    TF.street_wall(face_buf, F, wl[5], b['floorH'], b['style'], b['shop'], b['colour'], rng, M, texts)
+                    detail_walls.append((wl[0], wl[1], wl[2], wl[3]))
+    if roof_buf.f:
+        roof_buf.emit("Rooftop sheet-metal sheds", root)
+    detail_root = X.group("Street facades (detailed)", root)
+    if face_buf.f:
+        face_buf.emit("Street facades", detail_root)
+    TF.make_texts(texts, X.load_font(), detail_root)
+    print("DETAIL_WALLS=", len(detail_walls), "SIGN_TEXTS=", len(texts), "ROOF_SHEDS=", len(shed_boxes))
+
+    # 舊的方塊小物件：鐵皮屋改由屋頂加蓋取代；精細牆旁的冷氣、鐵窗、招牌改由精細立面取代；水塔墊高到加蓋頂
+    def near_detail(x, y):
+        for x0, y0, x1, y1 in detail_walls:
+            dx, dy = x1 - x0, y1 - y0
+            t = max(0, min(1, ((x - x0) * dx + (y - y0) * dy) / (dx * dx + dy * dy or 1)))
+            if math.hypot(x - x0 - dx * t, y - y0 - dy * t) < 1.6:
+                return True
+        return False
+    props = dict(scene['props'])
+    props.pop('shed', None)
+    for k in ('ac', 'grille', 'sign'):
+        props[k] = [p for p in props.get(k, []) if not near_detail(p[0], p[1])]
+    tanks = []
+    for t in props.get('tank', []):
+        t = list(t)
+        for x0, y0, x1, y1, h in shed_boxes:
+            if x0 <= t[0] <= x1 and y0 <= t[1] <= y1:
+                t[2] += h
+                break
+        tanks.append(t)
+    props['tank'] = tanks
+    np_ = build_instances(props, root, keep_xy)
     nf = build_instances(scene['furniture'], root, keep_xy)
     nt = build_trees(scene['furniture'].get('tree', []), root, keep_xy)
     print("TREES=", nt)
@@ -479,14 +540,24 @@ def main():
     out_prev = os.path.join(REPO, "blender", "preview")
     for d in (out_assets, out_prev):
         os.makedirs(d, exist_ok=True)
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(REPO, "blender", "xinyi-district.blend"))
+    if not arg("--no-save"):
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(REPO, "blender", "xinyi-district.blend"))
     glb = os.path.join(out_assets, "xinyi-district.glb")
-    bpy.ops.export_scene.gltf(filepath=glb, export_format='GLB', export_apply=True, export_extras=True,
+    if not arg("--no-glb"):
+      bpy.ops.export_scene.gltf(filepath=glb, export_format='GLB', export_apply=True, export_extras=True,
                               export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6)
-    print("GLB_BYTES=", os.path.getsize(glb))
+      print("GLB_BYTES=", os.path.getsize(glb))
 
     X.STAGE = 5
     cam = X.setup_preview()
+    # 畫質：EEVEE 光線追蹤反射、軟陰影與環境遮蔽（版本不支援的設定略過）
+    sc = bpy.context.scene
+    for attr, val in (('use_raytracing', True), ('use_shadows', True), ('shadow_ray_count', 2), ('shadow_step_count', 8),
+                      ('use_gtao', True), ('gtao_distance', 1.5), ('taa_render_samples', 64)):
+        try:
+            setattr(sc.eevee, attr, val)
+        except (AttributeError, TypeError):
+            pass
     hq = L.to_local(121.5687101, 25.0411021)
     eoc = L.to_local(121.5661, 25.0290)
     shots = [
@@ -499,7 +570,13 @@ def main():
         ("songren_s3", (300.0, -70.0, 8.0), (300.0, 120.0, 30.0), 18),
         ("songren_s4", (300.0, -110.0, 10.0), (298.0, -330.0, 22.0), 18),
         ("songren_s5", (304.0, -645.0, 2.2), (296.0, -590.0, 7.0), 16),
+        ("songren_s5_west", (296.0, -628.0, 1.7), (276.0, -612.0, 5.5), 18),
+        ("songren_s5_east", (300.0, -650.0, 1.7), (320.0, -630.0, 5.5), 18),
+        ("songren_s5_roofs", (330.0, -700.0, 70.0), (300.0, -600.0, 0.0), 24),
     ]
+    only = arg("--only")
+    if only:
+        shots = [s_ for s_ in shots if s_[0] in only.split(",")]
     if not centre:
         shots.append(("overview", (60, -900, 620), (60, -250, 0), 24))
     for name, loc, look, lens in shots:
