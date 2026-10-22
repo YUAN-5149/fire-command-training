@@ -4,7 +4,7 @@ import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js?v=commander-v21';
 import {rigWheels} from './wheel-rig.js?v=s25';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s25';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s37c';
 import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s25';
 import {createBigMap} from './xinyi-street-map.js?v=s25';
 import {createAudio} from './xinyi-street-audio.js?v=s25';
@@ -839,7 +839,7 @@ function frame(now){
  clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();quality.sample(dt);
  lookPad(dt);
  state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);
- life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
+ life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{eye:camera.position,siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
  updateAerial(dt);
  updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt);
  if(state.mode==='interior'){updateNavigation(dt);{const dTruck=30;audio.update({t,siren:truck.siren?1/(1+dTruck/25):0,speed:0,driving:false,ambient:.3});}drawMinimap();indoor.render(renderer,camera,state.yaw,fpPitch());return;}
