@@ -19,7 +19,7 @@
   <button id="siren" title="Q" hidden>警示燈</button>
   <button id="missionBtn" title="T" class="mission-btn">🔥 任務</button>
   <button id="mapBtn" title="M">地圖</button>
-  <button id="reset" title="R">回出生點</button>
+  <button id="reset" title="R">回信義分隊</button>
   <button id="help" title="Esc">選單</button>
  </div>
 </header>
@@ -77,7 +77,7 @@
    <button id="resume" class="primary">▶ 繼續</button>
    <button data-page="settings" class="active">設定</button>
    <button id="menuMap">地圖</button>
-   <button id="menuReset">回出生點</button>
+   <button id="menuReset">回信義分隊</button>
    <button id="menuHq">前往消防局</button>
    <button id="menuEoc">前往災害應變中心</button>
    <button data-page="controls">操作說明</button>
@@ -115,11 +115,11 @@
    </section>
    <section data-page="controls" hidden>
     <h2>步行</h2>
-    <table class="keys"><tr><td>移動</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或方向鍵</td></tr><tr><td>跑步</td><td><kbd>Shift</kbd></td></tr><tr><td>上消防車</td><td><kbd>E</kbd>（靠近時）</td></tr><tr><td>視角</td><td>滑鼠拖曳；滾輪縮放</td></tr></table>
+    <p>預設駐地：信義分隊（忠孝東路五段32號）。中隊長與水箱車從既有車庫前庭開始；前庭位置與尺寸為模型示意，尚未現勘量測。</p><table class="keys"><tr><td>移動</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或方向鍵</td></tr><tr><td>跑步</td><td><kbd>Shift</kbd></td></tr><tr><td>上消防車</td><td><kbd>E</kbd>（靠近時）</td></tr><tr><td>視角</td><td>滑鼠拖曳；滾輪縮放</td></tr></table>
     <h2>駕駛消防車</h2>
     <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
     <h2>共通</h2>
-    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>傷患檢傷與急救處置</td><td><kbd>K</kbd>（在傷患旁 5 m 內；窗口受困者需先救出交接）</td></tr><tr><td>後送管理（大量傷患）</td><td><kbd>J</kbd></td></tr><tr><td>雲梯車：配置／確認車位／升梯出水／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置。有受困者時先以籃架救人）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>瞄子：直線水柱／水霧</td><td><kbd>V</kbd></td></tr><tr><td>消防栓供水（拉水帶／連接／拆除）</td><td><kbd>G</kbd>（消防車旁拉出，示意消防栓旁連接）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回出生點</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
+    <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>傷患檢傷與急救處置</td><td><kbd>K</kbd>（在傷患旁 5 m 內；窗口受困者需先救出交接）</td></tr><tr><td>後送管理（大量傷患）</td><td><kbd>J</kbd></td></tr><tr><td>雲梯車：配置／確認車位／升梯出水／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置。有受困者時先以籃架救人）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>瞄子：直線水柱／水霧</td><td><kbd>V</kbd></td></tr><tr><td>消防栓供水（拉水帶／連接／拆除）</td><td><kbd>G</kbd>（消防車旁拉出，示意消防栓旁連接）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回信義分隊</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
     <h2>建物內部（示意平面）</h2>
     <table class="keys"><tr><td>分隊指揮（3 分隊：待命／外部射水／供水／室內進攻／室內搜索／撤離）</td><td><kbd>B</kbd></td></tr><tr><td>攜帶裝備（最多 4 項）</td><td><kbd>U</kbd>（消防車旁）</td></tr><tr><td>進入建物／撤出</td><td><kbd>E</kbd>（停妥後，黃色入口標示旁；空氣 ≥ 100 bar；撤出在 1 樓樓梯間西側出入口）</td></tr><tr><td>開關門窗</td><td><kbd>E</kbd></td></tr><tr><td>微開門（觀察門後、門縫冷卻）</td><td><kbd>X</kbd>（再按一次全開）</td></tr><tr><td>破門／放排煙機／放照明燈</td><td>按住 <kbd>F</kbd>（上鎖門前／樓梯間門口／任意處）</td></tr><tr><td>蹲低</td><td><kbd>C</kbd></td></tr><tr><td>熱顯像儀</td><td><kbd>I</kbd></td></tr><tr><td>隊員：跟隨／搜索／開窗排煙／撤離／架設水線射水（熱煙高溫時先水霧冷卻）／掩護射水</td><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd></td></tr><tr><td>受困者呼救</td><td>意識清楚者定時喊「救命！」（合成示意聲，左右聲道表示方向）；面板顯示方向與距離，小地圖以「?」標示房間；隔門越多越難聽到。按 2 搜索時隊員先往呼救房間</td></tr><tr><td>上下樓</td><td>走進樓梯間的梯段（右側上行、左側下行）</td></tr><tr><td>連結送水管送水口接水線</td><td>按住 <kbd>F</kbd>（樓梯間紅色箱旁，需攜帶水帶背包）</td></tr><tr><td>出水（直線水柱打火點；水霧朝上冷卻熱煙）</td><td>按住 <kbd>Space</kbd>；<kbd>V</kbd> 切換瞄子；滑鼠拖曳上下看</td></tr></table>
     <p class="note">室內為依起火立面寬度產生的示意平面，不是該建物實際格局；溫度、煙層、含氧量、熱暴露與時間為遊戲化示意，閃燃（上層 600 °C）、滾燃（500 °C）、回燃（含氧低、未燃氣體多、溫度高時開口）皆為示意門檻，不能作為現場判斷依據。</p>
@@ -129,7 +129,7 @@
     <h2>與 GIS 部署頁整合</h2>
     <p>在「臺北真實圖資」信義的部署試用中選搶救建物、第一正面入口並放置車組後，按「在信義街景開啟此部署」：街景會顯示各車組（GIS 頁同一批車型）與人員，第一車組就是可駕駛的水箱車，「🔥 任務」會以該搶救建物起火、起火面取最靠近第一正面入口的牆面。暫停選單「存回 GIS 部署」把水箱車與雲梯車位置寫回 GIS 頁；兩頁同時開啟時會自動同步。資料只存在這台裝置的瀏覽器。</p>
     <h2>手機觸控</h2>
-    <p>單指拖曳畫面轉視角、雙指開合縮放；直式手機自動放寬視角。右下按鈕依狀態顯示：步行時「上車」「跑」，拿水線時「水線」「出水」「瞄子」，任務中「雲梯」「供水」、消防車旁「裝備」、傷患旁「檢傷」；駕駛時「下車」「煞車」（按住）「警示燈」；室內「門窗／撤出」「出水」及室內面板按鈕。上方只留「任務」「地圖」「選單」，時段與回出生點在選單內；任務面板點一下展開／收合步驟。</p>
+    <p>單指拖曳畫面轉視角、雙指開合縮放；直式手機自動放寬視角。右下按鈕依狀態顯示：步行時「上車」「跑」，拿水線時「水線」「出水」「瞄子」，任務中「雲梯」「供水」、消防車旁「裝備」、傷患旁「檢傷」；駕駛時「下車」「煞車」（按住）「警示燈」；室內「門窗／撤出」「出水」及室內面板按鈕。上方只留「任務」「地圖」「選單」，時段與回信義分隊在選單內；任務面板點一下展開／收合步驟。</p>
     <p>左下搖桿移動（駕駛時上下為油門／倒車、左右為轉向）；右半螢幕拖曳轉視角；右側「跑」「上／下車」按鈕；上方「地圖」開啟全區地圖（點地圖設定目標、雙指縮放）；「選單」開啟本頁。</p>
    </section>
    <section data-page="sources" hidden>
@@ -154,6 +154,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s36-commander-v21"></script>
+<script type="module" src="xinyi-street.js?v=s36r-ranks-20261022"></script>
 </body>
 </html>

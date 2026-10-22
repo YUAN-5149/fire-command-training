@@ -30,8 +30,8 @@ const quads=batch.faces.length/3+Object.values(detail.groups).reduce((n,f)=>n+f.
 const col=buildColliders(district.buildings,ground);assert.ok(col.count>5000);
 const [ax,az,bx,bz]=col.segs[100],mx=(ax+bx)/2,mz=(az+bz)/2,p=col.resolve(mx,mz,.38);
 assert.ok(p.hit);for(const [sx,sz,ex,ez] of col.segs){const dx=ex-sx,dz=ez-sz,l2=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((p.x-sx)*dx+(p.z-sz)*dz)/l2));const d=Math.hypot(p.x-sx-dx*t,p.z-sz-dz*t);if(d<.3)assert.fail('still inside wall '+d);}
-const spawn=spawnPoint(streets.features);assert.equal(spawn.road,'松智路');assert.equal(col.resolve(spawn.x,spawn.z,.38).hit,false,'spawn is clear');
-assert.equal(nearestStreet(streets.features,spawn.x,spawn.z),'松智路');
+const spawn=spawnPoint(streets.features);assert.equal(spawn.station,'信義分隊');assert.equal(col.resolve(spawn.x,spawn.z,.38).hit,false,'spawn is clear');
+assert.equal(nearestStreet(streets.features,spawn.x,spawn.z),'忠孝東路五段');
 
 // 道路：與 GIS 頁基本路面相同高度（人行道 0.12 m、其他 0.025 m 離地）與配色；精修鋪面頂點數與 GIS 頁相同。
 const base=buildStreetBase(streets.features,ground,inFocus);let roadVertices=0;

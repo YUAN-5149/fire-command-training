@@ -1,3 +1,4 @@
+import {stationPositions} from './xinyi-station-spawn.js';
 // 信義街景漫遊：圖資轉換為本地公尺座標的純函式（不依賴 Three.js，可於 Node 測試）。
 // 建物牆面與屋頂：臺北市 2024 LOD1 官方量體；道路：OSM；路燈：臺北市開放資料。
 // 地面高程由官方量體牆腳高程內插而得，為示意地形，非實測 DEM。
@@ -102,9 +103,8 @@ export function nearestStreet(features,x,z,maxDistance=18){
  return best;
 }
 
-// 出生點：松智路中段路面（官方量體以外的公共道路）。
-export function spawnPoint(features){
- const road=features.find(f=>f.tags.name==='松智路'&&f.kind==='road')??features.find(f=>f.kind==='road');const path=road.paths[0],m=Math.floor(path.length/2);
- const [ax,az]=project(path[Math.max(m-1,0)][0],path[Math.max(m-1,0)][1]),[bx,bz]=project(path[m][0],path[m][1]);
- return {x:(ax+bx)/2,z:(az+bz)/2,heading:Math.atan2(-(bx-ax),-(bz-az)),road:road.tags.name??''};
+// Default dispatch home: Xinyi fire station's existing apparatus apron.
+export function spawnPoint(features,landmarks=[]){
+ const p=stationPositions(landmarks.find(a=>a.key==='hq')),[x,z]=project(...p.player),[tx,tz]=project(...p.truck);
+ return {x,z,heading:p.heading,road:'忠孝東路五段',station:p.station.name,address:p.station.address,truck:{x:tx,z:tz,heading:p.heading}};
 }
