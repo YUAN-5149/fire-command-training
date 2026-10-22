@@ -26,7 +26,8 @@ import {addLanesToScene} from './xinyi-lanes.js?v=1';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
 import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings,styleOf} from './xinyi-facades.js?v=5';
 import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=5';
-import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=1';
+import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';
+import {drapeSite,enhanceEoc} from './eoc-detail.js?v=1';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
@@ -96,7 +97,10 @@ let detailMats,farMat,facadeSigns=null,shophouse=null;
  const batch=buildDistrictBatch(basic);farMat=litWindows(new T.MeshStandardMaterial({vertexColors:true,roughness:.85,side:T.DoubleSide,flatShading:true}),{byColor:true});const far=mesh(toLocal(batch.position,ground),{color:batch.color,index:batch.faces,material:farMat});far.castShadow=false;scene.add(far);}
  const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});detailMats=createDetailMaterials(GisMaterial);litWindows(detailMats.glass);scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:detailMats}));
 }
-addLandmarksToThree({T,scene,GLTFLoader,ground,project}).catch(e=>console.error(e));
+// 應變中心：場地（停車場、廣場、樹與車）貼合地形，補上原模型檢視頁的表面質感與夜間亮窗、停機坪邊燈。
+let eocDetail=null;
+addLandmarksToThree({T,scene,GLTFLoader,ground,project}).then(list=>{const e=list.find(l=>l.anchor.key==='eoc');if(!e)return;
+ drapeSite(e.root,ground);eocDetail=enhanceEoc(e.root);try{eocDetail.setNight(TIME_PRESETS[state.time].lights);}catch{}}).catch(e=>console.error(e));
 // 街道：預設為逐車道路面（osm2streets：車道、人行道、路口、中線、車道線、箭頭、停止線）；
 // ?roads=legacy 改回原本依 OSM 寬度展開的示意路面＋精修鋪面。兩者都保留 OSM zebra 斑馬線。
 const legacyRoads=new URLSearchParams(location.search).get('roads')==='legacy';
@@ -215,7 +219,7 @@ function applyTime(name){
  sky.material.uniforms.top.value.set(p.top);sky.material.uniforms.horizon.value.set(p.horizon);scene.fog.color.set(p.horizon);scene.fog.near=p.fogNear;scene.fog.far=p.fogFar;
  hemi.intensity=p.hemiI;hemi.color.set(p.hemiSky);hemi.groundColor.set(p.hemiGround);sun.intensity=p.sunI;sun.color.set(p.sun);
  for(const m of lampHeads)m.emissiveIntensity=p.lights*2;glow.visible=p.lights>0;truck.headlight.intensity=p.lights*60;
- detailMats.glass.emissiveIntensity=p.windows*.9;farMat.emissiveIntensity=p.windows*1.2;if(facadeSigns)facadeSigns.emissiveIntensity=p.lights*.55;shophouse?.setNight(p.lights);life.setLights(p.lights);syncUi();
+ detailMats.glass.emissiveIntensity=p.windows*.9;farMat.emissiveIntensity=p.windows*1.2;if(facadeSigns)facadeSigns.emissiveIntensity=p.lights*.55;shophouse?.setNight(p.lights);eocDetail?.setNight(p.lights);life.setLights(p.lights);syncUi();
 }
 function syncUi(){
  $('enter').textContent=state.mode==='drive'?'下車':'上車';$('siren').hidden=state.mode!=='drive';$('siren').classList.toggle('on',truck.siren);$('night').textContent='時段：'+TIME_PRESETS[state.time].label;
@@ -842,6 +846,7 @@ function frame(now){
  clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();quality.sample(dt);
  lookPad(dt);
  state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);
+ eocDetail?.update(t);
  life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{eye:camera.position,siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
  updateAerial(dt);
  updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt);

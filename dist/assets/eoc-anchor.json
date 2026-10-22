@@ -2,7 +2,7 @@
   "key": "eoc",
   "name": "臺北市災害應變中心",
   "model": "assets/taipei-eoc-core.glb",
-  "detailPage": "taipei-eoc.html",
+  "detailPage": null,
   "lon": 121.5659615,
   "lat": 25.0287073,
   "base": 9.66,

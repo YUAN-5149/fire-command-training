@@ -1,7 +1,7 @@
 import {createNeighborReview} from './geo-neighbor-review.js?v=70c';
 import {arcadeStep,arcadeCamera} from './geo-arcade.js';
 import {entranceCandidate} from './geo-entrance-location.js';
-import {loadLandmarks,isLandmarkVolume} from './landmarks-real.js?v=1';
+import {loadLandmarks,isLandmarkVolume} from './landmarks-real.js?v=2';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials} from './geo-xinyi-detail.js?v=70';
 // Window spacing and materials are illustrative; every wall plane is from official geometry.
 const palettes=['#bba991','#b6b5a9','#9daeb1','#b39a88','#a5ada0','#c1b398'];

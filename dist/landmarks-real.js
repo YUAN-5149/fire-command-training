@@ -4,7 +4,7 @@
 //   officialIds  被精細模型取代、需隱藏的官方 LOD1 量體
 //   footprint {x0,y0,x1,y1,h}、entry {x,y,facing}  模型本地公尺（+x 東、+y 北）
 //   collider  街景漫遊是否另加占地碰撞（官方量體缺牆面時需要）
-const LIST_URL='assets/landmarks.json?v=1',VERSION='v=3';
+const LIST_URL='assets/landmarks.json?v=1',VERSION='v=4';
 let listPromise=null;
 export function loadLandmarks(){
  return listPromise??=fetch(LIST_URL).then(r=>{if(!r.ok)throw Error('landmarks '+r.status);return r.json();})
