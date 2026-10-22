@@ -1,8 +1,9 @@
+import {stationSurface} from './xinyi-station-spawn.js';
 // 信義街景漫遊：與 GIS 頁（taipei-map.html?place=xinyi 預設狀態）共用同一套建物、街道與設施建構函式，
 // 只把經緯度轉成本地公尺並改以 Three.js 呈現。外觀為示意；未使用 taipei-gta 的地圖、程式或素材。
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
-import {createActionScene} from './action-scene.js?v=commander-v21';
+import {createActionScene} from './action-scene.js?v=ranks-20261022';
 import {rigWheels} from './wheel-rig.js?v=s25';
 import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s25';
 import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s25';
@@ -19,7 +20,7 @@ import {createInterior} from './xinyi-street-interior.js?v=s25';
 import {INTERIOR,EXPOSURE,EQUIPMENT,CARRY_LIMIT,hoseRemaining,layerHeight,buildingFloors} from './xinyi-street-interior-rules.js?v=s25';
 import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s25';
 import {storeKey} from './deployment-store.js?v=s25';
-import {unproject} from './xinyi-street-world.js?v=s25';
+import {unproject} from './xinyi-street-world.js?v=station-20261022';
 import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=1';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
@@ -28,7 +29,7 @@ import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandma
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {buildZebraCrossings} from './geo-street-fixtures.js';
-import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=s25';
+import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=station-20261022';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
 // 手機（觸控）：版面另套 body.touch（移植自 main 的手機版面），提示文字的鍵盤按鍵改成畫面按鈕名稱。
@@ -68,7 +69,9 @@ const legacyFacades=new URLSearchParams(location.search).get('facades')==='legac
 const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=5').then(r=>r.ok?r.json():null).catch(()=>null);
 const overrides=overrideIndex(overrideData);if(overrideData)district.buildings.push(...fillBuildings(overrideData,district));
 step('建立地形、建物與道路');
-const ground=buildHeightField(district.buildings,district.bbox),colliders=buildColliders(district.buildings,ground);
+const ground=buildHeightField(district.buildings,district.bbox);
+ground.at=stationSurface(ground,project,landmarks.find(a=>a.key==='hq'));
+const colliders=buildColliders(district.buildings,ground);
 let detailMats,farMat,facadeSigns=null;
 // 建物：精修範圍（中心約 250 m）用 buildXinyiDetail，其餘用 buildDistrictBatch，與 GIS 頁預設相同。
 // 被精細地標取代的官方量體保留作地面高程與碰撞，畫面改用精細模型（landmarks-real.js）。
@@ -126,7 +129,7 @@ glow.visible=false;scene.add(glow);
 
 // 主控角色：既有中隊長造型（黃色消防衣）。
 step('載入角色與消防車');
-const spawn=spawnPoint(streets.features),player=new T.Group(),actionKit=createActionScene(new T.Scene()),person=actionKit.createPerson(player,'中隊長');
+const spawn=spawnPoint(streets.features,landmarks),player=new T.Group(),actionKit=createActionScene(new T.Scene(),{examples:false}),person=actionKit.createPerson(player,'中隊長');
 person.body.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(player);
 // 消防車：既有 GIS 車型，紅色警示燈保持紅色。
 const truck={root:new T.Group(),model:null,x:0,z:0,heading:0,v:0,steer:0,beacons:[],siren:false};
@@ -147,16 +150,16 @@ const audio=createAudio();
 const routeGraphs={walk:buildRouteGraph(streets.features),drive:buildRouteGraph(streets.features,{vehicle:true})};
 const pois=(firstBatch.sites??[]).filter(s=>s.name&&s.polygon?.length).map(s=>{const pts=s.polygon.map(p=>project(p[0],p[1]));return {name:s.name,x:pts.reduce((a,p)=>a+p[0],0)/pts.length,z:pts.reduce((a,p)=>a+p[1],0)/pts.length};});
 const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',paused:false,keys:new Set(),stick:[0,0],run:false,walkT:0,pad:readPad(null),padPrev:[]};
-function placeTruck(){const g=gisEngine();if(g){truck.x=g.x;truck.z=g.z;truck.heading=g.heading;truck.v=0;return;}const f=[-Math.sin(spawn.heading),-Math.cos(spawn.heading)],r=[Math.cos(spawn.heading),-Math.sin(spawn.heading)];truck.x=spawn.x+f[0]*14+r[0]*1.5;truck.z=spawn.z+f[1]*14+r[1]*1.5;truck.heading=spawn.heading;truck.v=0;}
+function placeTruck(){truck.x=spawn.truck.x;truck.z=spawn.truck.z;truck.heading=spawn.truck.heading;truck.v=0;truck.steer=0;}
 // 前往精細地標（消防局、災害應變中心）：站在入口前，面向建物。
 function goToLandmark(key){const a=landmarks.find(l=>l.key===key);if(!a)return;if(state.mode==='interior')exitBuilding();if(state.mode==='drive')toggleVehicle();const [lon,lat]=localToLonLat(a,a.entry.x,a.entry.y),[x,z]=project(lon,lat),p=colliders.resolve(x,z,.4);state.mode='walk';state.x=p.x;state.z=p.z;state.facing=state.yaw=(a.heading+(a.entry.facing||0))*Math.PI/180;player.visible=true;syncUi();}
-function resetAll(){if(state.mode==='interior')exitBuilding();state.mode='walk';state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();standBesideTruck();player.visible=true;syncUi();}
+function resetAll(){if(state.mode==='interior')exitBuilding();state.mode='walk';state.dist=7;state.pitch=.32;state.keys.clear();state.stick=[0,0];state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();standBesideTruck();player.visible=true;syncUi();}
 // GIS 部署頁的配置（同一瀏覽器）：車組、人員、搶救建物與第一正面入口。第一車組＝可駕駛的水箱車。
 const geoModels=await fetch('assets/geo-models.json').then(r=>r.ok?r.json():null).catch(()=>null);
 const gis=geoModels?createGisLayer(scene,{ground,createPerson:actionKit.createPerson,models:geoModels,preloaded:{engine:truck.template}}):null;
 let gisDep=gis?.load()??null;
 function gisEngine(){const it=gisDep?.items?.engine1;if(!it?.point)return null;return gis.data?.vehicles.find(v=>v.unitId==='engine1')??null;}
-function standBesideTruck(){if(!gisEngine())return;const r=[Math.cos(truck.heading),-Math.sin(truck.heading)],p=colliders.resolve(truck.x-r[0]*3,truck.z-r[1]*3,.4);state.x=p.x;state.z=p.z;state.facing=state.yaw=truck.heading;}
+function standBesideTruck(){const r=[Math.cos(truck.heading),-Math.sin(truck.heading)],p=colliders.resolve(truck.x-r[0]*3,truck.z-r[1]*3,.4);state.x=p.x;state.z=p.z;state.facing=state.yaw=truck.heading;}
 let aerialActive=()=>false;// 街景雲梯車已配置時隱藏 GIS 配置的同一部雲梯車
 async function applyGis(){if(!gis)return;await gis.apply(gisDep,{skip:['engine1','commander']});if(aerialActive())gis.hide('aerial');}
 function gisSummary(){const d=gis?.data;if(!d||(!d.vehicles.length&&!d.target))return '';const n=d.vehicles.filter(v=>v.unitId!=='commander').length;return `已載入 GIS 部署：車組 ${n}、人員 ${d.crew.length}`+(d.target?'、搶救建物':'')+(d.entrance?'、第一正面入口':'');}
@@ -164,7 +167,7 @@ await applyGis();
 placeTruck();standBesideTruck();
 // 頂端通知列（與「按 E 上車」提示分開，避免被覆蓋）。
 let noticeTimer=0;function showNotice(text,ms=5000){$('notice').textContent=text;$('notice').hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>{$('notice').hidden=true;},ms);}
-if(gisSummary())showNotice(gisSummary()+(gisEngine()?'；第一車組位置即可駕駛的水箱車':''),7000);
+showNotice('信義分隊待命：靠近消防車按 E 上車，按 T 接受派遣。'+(gisSummary()?' '+gisSummary()+'；可駕駛水箱車由信義分隊出勤。':''),7000);
 // 另一個分頁（GIS 頁）更新部署時即時同步（不移動正在駕駛的水箱車）。
 addEventListener('storage',async e=>{if(e.key!==storeKey('xinyi'))return;gisDep=gis?.load()??null;await applyGis();showNotice('已同步 GIS 部署頁的更新'+(gisSummary()?'：'+gisSummary().replace('已載入 GIS 部署：',''):''));});
 
@@ -192,7 +195,7 @@ function nearTruck(){return Math.hypot(state.x-truck.x,state.z-truck.z)<6;}
 function toggleVehicle(){
  if(state.mode==='interior')return;
  if(state.mode==='walk'){if(!nearTruck())return;if(mission?.hose){flashHint('請先按 F 收回水線再上車');return;}state.mode='drive';player.visible=false;state.dist=Math.max(state.dist,portrait()?17:13);}
- else{if(Math.abs(truck.v)>1.5)return;state.mode='walk';const r=[Math.cos(truck.heading),-Math.sin(truck.heading)];const p=colliders.resolve(truck.x-r[0]*2.6,truck.z-r[1]*2.6,.4);state.x=p.x;state.z=p.z;state.facing=truck.heading;player.visible=true;state.dist=portrait()?9:7;}
+ else{if(Math.abs(truck.v)>1.5)return;state.mode='walk';const r=[Math.cos(truck.heading),-Math.sin(truck.heading)];const p=colliders.resolve(truck.x-r[0]*2.6,truck.z-r[1]*2.6,.4);state.x=p.x;state.z=p.z;state.facing=truck.heading;player.visible=true;state.dist=Math.hypot(truck.x-spawn.truck.x,truck.z-spawn.truck.z)<15?7:(portrait()?9:7);}
  syncUi();
 }
 function toggleSiren(){if(state.mode!=='drive')return;truck.siren=!truck.siren;syncUi();}
