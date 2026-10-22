@@ -131,7 +131,7 @@ float glassM=0.,litM=0.,signM=0.;vec3 signC=vec3(0.);
    }
   }else if(st>4.5&&st<5.5){base*=1.-.2*step(.9,fract(u/3.));}
   base=mix(base,base*1.08,parapet);
-  // 逐街精修：1 古典石材（拱廊、窄高窗、簷口） 2 玻璃帷幕（豎框、層間帶）；參數見 building-overrides-xinyi.json
+  // 逐街精修：1 古典石材（拱廊、窄高窗、簷口） 2 玻璃帷幕（豎框、層間帶） 3 穿孔金屬板；參數見 building-overrides-xinyi.json
   float variant=vFac.w;
   if(variant>.5&&W>1.5){
    vec3 wall=diffuseColor.rgb,gl=vFac4.rgb;float bay2=max(vFac3.x,.8),podH=vFac3.w,kind=vFac4.w;
@@ -150,7 +150,12 @@ float glassM=0.,litM=0.,signM=0.;vec3 signC=vec3(0.);
     }
    }else if(v<H-1.6){
     float win2;
-    if(variant<1.5){
+    if(variant>2.5){
+     // 3 穿孔金屬板：板面圓點、分格線，窄長玻璃縫（窗寬比 vFac3.y，整層高）
+     float dots=step(length(fract(vec2(u,v)/.45)-.5),.16),seam=max(step(fract(u/3.)-.0,.02),step(fract(v/1.5),.03));
+     win2=box(bx2,.5-vFac3.y*.5,.5+vFac3.y*.5);
+     base=wall*(1.-.16*dots)*(1.-.12*seam);
+    }else if(variant<1.5){
      win2=box(bx2,.5-vFac3.y*.5,.5+vFac3.y*.5)*box(fy2,.2,.2+vFac3.z);
      base=wall*(1.-.05*step(.94,fract(v/.8)))*(1.-.07*box(bx2,.0,.06));
      base*=1.-.1*box(fy2,.12,.18)*box(bx2,.5-vFac3.y*.6,.5+vFac3.y*.6);
@@ -160,7 +165,7 @@ float glassM=0.,litM=0.,signM=0.;vec3 signC=vec3(0.);
     }
     glassM=win2;litM=win2*step(.55,fh1(vec2(bi2,fl2)+seed*91.));base=mix(base,gC,win2);
    }else{
-    base=variant<1.5?wall*1.12:mix(wall,vec3(.3,.33,.36),.6);
+    base=variant<1.5?wall*1.12:variant>2.5?wall*.92:mix(wall,vec3(.3,.33,.36),.6);
    }
    if(variant<1.5)base*=1.-.14*box(v,H-1.75,H-1.6);
   }
@@ -177,7 +182,7 @@ export function createFacadeMaterial(T){
    .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.22,glassM);')
    .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance=totalEmissiveRadiance*glassM*litM*(.28+.3*fh1(vec2(floor(vF.x/1.7),floor(vF.y/3.))+vFac.z))+length(totalEmissiveRadiance)*.32*signM*signC;');
  };
- m.customProgramCacheKey=()=>'xinyi-facade-3';
+ m.customProgramCacheKey=()=>'xinyi-facade-4';
  return m;
 }
 export function facadeGeometry(T,batch,toLocal,ground,linearColors){

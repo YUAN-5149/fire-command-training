@@ -151,6 +151,9 @@ def override_material(o):
     above = op('GREATER_THAN', v, pod)
     if curtain:
         win = op('MULTIPLY', op('GREATER_THAN', bx, .04), op('LESS_THAN', fy, .86))
+    elif o.get('variant') == 3:
+        # 穿孔金屬板：窄長玻璃縫（整層高）
+        win = op('MULTIPLY', op('GREATER_THAN', bx, .5 - ww / 2), op('LESS_THAN', bx, .5 + ww / 2))
     else:
         win = op('MULTIPLY', op('MULTIPLY', op('GREATER_THAN', bx, .5 - ww / 2), op('LESS_THAN', bx, .5 + ww / 2)),
                  op('MULTIPLY', op('GREATER_THAN', fy, .2), op('LESS_THAN', fy, .2 + wh)))
@@ -492,6 +495,7 @@ def main():
         ("alley_street", (46.0, -614.0, 2.0), (26.0, -594.0, 6.0), 18),
         ("songren_n", (322.0, 712.0, 2.5), (250.0, 650.0, 16.0), 20),
         ("songren_trees", (318.0, 650.0, 2.0), (330.0, 740.0, 6.0), 20),
+        ("songren_s2", (318.0, 625.0, 14.0), (300.0, 420.0, 30.0), 18),
     ]
     if not centre:
         shots.append(("overview", (60, -900, 620), (60, -250, 0), 24))
