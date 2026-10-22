@@ -2,6 +2,9 @@
 // 車道標線、一樓店面招牌、補植行道樹、NPC 車流與行人、時段光影。
 // 只加在本頁；不改動 GIS 頁的官方量體、道路寬度與既有樣板。
 import * as T from 'three';
+import {BODY_SPECS,buildCarGeometry} from './vendor/slop/actor-models.js';
+import {PersonRig} from './vendor/slop/pedestrians.js';
+import {createCarMaterialGL,PersonCrowdGL,carNight} from './slop-webgl.js?v=2';
 import {project} from './xinyi-street-world.js?v=s25';
 
 const key=p=>p[0].toFixed(7)+','+p[1].toFixed(7);
@@ -133,8 +136,11 @@ function shopGlassTexture(){
 }
 function geom(position,index,extra={}){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(position,3));for(const [k,[v,n]] of Object.entries(extra))g.setAttribute(k,new T.Float32BufferAttribute(v,n));g.setIndex(index);g.computeVertexNormals();g.computeBoundingSphere();return g;}
 
-// 程序化車輛（無品牌）：轎車、計程車、機車騎士。
+// 車輛：轎車、休旅車、警車、計程車改用 mrdoob/slop-newyork 的放樣車身（MIT，vendor/slop/），材質見 slop-webgl.js；
+// 機車騎士仍為程序化方塊（臺灣街景特有）。
+const SLOP_KINDS={sedan:'sedan',suv:'suv',police:'sedan',taxi:'taxi'};
 function vehicleKit(kind){
+ if(SLOP_KINDS[kind]){const spec=BODY_SPECS[SLOP_KINDS[kind]];return{slop:spec,length:spec.zFront-spec.zRear,radius:1.3};}
  const parts=(list)=>list.map(([w,h,d,x,y,z])=>new T.BoxGeometry(w,h,d).translate(x,y,z));
  const merge=gs=>{let pos=[],idx=[],off=0;for(const g of gs){const p=g.attributes.position.array,ix=g.index.array;pos.push(...p);for(const i of ix)idx.push(i+off);off+=p.length/3;}return geom(pos,idx);};
  if(kind==='scooter')return{paint:merge(parts([[.36,.45,1.5,0,.55,0],[.3,.5,.35,0,.9,-.55]])),trim:merge([...parts([[.12,.5,.5,0,.32,-.62],[.12,.5,.5,0,.32,.6],[.34,.5,.28,0,1.2,.05],[.3,.24,.3,0,1.62,.05]]),new T.SphereGeometry(.17,8,6).translate(0,1.66,.05)]),lights:merge(parts([[.16,.1,.05,0,.95,-.75],[.2,.08,.05,0,.75,.77]])),length:1.8,radius:.6};
@@ -159,25 +165,30 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
   trunk.castShadow=crown.castShadow=true;g.add(trunk,crown);scene.add(g);life.groups.trees=g;life.treeCount=trees.length;}
  // 車流
  const lanes=buildLanes(features);life.laneCount=lanes.length;
- const kits={car:vehicleKit('car'),taxi:vehicleKit('taxi'),scooter:vehicleKit('scooter')},counts={car:55,taxi:18,scooter:45},vehicles=[],traffic=new T.Group();
+ const counts={sedan:30,suv:18,police:5,taxi:18,scooter:45},kits=Object.fromEntries(Object.keys(counts).map(k=>[k,vehicleKit(k)])),vehicles=[],traffic=new T.Group();
  const lightMat=new T.MeshStandardMaterial({color:'#fff3cf',emissive:'#ffe2a0',emissiveIntensity:.2});life.lightMat=lightMat;
  let seed=11;const rand=()=>(seed=(seed*16807)%2147483647)/2147483647,total=lanes.reduce((n,l)=>n+l.length,0);
  const pickLane=()=>{let r=rand()*total;for(const l of lanes){r-=l.length;if(r<=0)return l;}return lanes[0];};
  const carColors=['#d9dcdf','#22262a','#8b1d22','#2b4a7a','#9aa3a8','#f2f2ee','#3d5c3a','#5a5f66'];
- for(const [kind,n] of Object.entries(counts)){const kit=kits[kind],paint=new T.InstancedMesh(kit.paint,new T.MeshStandardMaterial({roughness:.35,metalness:.4}),n),trim=new T.InstancedMesh(kit.trim,new T.MeshStandardMaterial({color:'#15191c',roughness:.4,metalness:.2}),n),lights=new T.InstancedMesh(kit.lights,lightMat,n);
-  for(const m of [paint,trim,lights]){m.castShadow=true;m.frustumCulled=false;traffic.add(m);}
+ for(const [kind,n] of Object.entries(counts)){const kit=kits[kind];let meshes,paint=null;
+  if(kit.slop){const g=buildCarGeometry(kit.slop);g.setAttribute('paintColor',new T.InstancedBufferAttribute(new Float32Array(n*3),3));g.setAttribute('carState',new T.InstancedBufferAttribute(new Float32Array(n*4),4));
+   const body=new T.InstancedMesh(g,createCarMaterialGL(kit.slop),n);body.name='slop '+kind;meshes={body};}
+  else{paint=new T.InstancedMesh(kit.paint,new T.MeshStandardMaterial({roughness:.35,metalness:.4}),n);meshes={paint,trim:new T.InstancedMesh(kit.trim,new T.MeshStandardMaterial({color:'#15191c',roughness:.4,metalness:.2}),n),lights:new T.InstancedMesh(kit.lights,lightMat,n)};}
+  for(const m of Object.values(meshes)){m.castShadow=true;m.frustumCulled=false;traffic.add(m);}
   for(let i=0;i<n;i++){let lane=pickLane(),s=rand()*lane.length;for(let k=0;k<20&&Math.hypot(lanePose(lane,s).x-spawn.x,lanePose(lane,s).z-spawn.z)<30;k++){lane=pickLane();s=rand()*lane.length;}
-   paint.setColorAt(i,new T.Color(kind==='taxi'?'#f2c21b':kind==='scooter'?['#c8ccd0','#1e2226','#b33a2c','#3a6fb0','#e8e4da'][i%5]:carColors[i%carColors.length]));
-   vehicles.push({kind,i,n,active:true,kit,meshes:{paint,trim,lights},lane,s,v:0,max:(lane.speed+rand()*3)*(kind==='scooter'?1.1:1),side:kind==='scooter'?Math.min(lane.width/4-.6,1.4):0,x:0,z:0,heading:0});}}
+   const col=new T.Color(kind==='taxi'?'#f2c21b':kind==='police'?'#f4f4f2':kind==='scooter'?['#c8ccd0','#1e2226','#b33a2c','#3a6fb0','#e8e4da'][i%5]:carColors[(i*3+(kind==='suv'?1:0))%carColors.length]);
+   if(kit.slop){const g=meshes.body.geometry;g.attributes.paintColor.setXYZ(i,col.r,col.g,col.b);g.attributes.carState.setXYZW(i,0,0,0,kind==='police'?1:0);}else paint.setColorAt(i,col);
+   vehicles.push({kind,i,n,active:true,kit,meshes,lane,s,v:0,max:(lane.speed+rand()*3)*(kind==='scooter'?1.1:1),side:kind==='scooter'?Math.min(lane.width/4-.6,1.4):0,x:0,z:0,heading:0});}}
  scene.add(traffic);life.groups.traffic=traffic;life.vehicles=vehicles;
  // 行人
  const walkPaths=[];for(const f of features){if(!['sidewalk','walk'].includes(f.kind))continue;for(const path of f.paths){const lp=localPath(path,2);if(lp.length>=15)walkPaths.push({...lp,width:f.width||1.8});}}
- const pedCount=Math.min(160,walkPaths.length*2),peds=[],people=new T.Group(),d=new T.Object3D();
- const torso=new T.InstancedMesh(new T.CapsuleGeometry(.2,.45,3,8).translate(0,1.15,0),new T.MeshStandardMaterial({roughness:.8}),pedCount),head=new T.InstancedMesh(new T.SphereGeometry(.13,10,8).translate(0,1.62,0),new T.MeshStandardMaterial({color:'#d9b08c',roughness:.7}),pedCount),hair=new T.InstancedMesh(new T.SphereGeometry(.14,10,6,0,Math.PI*2,0,Math.PI/2).translate(0,1.66,.01),new T.MeshStandardMaterial({color:'#1d1712'}),pedCount);
- const legGeo=new T.CapsuleGeometry(.085,.6,3,6).translate(0,-.38,0),legs=[0,1].map(()=>new T.InstancedMesh(legGeo,new T.MeshStandardMaterial({roughness:.8}),pedCount));
- const shirts=['#c94f4f','#3b6ea8','#e8e1d0','#2f2f33','#6b8f5a','#d9a441','#8f6bb0','#4aa3a3','#f0f0f0'],pants=['#2d3440','#1f2226','#5b4b3c','#3c4f6e','#6e6a62'];
- for(let i=0;i<pedCount;i++){const p=walkPaths[Math.floor(rand()*walkPaths.length)];peds.push({p,s:rand()*p.length,dir:rand()<.5?1:-1,v:1+rand()*.6,off:(rand()-.5)*Math.max(0,p.width-.8),phase:rand()*6});torso.setColorAt(i,new T.Color(shirts[i%shirts.length]));for(const l of legs)l.setColorAt(i,new T.Color(pants[i%pants.length]));}
- for(const m of [torso,head,hair,...legs]){m.castShadow=true;m.frustumCulled=false;people.add(m);}scene.add(people);life.groups.people=people;life.pedCount=pedCount;
+ // 行人：mrdoob/slop-newyork 的蒙皮行人（PersonRig：腳步落地、兩段 IK、骨盆起伏與擺手），每人依種子著裝與體型。
+ const pedCount=Math.min(160,walkPaths.length*2),peds=[],crowd=new PersonCrowdGL(pedCount,{farDistance:34}),people=crowd.group;
+ for(let i=0;i<pedCount;i++){const p=walkPaths[Math.floor(rand()*walkPaths.length)],female=rand()<.5;
+  peds.push({p,s:rand()*p.length,dir:rand()<.5?1:-1,v:1+rand()*.6,off:(rand()-.5)*Math.max(0,p.width-.8),
+   rig:new PersonRig({seed:rand(),scale:(female?.93:.98)+rand()*.1,female,girth:.9+rand()*.25,hair:female?.3+rand()*.7:rand()*.4,armSwing:.8+rand()*.4,stride:.9+rand()*.2})});}
+ const groundAt=(owner,x,z)=>ground.at(x,z);
+ scene.add(people);life.groups.people=people;life.pedCount=pedCount;
 
  const tmp=new T.Object3D();
  function obstacleAhead(veh,others,player){
@@ -187,31 +198,31 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
   for(const c of player)test(c[0],c[1],c[2]);
   return gap;
  }
- life.update=(dt,t,blockers,{siren=null}={})=>{
+ life.update=(dt,t,blockers,{siren=null,eye=null}={})=>{
   if(life.groups.traffic.visible)for(const veh of vehicles){if(!veh.active)continue;
    const gap=obstacleAhead(veh,vehicles,blockers);let target=gap<veh.kit.length/2+1.5?0:gap<veh.kit.length/2+8?veh.max*.3:veh.max;
    // 消防車（含自動出勤的分隊車輛，可傳入多部）鳴警笛接近（35 m 內）時，NPC 車輛停車並靠右讓道（示意）。
    // 讓道：減速停車並往右側路邊靠（示意），讓消防車從旁通過。
    const yieldNow=[siren].flat().some(sv=>sv&&Math.hypot(sv.x-veh.x,sv.z-veh.z)<35);if(yieldNow)target=0;veh.pull=Math.max(0,Math.min(1,(veh.pull??0)+(yieldNow?1:-.5)*dt));
-   veh.v+=Math.max(-8*dt,Math.min(3*dt,target-veh.v));veh.s+=veh.v*dt;
+   const dv=Math.max(-8*dt,Math.min(3*dt,target-veh.v));veh.brake=dv<-.5*dt||target===0?1:0;veh.v+=dv;veh.s+=veh.v*dt;
    while(veh.s>veh.lane.length){veh.s-=veh.lane.length;const next=veh.lane.next.length?veh.lane.next[Math.floor(rand()*veh.lane.next.length)]:veh.lane.back??pickLane();veh.lane=next;veh.max=(next.speed+rand()*3)*(veh.kind==='scooter'?1.1:1);}
    const p=lanePose(veh.lane,veh.s),rx=Math.cos(p.heading),rz=-Math.sin(p.heading);
    const side=veh.side+(veh.pull??0)*2.2;veh.x=p.x+rx*side;veh.z=p.z+rz*side;veh.heading+=Math.atan2(Math.sin(p.heading-veh.heading),Math.cos(p.heading-veh.heading))*Math.min(1,dt*8);
-   tmp.position.set(veh.x,ground.at(veh.x,veh.z),veh.z);tmp.rotation.set(0,veh.heading,0);tmp.updateMatrix();for(const m of Object.values(veh.meshes))m.setMatrixAt(veh.i,tmp.matrix);
+   tmp.position.set(veh.x,ground.at(veh.x,veh.z),veh.z);tmp.rotation.set(0,veh.heading+(veh.kit.slop?Math.PI:0),0);tmp.updateMatrix();for(const m of Object.values(veh.meshes))m.setMatrixAt(veh.i,tmp.matrix);
+   if(veh.kit.slop){const a=veh.meshes.body.geometry.attributes.carState;if(a.getX(veh.i)!==veh.brake){a.setX(veh.i,veh.brake);a.needsUpdate=true;}}
   }
   for(const m of traffic.children)m.instanceMatrix.needsUpdate=true;
-  if(life.groups.people.visible){peds.forEach((q,i)=>{if(i>=life.pedActive)return;q.s+=q.v*q.dir*dt;if(q.s>q.p.length||q.s<0){q.dir*=-1;q.s=Math.max(0,Math.min(q.p.length,q.s));}
+  if(life.groups.people.visible){crowd.begin();peds.forEach((q,i)=>{if(i>=life.pedActive)return;q.s+=q.v*q.dir*dt;if(q.s>q.p.length||q.s<0){q.dir*=-1;q.s=Math.max(0,Math.min(q.p.length,q.s));}
    const a=q.p.along;let k=1;while(k<a.length-1&&a[k]<q.s)k++;const u=Math.max(0,Math.min(1,(q.s-a[k-1])/((a[k]-a[k-1])||1))),A=q.p.pts[k-1],B=q.p.pts[k],dx=(B[0]-A[0])*q.dir,dz=(B[1]-A[1])*q.dir,l=Math.hypot(dx,dz)||1;
-   const x=A[0]+(B[0]-A[0])*u-dz/l*q.off,z=A[1]+(B[1]-A[1])*u+dx/l*q.off,y=ground.at(x,z),h=Math.atan2(-dx,-dz),swing=Math.sin(t*q.v*5+q.phase)*.5;
-   tmp.position.set(x,y+Math.abs(Math.sin(t*q.v*5+q.phase))*.03,z);tmp.rotation.set(0,h,0);tmp.updateMatrix();torso.setMatrixAt(i,tmp.matrix);head.setMatrixAt(i,tmp.matrix);hair.setMatrixAt(i,tmp.matrix);
-   legs.forEach((leg,j)=>{const side=j?.11:-.11;tmp.position.set(x+Math.cos(h)*side,y+.82,z-Math.sin(h)*side);tmp.rotation.set(j?-swing:swing,h,0,'YXZ');tmp.updateMatrix();leg.setMatrixAt(i,tmp.matrix);});});
-   for(const m of people.children)m.instanceMatrix.needsUpdate=true;}
+   const x=A[0]+(B[0]-A[0])*u-dz/l*q.off,z=A[1]+(B[1]-A[1])*u+dx/l*q.off;
+   q.rig.update(dt,x,z,Math.atan2(dx,dz),groundAt);crowd.add(q.rig,eye?Math.hypot(x-eye.x,z-eye.z):0);});
+   crowd.end();}
  };
  life.circles=()=>life.groups.traffic.visible?vehicles.filter(v=>v.active).map(v=>[v.x,v.z,v.kit.radius,(v.pull??0)>.6]):[];// 第 4 欄：已靠邊讓道
  // 畫質密度：只繪製與模擬前 ratio 比例的車輛與行人。
- life.pedActive=pedCount;
- life.setDensity=ratio=>{for(const v of vehicles){const keep=Math.ceil(v.n*ratio);v.active=v.i<keep;for(const m of Object.values(v.meshes))m.count=keep;}life.pedActive=Math.ceil(pedCount*ratio);for(const m of people.children)m.count=life.pedActive;};
- life.setLights=level=>{lightMat.emissiveIntensity=.2+level*3;life.shopMats[0].emissiveIntensity=level*.16;life.shopMats[1].emissiveIntensity=level*.9;};
+ life.pedActive=pedCount;life.peds=peds;
+ life.setDensity=ratio=>{for(const v of vehicles){const keep=Math.ceil(v.n*ratio);v.active=v.i<keep;for(const m of Object.values(v.meshes))m.count=keep;}life.pedActive=Math.ceil(pedCount*ratio);};
+ life.setLights=level=>{carNight.value=level;lightMat.emissiveIntensity=.2+level*3;life.shopMats[0].emissiveIntensity=level*.16;life.shopMats[1].emissiveIntensity=level*.9;};
  return life;
 }
 
