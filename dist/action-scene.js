@@ -1,4 +1,5 @@
 import {attachCommanderCharacter} from './commander-character.js';
+import {attachCrewCharacter} from './crew-character.js';
 import {updateInteriorSearch,retreatRoute} from './interior-search.js';
 import {surfaceHeight,stairPath} from './walk-surfaces.js';
 import {staging} from './staging.js';
@@ -45,6 +46,7 @@ function person(parent,rank,x=0,z=0){
  beam.rotation.x=Math.PI/2;beam.position.set(.32,1,-2.2);body.add(beam);beam.visible=false;
  const result={body,arms,legs,boots,nozzle,beam,rank};
  if(rank==='中隊長')characters.push(attachCommanderCharacter(result));
+ else if(rank==='隊員')characters.push(attachCrewCharacter(result));
  return result;
 }
 // Command staff stands separately; operational vehicle staffing remains 4 / 4 / 4 / 2.
