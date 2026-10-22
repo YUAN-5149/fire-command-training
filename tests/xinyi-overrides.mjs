@@ -37,5 +37,6 @@ const batch=buildFacadeBatch(targets,{},ov);
 assert.equal(batch.fac3.length,batch.fac.length);assert.equal(batch.fac4.length,batch.fac.length);
 for(const v of [1,2,3])assert(batch.fac.some((x,i)=>i%4===3&&x===v),'variant '+v+' present');
 for(const b of targets)if(ov[b.id].variant)assert.equal(styleOf({},b,ov).signs,false);
-assert.equal(facadeProps(targets,{},{project,overrides:ov}).sign.length,0);
+// 有精修樣式（variant）的建物不掛直立招牌；只調色、樓層而沿用分類外觀的（如中華電信）照常掛
+assert.equal(facadeProps(targets.filter(b=>ov[b.id].variant),{},{project,overrides:ov}).sign.length,0);
 console.log('overrides',data.streets.map(s=>s.street+' '+s.section+' '+s.buildings.length).join('; '),'filled',filled.length);

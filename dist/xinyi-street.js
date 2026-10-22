@@ -65,7 +65,7 @@ const [district,streets,fixtures,verified,firstBatch]=await Promise.all(['distri
 const landmarks=await loadLandmarks().catch(()=>[]);for(const a of landmarks)if(a.collider)district.buildings.push(footprintBuilding(a));
 // 逐街精修（building-overrides-xinyi.json）：官方 LOD1 缺漏的量體依 OSM 外框補建（含碰撞與地面高程）。
 const legacyFacades=new URLSearchParams(location.search).get('facades')==='legacy';
-const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=3').then(r=>r.ok?r.json():null).catch(()=>null);
+const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=4').then(r=>r.ok?r.json():null).catch(()=>null);
 const overrides=overrideIndex(overrideData);if(overrideData)district.buildings.push(...fillBuildings(overrideData,district));
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox),colliders=buildColliders(district.buildings,ground);
