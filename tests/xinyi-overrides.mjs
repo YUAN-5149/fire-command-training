@@ -16,7 +16,7 @@ for(const st of data.streets){
   for(const id of e.ids)assert(ids.has(id),'override id exists: '+id);
   assert(e.style>=0&&e.style<=6&&e.levels>=1&&e.levels<120);
   assert.match(e.colour,/^#[0-9a-f]{6}$/i);
-  if(e.variant){assert(e.bay>.5&&e.bay<10);assert(e.win[0]>0&&e.win[0]<=1&&e.win[1]>0&&e.win[1]<=1);assert(e.podium.h>0&&e.podium.h<20);assert(['arcade','lobby'].includes(e.podium.kind));assert.match(e.glass,/^#[0-9a-f]{6}$/i);}
+  if(e.variant){assert(e.bay>.5&&e.bay<25);assert(e.win[0]>0&&e.win[0]<=1&&e.win[1]>0&&e.win[1]<=1);assert(e.podium.h>0&&e.podium.h<20);assert(['arcade','lobby'].includes(e.podium.kind));assert.match(e.glass,/^#[0-9a-f]{6}$/i);}
   if(e.footprint){assert(e.height>3&&e.height<400);assert(e.footprint.length>=3);}
  }
 }
@@ -35,7 +35,7 @@ assert.equal(earcut([[0,0],[4,0],[4,4],[2,1],[0,4]]).length,3,'concave ring tria
 const ov=overrideIndex(data),targets=[...district.buildings,...filled].filter(b=>ov[b.id]);
 const batch=buildFacadeBatch(targets,{},ov);
 assert.equal(batch.fac3.length,batch.fac.length);assert.equal(batch.fac4.length,batch.fac.length);
-assert(batch.fac.some((v,i)=>i%4===3&&v===1)&&batch.fac.some((v,i)=>i%4===3&&v===2),'both variants present');
+for(const v of [1,2,3])assert(batch.fac.some((x,i)=>i%4===3&&x===v),'variant '+v+' present');
 for(const b of targets)if(ov[b.id].variant)assert.equal(styleOf({},b,ov).signs,false);
 assert.equal(facadeProps(targets,{},{project,overrides:ov}).sign.length,0);
 console.log('overrides',data.streets.map(s=>s.street+' '+s.section+' '+s.buildings.length).join('; '),'filled',filled.length);
