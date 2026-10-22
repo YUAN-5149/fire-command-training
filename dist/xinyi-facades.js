@@ -28,7 +28,8 @@ export function styleOf(styles,b,overrides){
 // 經緯度頂點（與 buildDistrictBatch 相同格式，交給 toLocal 轉本地公尺）＋每頂點立面屬性：
 //   fuv (u 沿牆公尺, v 離牆腳公尺)、fac (style+shop*10, 樓高, 亂數種子, 精修樣式)、fac2 (牆寬, 牆高)
 //   精修：fac3 (窗距, 窗寬比, 窗高比, 底層高)、fac4 (玻璃 r, g, b, 底層型式 1 拱廊 2 玻璃大廳)
-export function buildFacadeBatch(buildings,styles,overrides){
+// opts.skipWall(b,k)：由精細立面（xinyi-shophouse.js）取代的牆不畫
+export function buildFacadeBatch(buildings,styles,overrides,opts={}){
  const position=[],color=[],fuv=[],fac=[],fac2=[],fac3=[],fac4=[],index=[];
  for(const b of buildings){
   const s=styleOf(styles,b,overrides),seed=hash(b.id),top=Math.max(...b.walls.map(w=>w.h));
@@ -37,7 +38,7 @@ export function buildFacadeBatch(buildings,styles,overrides){
   for(let i=0;i<b.roofs.length;i+=3){const st=position.length/3;
    for(const p of b.roofs.slice(i,i+3)){position.push(p[0],p[1],p[2]+.045);color.push(...roof);fuv.push(0,0);fac.push(STYLE.ROOF,3,seed,0);fac2.push(0,0);fac3.push(0,0,0,0);fac4.push(0,0,0,0);}
    index.push(st,st+1,st+2);}
-  for(const {a,b:e,w,h,n} of b.walls){if(w<.05||h<.05)continue;const st=position.length/3,d=.035;
+  for(const [k,{a,b:e,w,h,n}] of b.walls.entries()){if(w<.05||h<.05||opts.skipWall?.(b,k))continue;const st=position.length/3,d=.035;
    const ox=n[0]*d/LON_M,oy=n[1]*d/LAT_M;
    for(const [x,y,z,u,v] of [[a[0],a[1],a[2],0,0],[e[0],e[1],e[2],w,0],[e[0],e[1],e[2]+h,w,h],[a[0],a[1],a[2]+h,0,h]]){
     position.push(x+ox,y+oy,z);color.push(...wall);fuv.push(u,v);fac.push(code,floorH,seed,s.variant||0);fac2.push(w,h);fac3.push(...p3);fac4.push(...p4);}
@@ -48,14 +49,15 @@ export function buildFacadeBatch(buildings,styles,overrides){
 
 // 立面小物件（本地公尺，x 東、z 南、y 高）：每類回傳 [{x,y,z,ry,sx,sy,sz,c}]。
 //   facesStreet(x,z) 判斷牆外是否為道路（招牌只掛臨街面）；project 為經緯度轉本地。
-export function facadeProps(buildings,styles,{project,facesStreet=()=>true,max=30000,overrides=null}){
+// skipWall(b,k)：精細立面的牆不放方塊冷氣／鐵窗／招牌；shed(b,style)：屋頂鐵皮加蓋高度（有加蓋時不放舊的方塊鐵皮屋，水塔墊高）
+export function facadeProps(buildings,styles,{project,facesStreet=()=>true,max=30000,overrides=null,skipWall=null,shed:shedOf=null}){
  const ac=[],tank=[],shed=[],sign=[],grille=[];
  const SIGN=['#d7262b','#f2c230','#f5f5f0','#2563b8','#1f8a4c','#e86a1c','#c2185b'];
  for(const b of buildings){
   const s=styleOf(styles,b,overrides),seed=hash(b.id),residential=s.style<=STYLE.TOWER,nid=typeof b.id==='number'?b.id:Math.floor(seed*1e6);
   const top=Math.max(...b.walls.map(w=>w.h)),floorH=Math.max(2.8,Math.min(5,top/Math.max(1,s.levels)));
   for(const [k,{a,b:e,w,h,n}] of b.walls.entries()){
-   if(w<3||h<5)continue;
+   if(w<3||h<5||skipWall?.(b,k))continue;
    const [ax,az]=project(a[0],a[1]),[bx,bz]=project(e[0],e[1]),nx=n[0],nz=-n[1],ry=Math.atan2(nx,nz),tx=(bx-ax)/w,tz=(bz-az)/w;
    const at=(u,out)=>[ax+tx*u+nx*out,az+tz*u+nz*out];
    const street=s.shop?facesStreet(...at(w/2,5)):false;
@@ -75,8 +77,9 @@ export function facadeProps(buildings,styles,{project,facesStreet=()=>true,max=3
   if(residential&&b.roofs.length>=3){
    let best=null,area=0;for(let i=0;i<b.roofs.length;i+=3){const [p,q,r]=b.roofs.slice(i,i+3).map(v=>[...project(v[0],v[1]),v[2]]);const A=Math.abs((q[0]-p[0])*(r[1]-p[1])-(r[0]-p[0])*(q[1]-p[1]))/2;if(A>area){area=A;best=[p,q,r];}}
    if(best&&area>12){const cx=(best[0][0]+best[1][0]+best[2][0])/3,cz=(best[0][1]+best[1][1]+best[2][1])/3,y=Math.max(best[0][2],best[1][2],best[2][2]);
-    const n=1+Math.floor(seed*Math.min(3,area/40));for(let i=0;i<n;i++)tank.push({x:cx+(i-(n-1)/2)*1.7,y:y+.05,z:cz,ry:0,sx:.75,sy:1.4,sz:.75,c:'#c8ccd0'});
-    if(s.style===STYLE.OLD&&seed>.35&&area>30){const side=Math.min(Math.sqrt(area)*.55,7);shed.push({x:cx,y:y+.05,z:cz+1.6,ry:seed*Math.PI,sx:side,sy:2.6,sz:side*.7,c:seed>.7?'#4f7fa8':'#9aa2a4'});}
+    const lift=shedOf?shedOf(b,s.style):0;
+    const n=1+Math.floor(seed*Math.min(3,area/40));for(let i=0;i<n;i++)tank.push({x:cx+(i-(n-1)/2)*1.7,y:y+.05+lift,z:cz,ry:0,sx:.75,sy:1.4,sz:.75,c:'#c8ccd0'});
+    if(!shedOf&&s.style===STYLE.OLD&&seed>.35&&area>30){const side=Math.min(Math.sqrt(area)*.55,7);shed.push({x:cx,y:y+.05,z:cz+1.6,ry:seed*Math.PI,sx:side,sy:2.6,sz:side*.7,c:seed>.7?'#4f7fa8':'#9aa2a4'});}
    }
   }
  }
