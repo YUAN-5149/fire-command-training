@@ -804,10 +804,12 @@ def build_site(M, g, font):
     S.box(M['curb_red'], JUNCTION[0] + 4, STREET_Y[1], 0.0, 200, STREET_Y[1] + 0.2, zw + 0.01)
     S.box(M['walk'], -150, STREET_Y[0] - 3.0, 0.0, 200, STREET_Y[0], zw)
     # west driveway, hedge, east plaza, north service yard
-    holed_box(S, M['paving'], (-9.0, 0.0, 0.0, BD + 2), 0.0, zw, hole)
-    S.box(M['hedge'], -9.6, 2.0, zw, -9.0, BD, zw + 1.1)
-    S.box(M['paving'], BW, 0.0, 0.0, WALK_E[0], 44.0, zw)
-    S.box(M['paving'], 0.0, BD, 0.0, BW + 12, BD + 6, zw)
+    # （場地鋪面另成「EOC site paving」，信義街景漫遊只帶這個物件，不帶示意的道路與遠景地面）
+    P = X.MBuf("EOC site paving")
+    holed_box(P, M['paving'], (-9.0, 0.0, 0.0, BD + 2), 0.0, zw, hole)
+    P.box(M['hedge'], -9.6, 2.0, zw, -9.0, BD, zw + 1.1)
+    P.box(M['paving'], BW, 0.0, 0.0, WALK_E[0], 44.0, zw)
+    P.box(M['paving'], 0.0, BD, 0.0, BW + 12, BD + 6, zw)
     # 松智路 to the west and 松智路39巷 to the north, with sidewalks
     S.box(M['asphalt'], SONGZHI_X[0], 6.0, 0.0, SONGZHI_X[1], 160.0, 0.01)
     xs = (SONGZHI_X[0] + SONGZHI_X[1]) / 2
@@ -817,10 +819,11 @@ def build_site(M, g, font):
     S.box(M['walk'], SONGZHI_X[1], LANE39_Y[0] - 2.0, 0.0, WALK_E[0], LANE39_Y[0], zw)
     S.box(M['walk'], SONGZHI_X[0], LANE39_Y[1], 0.0, WALK_E[1], LANE39_Y[1] + 2.5, zw)
     # tree-lined walkway between the EOC and the school
-    S.box(M['paving'], WALK_E[0], STREET_Y[1], 0.0, WALK_E[1], 160.0, zw)
+    P.box(M['paving'], WALK_E[0], STREET_Y[1], 0.0, WALK_E[1], 160.0, zw)
     # small park north of the building: lawn, a round lawn ringed by a path
-    S.box(M['field'], 4.0, BD + 6.0, 0.0, WALK_E[0], LANE39_Y[0] - 2.0, zw + 0.03)
+    P.box(M['field'], 4.0, BD + 6.0, 0.0, WALK_E[0], LANE39_Y[0] - 2.0, zw + 0.03)
     S.emit(g)
+    P.emit(g)
     pk = X.Kit()
     pc = (36.0, BD + 14.0)
     pk.cyl(M['paving'], (pc[0], pc[1], zw), (pc[0], pc[1], zw + 0.05), 8.5, seg=40)
@@ -854,9 +857,11 @@ def build_site(M, g, font):
     def kerb_y(x):                             # alley NE kerb, y at a given x
         return ey + (x - ex) / dx * dy
     lot_n = LANE39_Y[0] - 2.0
-    k.poly(M['asphalt'], [(ex, ey, 0.02), (-10.0, ey, 0.02), (-10.0, lot_n, 0.02),
-                          (LOT_WEST, lot_n, 0.02), (LOT_WEST, kerb_y(LOT_WEST), 0.02)])
-    X.inst("EOC alley and parking lot", k.mesh("EOC alley and parking lot"), (0, 0, 0), parent=g)
+    X.inst("EOC alley", k.mesh("EOC alley"), (0, 0, 0), parent=g)
+    lk = X.Kit()
+    lk.poly(M['asphalt'], [(ex, ey, 0.02), (-10.0, ey, 0.02), (-10.0, lot_n, 0.02),
+                           (LOT_WEST, lot_n, 0.02), (LOT_WEST, kerb_y(LOT_WEST), 0.02)])
+    X.inst("EOC parking lot", lk.mesh("EOC parking lot"), (0, 0, 0), parent=g)
     X.build_box_grid(M, g, jx - 6, jx + 6, STREET_Y[0] + 0.3, STREET_Y[1] - 0.3, step=2.0)
 
     # parked cars in rows across the lot
@@ -982,6 +987,8 @@ def main():
                               export_draco_texcoord_quantization=10)
     print("GLB_BYTES=", os.path.getsize(glb))
 
+    if "--no-preview" in sys.argv:
+        return
     X.STAGE = 5                                   # physical sky in the previews
     cam = X.setup_preview()
     prev = os.path.join(OUT_DIR, "preview")

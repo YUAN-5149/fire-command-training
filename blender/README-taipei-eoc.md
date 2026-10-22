@@ -7,13 +7,16 @@
 都是從 Google 地圖比例尺、Google 地球 3D 鳥瞰與街景（pano `sdqgtREbuiqXtSfjqymmAA`、
 `1ZKh73tLCvz-JdIcN25Pxg`）目測估算，未描圖、未使用影像貼圖。
 北半部屋頂設備與背面立面沒有清楚參考，為推測。停車場車輛排列為示意。
-網站頁面：`dist/taipei-eoc.html`（首頁「災害應變中心」連結），載入 `dist/assets/taipei-eoc.glb`；重建模型後要把新的 GLB 複製過去。
+網站不再有獨立的模型檢視頁（原 `dist/taipei-eoc.html`，2026-10 併入信義街景漫遊後刪除）。
+完整模型 `taipei-eoc.glb` 只留在 Blender 輸出供預覽圖使用，網站只用本體＋場地的 `taipei-eoc-core.glb`。
 
 ## 重建
 
 ```sh
 blender -b -P blender/build_taipei_eoc.py -- --outdir blender
 ```
+
+加 `--no-preview` 可略過預覽圖算圖（約 30 秒即完成建模）。
 
 輸出 `blender/assets/taipei-eoc.glb`、`blender/preview/taipei-eoc_*.png`、
 `blender/blender/taipei-eoc.blend`（.blend 不入版控）。
@@ -64,7 +67,7 @@ GLB 以 Draco 壓縮匯出（約 2.7 MB）；網站以 `dist/vendor/draco/` 的�
 1. 改 `build_taipei_eoc.py`，執行建模（會同時產生完整模型與 `taipei-eoc.blend`）
 2. 匯出真實地圖用的本體模型（只含建物與自身設施，不含示意的周邊街屋、樹與車）：
    `blender -b blender/taipei-eoc.blend -P blender/export_eoc_core.py -- --outdir <repo>`
-3. 把 `assets/taipei-eoc-core.glb`、`assets/taipei-eoc.glb` 複製到 `dist/assets/`
+3. 把 `assets/taipei-eoc-core.glb` 複製到 `dist/assets/`
 4. 調高 `dist/landmarks-real.js` 裡的 `VERSION`，讓瀏覽器抓到新版
 5. 若改了占地或位置，同步更新 `eoc-anchor.json`（`officialIds` 不要漏掉，否則官方白模會和模型重疊）
 
@@ -77,3 +80,14 @@ GLB 以 Draco 壓縮匯出（約 2.7 MB）；網站以 `dist/vendor/draco/` 的�
 限制：
 - 真實地圖的地面不透明，所以地下停車場車道的下坡段在 ArcGIS 頁看不到，只看得到擋土牆與欄杆
 - 完整車道請看模型檢視頁
+
+## 信義街景漫遊的場地與質感
+
+本體模型（`taipei-eoc-core.glb`）除了建物，也帶場地：車道與廣場鋪面（`EOC site paving`）、
+西側停車場與停車格、停放車輛、北側小公園步道、行道樹、YouBike 站、路口黃色網狀線。
+不帶完整模型裡示意的周邊街屋、學校、道路與遠景地面（街景已有依官方圖資建的真實周邊）。
+
+- 場地物件的 glTF extras `drape`：`surface`＝鋪面逐頂點貼合街景地形，`object`＝車輛、樹整個移到地面高度
+  （`export_eoc_core.py` 依物件名稱標記，`dist/eoc-detail.js` 的 `drapeSite` 處理）
+- 原模型檢視頁的寫實化移到 `dist/eoc-detail.js` 的 `enhanceEoc`：牆板縫、石材、柏油、鋪面質感，
+  夜間玻璃依格子亂數亮窗、停機坪邊燈閃爍，跟著街景時段切換
