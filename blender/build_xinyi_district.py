@@ -327,6 +327,52 @@ def build_instances(groups, root, keep_xy):
     return n_total
 
 
+# 立面構件（dist/assets/facade-kits.glb，blender/build_facade_kits.py 以 building_tools 產生）：
+# 依 export-scene-props.mjs 的 kits 擺放（與網頁 facade-kits.js 同一份規則），每個構件合併成一個網格。
+def build_kits(kits, root, keep_xy):
+    import numpy as np
+    path = os.path.join(REPO, "dist", "assets", "facade-kits.glb")
+    if not kits or not os.path.exists(path):
+        return 0
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=path)
+    imported = [o for o in bpy.data.objects if o not in before]
+    src = {o.get('kit'): o for o in imported if o.type == 'MESH' and o.get('kit')}
+    total = 0
+    for name, items in kits.items():
+        ob = src.get(name)
+        items = [it for it in items if keep_xy(it[5], it[6])]
+        if ob is None or not items:
+            continue
+        me = ob.data
+        # glTF 匯入後：構件 X 沿牆、Z 向上、-Y 朝外
+        co = np.array([v.co[:] for v in me.vertices])
+        polys = [list(p.vertices) for p in me.polygons]
+        mats = [p.material_index for p in me.polygons]
+        verts, faces, mi = [], [], []
+        for tx, ty, nx, ny, sy, x, y, z in items:
+            # 世界 = 沿牆*lx + 外法線*(-ly) + 向上*lz*sy
+            w = (np.outer(co[:, 0], (tx, ty, 0)) + np.outer(-co[:, 1], (nx, ny, 0))
+                 + np.outer(co[:, 2] * sy, (0, 0, 1)) + (x, y, z))
+            off = len(verts)
+            verts.extend(map(tuple, w))
+            faces.extend([[i + off for i in f] for f in polys])
+            mi.extend(mats)
+        m2 = bpy.data.meshes.new(f"Kits {name}")
+        m2.from_pydata(verts, [], faces)
+        for mt in me.materials:
+            m2.materials.append(mt)
+        m2.polygons.foreach_set('material_index', mi)
+        m2.update()
+        o2 = bpy.data.objects.new(f"Kits {name}", m2)
+        bpy.context.scene.collection.objects.link(o2)
+        o2.parent = root
+        total += len(items)
+    for o in imported:
+        bpy.data.objects.remove(o, do_unlink=True)
+    return total
+
+
 # 行道樹：與網頁 xinyi-trees.js 相同的三種樹形（樟樹、榕樹、台灣欒樹），每種一個網格，
 # 各棵樹以連結資料的物件放置（隨機旋轉、縮放）。葉團為凹凸的二十面體球，上亮下暗；
 # 材質用噪聲紋理加葉面明暗與凹凸。
@@ -533,6 +579,7 @@ def main():
     np_ = build_instances(props, root, keep_xy)
     nf = build_instances(scene['furniture'], root, keep_xy)
     nt = build_trees(scene['furniture'].get('tree', []), root, keep_xy)
+    print("KITS=", build_kits(scene.get('kits', {}), root, keep_xy))
     print("TREES=", nt)
     build_green(scene['green'], root, keep_xy)
     ground = X.mat("Lane ground", (0.05, 0.06, 0.05, 1), rough=1.0)
@@ -581,6 +628,12 @@ def main():
         ("songzhi_cityhall", (14.0, 380.0, 1.8), (-40.0, 405.0, 14.0), 20),
         ("songzhi_s2_east", (14.0, 55.0, 1.8), (60.0, 55.0, 14.0), 20),
         ("songzhi_s2_west", (16.0, 40.0, 1.8), (-40.0, 25.0, 30.0), 18),
+        ("songzhi_s3_east", (2.0, -112.0, 1.8), (40.0, -135.0, 14.0), 20),
+        ("songzhi_s3_tower", (2.0, -160.0, 1.8), (45.0, -182.0, 30.0), 18),
+        ("songzhi_s4_east", (-3.0, -310.0, 1.8), (40.0, -290.0, 16.0), 20),
+        ("songzhi_s4_west", (2.0, -295.0, 1.8), (-45.0, -320.0, 22.0), 18),
+        ("songzhi_s5_west", (-2.0, -425.0, 1.8), (-40.0, -445.0, 16.0), 20),
+        ("songzhi_s5_south", (-1.0, -405.0, 2.2), (-30.0, -500.0, 12.0), 20),
     ]
     only = arg("--only")
     if only:
