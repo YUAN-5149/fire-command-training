@@ -14,5 +14,5 @@ export function installRigidSkinBounds(mesh){
  mesh.computeBoundingBox();return true;
 }
 export function characterVisible(body){for(let o=body;o;o=o.parent){if(!o.visible)return false;if(o.isScene)return true;}return false;}
-export function createWalkMotion(){let phase=0,blend=0,speed=0;return {update(dt,distance=0){dt=Math.max(0,Math.min(dt,.1));const moving=distance>1e-5;blend+=((moving?Math.min(1,distance/Math.max(dt,.001)/1.5):0)-blend)*(-Math.expm1(-dt*12));if(moving)speed=distance/Math.max(dt,.001);phase+=(moving?distance:speed*dt*blend)*3.5;return {swing:Math.sin(phase)*.6*blend,bob:Math.sin(phase)**2*.02*blend,blend};},reset(){phase=blend=speed=0;}};}
+export function createWalkMotion(){let phase=0,blend=0,speed=0;return {update(dt,distance=0){dt=Math.max(0,Math.min(dt,.1));const moving=distance>1e-5;blend+=((moving?Math.min(1,distance/Math.max(dt,.001)/1.5):0)-blend)*(-Math.expm1(-dt*12));if(moving)speed=distance/Math.max(dt,.001);phase+=(moving?distance:speed*dt*blend)*3.5;return {swing:Math.sin(phase*1.4)*.6*blend,bob:Math.sin(phase)**2*.02*blend,blend};},reset(){phase=blend=speed=0;}};}
 export const smoothHeading=(from,to,dt)=>from+Math.atan2(Math.sin(to-from),Math.cos(to-from))*(-Math.expm1(-Math.max(0,dt)*12));

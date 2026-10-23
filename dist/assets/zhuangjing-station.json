@@ -1,0 +1,67 @@
+{
+  "key": "zhuangjing",
+  "name": "莊敬分隊",
+  "address": "臺北市信義區松智路40號1樓",
+  "buildingIds": [
+    264879,
+    264882,
+    265174
+  ],
+  "front": {
+    "buildingId": 264879,
+    "wallIndex": 5
+  },
+  "levels": 8,
+  "osm": {
+    "type": "way",
+    "id": 334974655,
+    "version": 2,
+    "timestamp": "2016-09-08T05:30:47Z",
+    "polygon": [
+      [
+        121.5650545,
+        25.0297639
+      ],
+      [
+        121.5651968,
+        25.0296931
+      ],
+      [
+        121.5650412,
+        25.0294363
+      ],
+      [
+        121.564899,
+        25.029507
+      ],
+      [
+        121.5650545,
+        25.0297639
+      ]
+    ],
+    "license": "ODbL-1.0",
+    "attribution": "© OpenStreetMap contributors",
+    "url": "https://www.openstreetmap.org/way/334974655"
+  },
+  "sources": [
+    {
+      "label": "消防局分隊資料",
+      "url": "https://www.119.gov.taipei/News_Content.aspx?n=B560E007487264F0&s=4A1128CF66749CEF&sms=63C64EAD9579D601"
+    },
+    {
+      "label": "市府莊敬分隊落成資訊：地上8層",
+      "url": "https://english.udd.gov.taipei/News_Content.aspx?n=DD9CEC17A97FBC64&s=31BFCFA7DAE9C802&sms=72544237BBE4C5F6"
+    }
+  ],
+  "verified": {
+    "address": true,
+    "osmName": true,
+    "officialVolumeGeometry": true,
+    "volumeIdentityFieldSurvey": false,
+    "facade": false,
+    "garageDoors": false,
+    "levelsCurrentSurvey": false,
+    "apronLevel": false
+  },
+  "note": "既有官方LOD1三個相接量體與OSM具名外框交叉對照。量體原座標及高度保留；外牆、窗格、車庫面為示意，待現況照片與量測。大隊長與五名隊員為使用者指定訓練配置，非現行駐地員額。前進指揮車尚未加入。"
+}
