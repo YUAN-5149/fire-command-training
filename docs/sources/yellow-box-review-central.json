@@ -1,0 +1,3064 @@
+{
+  "reviewedIds": [
+    529,
+    530,
+    531,
+    532,
+    533,
+    534,
+    535,
+    536,
+    537,
+    538,
+    539,
+    540,
+    541,
+    542,
+    543,
+    544,
+    545,
+    546,
+    547,
+    548,
+    549,
+    550,
+    551,
+    552,
+    553,
+    554,
+    555,
+    556,
+    557,
+    558,
+    559,
+    560,
+    561,
+    562,
+    563,
+    564,
+    565,
+    566,
+    567,
+    568,
+    569,
+    570,
+    571,
+    572,
+    573,
+    574,
+    575,
+    576,
+    577,
+    578,
+    579,
+    580,
+    581,
+    582,
+    583,
+    584,
+    585,
+    586,
+    587,
+    588,
+    589,
+    590,
+    591,
+    592,
+    593,
+    594,
+    595,
+    596,
+    597,
+    598,
+    599,
+    600,
+    601,
+    602,
+    603,
+    604,
+    605,
+    606,
+    607,
+    608,
+    609,
+    610,
+    611,
+    612,
+    613,
+    614,
+    615,
+    616,
+    617,
+    618,
+    619,
+    620,
+    621,
+    622,
+    623,
+    624,
+    625,
+    626,
+    627,
+    628,
+    629,
+    630,
+    631,
+    632,
+    633,
+    634,
+    635,
+    636,
+    637,
+    638,
+    639,
+    640,
+    641,
+    642,
+    643,
+    644,
+    645,
+    646,
+    647,
+    648,
+    649,
+    650,
+    651,
+    652,
+    653,
+    654,
+    655,
+    656,
+    657,
+    658,
+    659,
+    660,
+    661,
+    662,
+    663,
+    664,
+    665,
+    666,
+    667,
+    668,
+    669,
+    670,
+    671,
+    672,
+    673,
+    674,
+    675,
+    676,
+    677,
+    678,
+    679,
+    680,
+    681,
+    682,
+    683,
+    684,
+    685,
+    686,
+    687,
+    688,
+    689,
+    690,
+    691,
+    692,
+    693,
+    694,
+    695,
+    696,
+    697,
+    698,
+    699,
+    700,
+    701,
+    702,
+    703,
+    704,
+    705,
+    706,
+    707,
+    708,
+    709,
+    710,
+    711,
+    712,
+    713,
+    714,
+    715,
+    716,
+    717,
+    718,
+    719,
+    720,
+    721,
+    722,
+    723,
+    724,
+    725,
+    726,
+    727,
+    728,
+    729,
+    730,
+    731,
+    732,
+    733,
+    734,
+    735,
+    736,
+    737,
+    738,
+    739,
+    740,
+    741,
+    742,
+    743,
+    744,
+    745,
+    746,
+    747,
+    748,
+    749,
+    750,
+    751,
+    752,
+    753,
+    754,
+    755,
+    756,
+    757,
+    758,
+    759,
+    760,
+    761,
+    762,
+    763,
+    764,
+    765,
+    766,
+    767,
+    768,
+    769,
+    770,
+    771,
+    772,
+    773,
+    774,
+    775,
+    776,
+    777,
+    778,
+    779,
+    780,
+    781,
+    782,
+    783,
+    784,
+    785,
+    786,
+    787,
+    788,
+    789,
+    790,
+    791,
+    792,
+    793,
+    794,
+    795,
+    796,
+    797,
+    798,
+    799,
+    800,
+    801,
+    802,
+    803,
+    804,
+    805,
+    806,
+    807,
+    808,
+    809,
+    810,
+    811,
+    812,
+    813,
+    814,
+    815,
+    816,
+    817,
+    818,
+    819,
+    820,
+    821,
+    822,
+    823,
+    824,
+    825,
+    826,
+    827,
+    828,
+    829,
+    830,
+    831,
+    832,
+    833,
+    834,
+    835,
+    836,
+    837,
+    838,
+    839,
+    840,
+    841,
+    842,
+    843,
+    844,
+    845,
+    846,
+    847,
+    848,
+    849,
+    850,
+    851,
+    852,
+    853,
+    854,
+    855,
+    856,
+    857,
+    858,
+    859,
+    860,
+    861,
+    862,
+    863,
+    864,
+    865,
+    866,
+    867,
+    868,
+    869,
+    870,
+    871,
+    872,
+    873,
+    874,
+    875,
+    876,
+    877,
+    878,
+    879,
+    880,
+    881,
+    882,
+    883,
+    884,
+    885,
+    886,
+    887,
+    888,
+    889,
+    890,
+    891,
+    892,
+    893,
+    894,
+    895,
+    896,
+    897,
+    898,
+    899,
+    900,
+    901,
+    902,
+    903,
+    904,
+    905,
+    906,
+    907,
+    908,
+    909,
+    910,
+    911,
+    912,
+    913,
+    914,
+    915,
+    916,
+    917,
+    918,
+    919,
+    920,
+    921,
+    922,
+    923,
+    924,
+    925,
+    926,
+    927,
+    928,
+    929,
+    930,
+    931,
+    932,
+    933,
+    934,
+    935,
+    936,
+    937,
+    938,
+    939,
+    940,
+    941,
+    942,
+    943,
+    944,
+    945,
+    946,
+    947,
+    948,
+    949,
+    950,
+    951,
+    952,
+    953,
+    954,
+    955,
+    956,
+    957,
+    958,
+    959,
+    960,
+    961,
+    962,
+    963,
+    964,
+    965,
+    966,
+    967,
+    968,
+    969,
+    970,
+    971,
+    972,
+    973,
+    974,
+    975,
+    976,
+    977,
+    978,
+    979,
+    980,
+    981,
+    982,
+    983,
+    984,
+    985,
+    986,
+    987,
+    988,
+    989,
+    990,
+    991,
+    992,
+    993,
+    994,
+    995,
+    996,
+    997,
+    998,
+    999,
+    1000,
+    1001,
+    1002,
+    1003,
+    1004,
+    1005,
+    1006,
+    1007,
+    1008,
+    1009,
+    1010,
+    1011,
+    1012,
+    1013,
+    1014,
+    1015,
+    1016,
+    1017,
+    1018,
+    1019,
+    1020,
+    1021,
+    1022,
+    1023,
+    1024,
+    1025,
+    1026,
+    1027,
+    1028,
+    1029,
+    1030,
+    1031,
+    1032,
+    1033,
+    1034,
+    1035,
+    1036,
+    1037,
+    1038,
+    1039,
+    1040,
+    1041,
+    1042,
+    1043,
+    1044,
+    1045,
+    1046,
+    1047,
+    1048,
+    1049,
+    1050,
+    1051,
+    1052,
+    1053,
+    1054,
+    1055,
+    1056,
+    1057,
+    1058,
+    1059,
+    1060,
+    1061,
+    1062,
+    1063,
+    1064,
+    1065,
+    1066,
+    1067,
+    1068,
+    1069,
+    1070,
+    1071,
+    1072,
+    1073,
+    1074,
+    1075,
+    1076,
+    1077,
+    1078,
+    1079,
+    1080,
+    1081,
+    1082,
+    1083,
+    1084,
+    1085,
+    1086,
+    1087,
+    1088,
+    1089,
+    1090,
+    1091,
+    1092,
+    1093,
+    1094,
+    1095,
+    1096,
+    1097,
+    1098,
+    1099,
+    1100,
+    1101,
+    1102,
+    1103,
+    1104
+  ],
+  "accepted": [
+    {
+      "id": 537,
+      "sourceTile": "13532160_2879488.jpg",
+      "pixels": [
+        [
+          231,
+          762
+        ],
+        [
+          315,
+          764
+        ],
+        [
+          315,
+          779
+        ],
+        [
+          230,
+          777
+        ]
+      ],
+      "displayAngles": [
+        20,
+        160
+      ],
+      "note": "Manually traced complete long rectangle from extra-wide original tile crop central-detail-537.jpg. Line spacing and width unknown."
+    },
+    {
+      "id": 538,
+      "sourceTile": "13532160_2879488.jpg",
+      "pixels": [
+        [
+          1745.9,
+          1076.5
+        ],
+        [
+          1769.1,
+          1076.5
+        ],
+        [
+          1768.8,
+          1117.0
+        ],
+        [
+          1745.9,
+          1117.0
+        ]
+      ],
+      "displayAngles": [
+        50,
+        130
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 543,
+      "sourceTile": "13532160_2879488.jpg",
+      "pixels": [
+        [
+          1724.7,
+          1541.0
+        ],
+        [
+          1762.4,
+          1542.0
+        ],
+        [
+          1762.0,
+          1582.6
+        ],
+        [
+          1724.4,
+          1581.6
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 546,
+      "sourceTile": "13532160_2879488.jpg",
+      "pixels": [
+        [
+          1721.3,
+          1779.0
+        ],
+        [
+          1759.6,
+          1779.0
+        ],
+        [
+          1759.0,
+          1814.3
+        ],
+        [
+          1721.0,
+          1814.0
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 554,
+      "sourceTile": "13532160_2880000.jpg",
+      "pixels": [
+        [
+          622.3,
+          1377.5
+        ],
+        [
+          724.7,
+          1380.4
+        ],
+        [
+          721.7,
+          1460.2
+        ],
+        [
+          620.0,
+          1457.2
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 555,
+      "sourceTile": "13532160_2880000.jpg",
+      "pixels": [
+        [
+          1116.3,
+          1387.6
+        ],
+        [
+          1148.5,
+          1388.8
+        ],
+        [
+          1146.7,
+          1470.9
+        ],
+        [
+          1115.1,
+          1469.7
+        ]
+      ],
+      "displayAngles": [
+        48,
+        132
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 556,
+      "sourceTile": "13532160_2880000.jpg",
+      "pixels": [
+        [
+          1563.9,
+          1396.9
+        ],
+        [
+          1597.8,
+          1397.5
+        ],
+        [
+          1597.2,
+          1467.7
+        ],
+        [
+          1562.1,
+          1467.1
+        ]
+      ],
+      "displayAngles": [
+        50,
+        130
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 557,
+      "sourceTile": "13532160_2880000.jpg",
+      "pixels": [
+        [
+          1564.0,
+          1397.1
+        ],
+        [
+          1597.4,
+          1397.1
+        ],
+        [
+          1596.2,
+          1466.7
+        ],
+        [
+          1562.3,
+          1467.3
+        ]
+      ],
+      "displayAngles": [
+        50,
+        130
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 559,
+      "sourceTile": "13532160_2880000.jpg",
+      "pixels": [
+        [
+          375.7,
+          1414.9
+        ],
+        [
+          418.3,
+          1415.2
+        ],
+        [
+          417.0,
+          1454.8
+        ],
+        [
+          375.4,
+          1454.5
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 579,
+      "sourceTile": "13532160_2880512.jpg",
+      "pixels": [
+        [
+          1248.2,
+          1236.5
+        ],
+        [
+          1258.0,
+          1242.0
+        ],
+        [
+          1236.1,
+          1285.9
+        ],
+        [
+          1224.9,
+          1282.0
+        ]
+      ],
+      "displayAngles": [
+        70,
+        160
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 591,
+      "sourceTile": "13532160_2880512.jpg",
+      "pixels": [
+        [
+          1146.8,
+          1840.3
+        ],
+        [
+          1177.6,
+          1840.3
+        ],
+        [
+          1176.1,
+          1922.3
+        ],
+        [
+          1145.3,
+          1921.3
+        ]
+      ],
+      "displayAngles": [
+        50,
+        130
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 599,
+      "sourceTile": "13532160_2881024.jpg",
+      "pixels": [
+        [
+          304.6,
+          1087.8
+        ],
+        [
+          338.6,
+          1107.5
+        ],
+        [
+          331.4,
+          1136.6
+        ],
+        [
+          290.8,
+          1124.2
+        ]
+      ],
+      "displayAngles": [
+        60,
+        150
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 618,
+      "sourceTile": "13532160_2881024.jpg",
+      "pixels": [
+        [
+          571.5,
+          1889.1
+        ],
+        [
+          601.9,
+          1889.1
+        ],
+        [
+          601.9,
+          1924.8
+        ],
+        [
+          570.4,
+          1924.8
+        ]
+      ],
+      "displayAngles": [
+        50,
+        130
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 620,
+      "sourceTile": "13532160_2881536.jpg",
+      "pixels": [
+        [
+          1150.0,
+          1873.8
+        ],
+        [
+          1179.1,
+          1862.6
+        ],
+        [
+          1188.6,
+          1890.1
+        ],
+        [
+          1159.8,
+          1900.6
+        ]
+      ],
+      "displayAngles": [
+        20,
+        110
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 723,
+      "sourceTile": "13532672_2878464.jpg",
+      "pixels": [
+        [
+          10.8,
+          26.5
+        ],
+        [
+          28.2,
+          16.0
+        ],
+        [
+          40.9,
+          33.7
+        ],
+        [
+          20.6,
+          43.2
+        ]
+      ],
+      "displayAngles": [
+        10,
+        100
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 731,
+      "sourceTile": "13532672_2878464.jpg",
+      "pixels": [
+        [
+          158.4,
+          252.0
+        ],
+        [
+          181.3,
+          236.3
+        ],
+        [
+          197.0,
+          261.2
+        ],
+        [
+          173.4,
+          275.3
+        ]
+      ],
+      "displayAngles": [
+        5,
+        95
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 743,
+      "sourceTile": "13532672_2878464.jpg",
+      "pixels": [
+        [
+          1661.7,
+          637.4
+        ],
+        [
+          1689.9,
+          621.0
+        ],
+        [
+          1703.6,
+          651.2
+        ],
+        [
+          1675.5,
+          663.9
+        ]
+      ],
+      "displayAngles": [
+        15,
+        105
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 749,
+      "sourceTile": "13532672_2878464.jpg",
+      "pixels": [
+        [
+          1250.0,
+          835.3
+        ],
+        [
+          1308.3,
+          811.7
+        ],
+        [
+          1316.0,
+          833.3
+        ],
+        [
+          1254.0,
+          850.0
+        ]
+      ],
+      "displayAngles": [
+        0,
+        140
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 752,
+      "sourceTile": "13532672_2878464.jpg",
+      "pixels": [
+        [
+          895.7,
+          1008.4
+        ],
+        [
+          913.0,
+          987.5
+        ],
+        [
+          940.4,
+          1008.4
+        ],
+        [
+          918.4,
+          1028.0
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 753,
+      "sourceTile": "13532672_2878464.jpg",
+      "pixels": [
+        [
+          1820.2,
+          1089.1
+        ],
+        [
+          1869.0,
+          987.4
+        ],
+        [
+          1903.8,
+          1062.0
+        ],
+        [
+          1875.2,
+          1115.6
+        ]
+      ],
+      "displayAngles": [
+        78,
+        168
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 754,
+      "sourceTile": "13532672_2878464.jpg",
+      "pixels": [
+        [
+          1336.5,
+          1065.9
+        ],
+        [
+          1345.1,
+          1050.5
+        ],
+        [
+          1358.5,
+          1058.0
+        ],
+        [
+          1350.6,
+          1072.4
+        ]
+      ],
+      "displayAngles": [
+        15,
+        105
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 766,
+      "sourceTile": "13532672_2878464.jpg",
+      "pixels": [
+        [
+          1613.9,
+          1524.2
+        ],
+        [
+          1626.0,
+          1501.6
+        ],
+        [
+          1653.8,
+          1516.4
+        ],
+        [
+          1640.7,
+          1538.3
+        ]
+      ],
+      "displayAngles": [
+        15,
+        105
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 771,
+      "sourceTile": "13532672_2878464.jpg",
+      "pixels": [
+        [
+          1489.5,
+          1676.2
+        ],
+        [
+          1501.9,
+          1653.0
+        ],
+        [
+          1533.4,
+          1666.0
+        ],
+        [
+          1520.3,
+          1690.6
+        ]
+      ],
+      "displayAngles": [
+        25,
+        115
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 787,
+      "sourceTile": "13532672_2878976.jpg",
+      "pixels": [
+        [
+          1609.2,
+          21.6
+        ],
+        [
+          1630.5,
+          21.9
+        ],
+        [
+          1630.5,
+          58.3
+        ],
+        [
+          1608.9,
+          57.9
+        ]
+      ],
+      "displayAngles": [
+        60,
+        120
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 830,
+      "sourceTile": "13532672_2878976.jpg",
+      "pixels": [
+        [
+          1430.1,
+          1659.0
+        ],
+        [
+          1448.5,
+          1638.7
+        ],
+        [
+          1472.4,
+          1664.6
+        ],
+        [
+          1452.7,
+          1680.6
+        ]
+      ],
+      "displayAngles": [
+        5,
+        95
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 836,
+      "sourceTile": "13532672_2878976.jpg",
+      "pixels": [
+        [
+          1571.1,
+          1815.7
+        ],
+        [
+          1592.4,
+          1798.3
+        ],
+        [
+          1615.3,
+          1825.5
+        ],
+        [
+          1595.3,
+          1840.6
+        ]
+      ],
+      "displayAngles": [
+        10,
+        90
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 839,
+      "sourceTile": "13532672_2878976.jpg",
+      "pixels": [
+        [
+          1681.3,
+          1946.7
+        ],
+        [
+          1695.4,
+          1935.6
+        ],
+        [
+          1717.4,
+          1953.6
+        ],
+        [
+          1697.7,
+          1967.7
+        ]
+      ],
+      "displayAngles": [
+        5,
+        95
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 840,
+      "sourceTile": "13532672_2878976.jpg",
+      "pixels": [
+        [
+          1079.4,
+          2007.4
+        ],
+        [
+          1126.8,
+          1985.8
+        ],
+        [
+          1136.0,
+          2008.4
+        ],
+        [
+          1087.6,
+          2028.0
+        ]
+      ],
+      "displayAngles": [
+        20,
+        110
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 845,
+      "sourceTile": "13532672_2879488.jpg",
+      "pixels": [
+        [
+          1602.0,
+          179.6
+        ],
+        [
+          1641.3,
+          179.9
+        ],
+        [
+          1640.7,
+          212.7
+        ],
+        [
+          1601.7,
+          212.3
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 849,
+      "sourceTile": "13532672_2879488.jpg",
+      "pixels": [
+        [
+          164.1,
+          320.3
+        ],
+        [
+          262.4,
+          322.4
+        ],
+        [
+          262.4,
+          340.3
+        ],
+        [
+          163.7,
+          339.4
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 858,
+      "sourceTile": "13532672_2879488.jpg",
+      "pixels": [
+        [
+          134.8,
+          793.8
+        ],
+        [
+          180.6,
+          794.8
+        ],
+        [
+          180.3,
+          808.5
+        ],
+        [
+          134.4,
+          807.9
+        ]
+      ],
+      "displayAngles": [
+        40,
+        140
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 860,
+      "sourceTile": "13532672_2879488.jpg",
+      "pixels": [
+        [
+          535.5,
+          821.5
+        ],
+        [
+          559.8,
+          822.1
+        ],
+        [
+          559.4,
+          839.2
+        ],
+        [
+          535.2,
+          839.2
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 861,
+      "sourceTile": "13532672_2879488.jpg",
+      "pixels": [
+        [
+          1586.4,
+          830.2
+        ],
+        [
+          1631.6,
+          830.6
+        ],
+        [
+          1631.3,
+          856.4
+        ],
+        [
+          1586.1,
+          856.1
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 871,
+      "sourceTile": "13532672_2879488.jpg",
+      "pixels": [
+        [
+          1345.3,
+          1823.2
+        ],
+        [
+          1375.4,
+          1823.8
+        ],
+        [
+          1375.1,
+          1842.8
+        ],
+        [
+          1345.3,
+          1842.2
+        ]
+      ],
+      "displayAngles": [
+        35,
+        145
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 880,
+      "sourceTile": "13532672_2880000.jpg",
+      "pixels": [
+        [
+          1620.6,
+          1071.3
+        ],
+        [
+          1675.9,
+          1071.3
+        ],
+        [
+          1674.7,
+          1108.8
+        ],
+        [
+          1620.0,
+          1108.2
+        ]
+      ],
+      "displayAngles": [
+        30,
+        150
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 884,
+      "sourceTile": "13532672_2880000.jpg",
+      "pixels": [
+        [
+          1063.8,
+          1664.6
+        ],
+        [
+          1080.2,
+          1664.6
+        ],
+        [
+          1080.2,
+          1693.1
+        ],
+        [
+          1063.8,
+          1692.8
+        ]
+      ],
+      "displayAngles": [
+        60,
+        120
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 894,
+      "sourceTile": "13532672_2880512.jpg",
+      "pixels": [
+        [
+          548.2,
+          654.6
+        ],
+        [
+          573.1,
+          654.9
+        ],
+        [
+          572.1,
+          685.1
+        ],
+        [
+          547.5,
+          685.1
+        ]
+      ],
+      "displayAngles": [
+        50,
+        130
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 898,
+      "sourceTile": "13532672_2880512.jpg",
+      "pixels": [
+        [
+          1013.1,
+          1328.6
+        ],
+        [
+          1027.5,
+          1329.0
+        ],
+        [
+          1026.5,
+          1363.7
+        ],
+        [
+          1012.5,
+          1363.3
+        ]
+      ],
+      "displayAngles": [
+        70,
+        110
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 899,
+      "sourceTile": "13532672_2880512.jpg",
+      "pixels": [
+        [
+          1008.8,
+          1521.3
+        ],
+        [
+          1030.1,
+          1521.7
+        ],
+        [
+          1029.5,
+          1560.3
+        ],
+        [
+          1008.5,
+          1560.0
+        ]
+      ],
+      "displayAngles": [
+        60,
+        120
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 903,
+      "sourceTile": "13532672_2881024.jpg",
+      "pixels": [
+        [
+          1237.6,
+          196.4
+        ],
+        [
+          1268.9,
+          196.9
+        ],
+        [
+          1267.5,
+          230.5
+        ],
+        [
+          1236.6,
+          229.6
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 919,
+      "sourceTile": "13532672_2881024.jpg",
+      "pixels": [
+        [
+          1208.7,
+          976.8
+        ],
+        [
+          1248.3,
+          977.5
+        ],
+        [
+          1248.0,
+          999.1
+        ],
+        [
+          1208.0,
+          998.8
+        ]
+      ],
+      "displayAngles": [
+        25,
+        155
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 925,
+      "sourceTile": "13532672_2881024.jpg",
+      "pixels": [
+        [
+          226.7,
+          1821.9
+        ],
+        [
+          273.2,
+          1823.5
+        ],
+        [
+          273.2,
+          1846.5
+        ],
+        [
+          226.1,
+          1844.5
+        ]
+      ],
+      "displayAngles": [
+        30,
+        150
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 926,
+      "sourceTile": "13532672_2881024.jpg",
+      "pixels": [
+        [
+          1835.0,
+          1966.6
+        ],
+        [
+          1876.3,
+          1967.3
+        ],
+        [
+          1875.3,
+          1996.7
+        ],
+        [
+          1835.4,
+          1995.4
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 929,
+      "sourceTile": "13532672_2881536.jpg",
+      "pixels": [
+        [
+          327.9,
+          1399.4
+        ],
+        [
+          384.5,
+          1384.3
+        ],
+        [
+          389.8,
+          1405.0
+        ],
+        [
+          333.8,
+          1422.6
+        ]
+      ],
+      "displayAngles": [
+        35,
+        125
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 933,
+      "sourceTile": "13532672_2881536.jpg",
+      "pixels": [
+        [
+          1256.7,
+          1631.0
+        ],
+        [
+          1284.4,
+          1579.3
+        ],
+        [
+          1309.7,
+          1592.7
+        ],
+        [
+          1285.1,
+          1645.0
+        ]
+      ],
+      "displayAngles": [
+        95,
+        150
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 940,
+      "sourceTile": "13532672_2881536.jpg",
+      "pixels": [
+        [
+          1060.9,
+          1819.8
+        ],
+        [
+          1079.4,
+          1788.8
+        ],
+        [
+          1100.2,
+          1799.0
+        ],
+        [
+          1082.3,
+          1830.5
+        ]
+      ],
+      "displayAngles": [
+        88,
+        150
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 984,
+      "sourceTile": "13533184_2877952.jpg",
+      "pixels": [
+        [
+          1387.3,
+          178.4
+        ],
+        [
+          1410.0,
+          162.3
+        ],
+        [
+          1421.9,
+          176.0
+        ],
+        [
+          1397.5,
+          192.1
+        ]
+      ],
+      "displayAngles": [
+        5,
+        125
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 997,
+      "sourceTile": "13533184_2877952.jpg",
+      "pixels": [
+        [
+          120.6,
+          1638.1
+        ],
+        [
+          134.6,
+          1615.6
+        ],
+        [
+          147.7,
+          1628.7
+        ],
+        [
+          131.7,
+          1647.0
+        ]
+      ],
+      "displayAngles": [
+        0,
+        130
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1019,
+      "sourceTile": "13533184_2878464.jpg",
+      "pixels": [
+        [
+          146.6,
+          902.2
+        ],
+        [
+          166.6,
+          893.7
+        ],
+        [
+          179.4,
+          925.8
+        ],
+        [
+          160.4,
+          934.6
+        ]
+      ],
+      "displayAngles": [
+        20,
+        110
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1022,
+      "sourceTile": "13533184_2878464.jpg",
+      "pixels": [
+        [
+          81.4,
+          1360.5
+        ],
+        [
+          101.1,
+          1342.8
+        ],
+        [
+          128.2,
+          1375.2
+        ],
+        [
+          106.0,
+          1391.9
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1030,
+      "sourceTile": "13533184_2878464.jpg",
+      "pixels": [
+        [
+          495.7,
+          1780.6
+        ],
+        [
+          515.4,
+          1757.0
+        ],
+        [
+          538.6,
+          1774.7
+        ],
+        [
+          521.3,
+          1800.6
+        ]
+      ],
+      "displayAngles": [
+        85,
+        175
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1045,
+      "sourceTile": "13533184_2879488.jpg",
+      "pixels": [
+        [
+          1232.5,
+          394.5
+        ],
+        [
+          1243.3,
+          367.3
+        ],
+        [
+          1255.1,
+          371.9
+        ],
+        [
+          1244.0,
+          400.7
+        ]
+      ],
+      "displayAngles": [
+        60,
+        130
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1057,
+      "sourceTile": "13533184_2879488.jpg",
+      "pixels": [
+        [
+          1415.0,
+          782.6
+        ],
+        [
+          1451.1,
+          761.3
+        ],
+        [
+          1458.6,
+          776.4
+        ],
+        [
+          1423.9,
+          797.7
+        ]
+      ],
+      "displayAngles": [
+        30,
+        150
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1058,
+      "sourceTile": "13533184_2879488.jpg",
+      "pixels": [
+        [
+          1749.3,
+          801.3
+        ],
+        [
+          1783.0,
+          802.0
+        ],
+        [
+          1781.7,
+          839.0
+        ],
+        [
+          1748.3,
+          838.7
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1071,
+      "sourceTile": "13533184_2879488.jpg",
+      "pixels": [
+        [
+          1391.9,
+          1477.2
+        ],
+        [
+          1444.3,
+          1478.5
+        ],
+        [
+          1444.3,
+          1508.3
+        ],
+        [
+          1391.9,
+          1506.6
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1072,
+      "sourceTile": "13533184_2880000.jpg",
+      "pixels": [
+        [
+          998.6,
+          129.5
+        ],
+        [
+          1023.8,
+          129.9
+        ],
+        [
+          1023.8,
+          155.7
+        ],
+        [
+          998.2,
+          154.8
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1082,
+      "sourceTile": "13533184_2880000.jpg",
+      "pixels": [
+        [
+          1085.8,
+          343.9
+        ],
+        [
+          1102.2,
+          344.5
+        ],
+        [
+          1101.9,
+          369.4
+        ],
+        [
+          1085.8,
+          368.7
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1083,
+      "sourceTile": "13533184_2880000.jpg",
+      "pixels": [
+        [
+          1838.8,
+          349.8
+        ],
+        [
+          1872.2,
+          324.9
+        ],
+        [
+          1889.6,
+          343.6
+        ],
+        [
+          1855.8,
+          371.1
+        ]
+      ],
+      "displayAngles": [
+        5,
+        115
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1084,
+      "sourceTile": "13533184_2880000.jpg",
+      "pixels": [
+        [
+          1681.0,
+          477.6
+        ],
+        [
+          1704.9,
+          458.3
+        ],
+        [
+          1724.2,
+          480.9
+        ],
+        [
+          1699.4,
+          500.5
+        ]
+      ],
+      "displayAngles": [
+        5,
+        95
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1087,
+      "sourceTile": "13533184_2880000.jpg",
+      "pixels": [
+        [
+          1289.2,
+          590.4
+        ],
+        [
+          1326.4,
+          591.4
+        ],
+        [
+          1325.4,
+          617.3
+        ],
+        [
+          1288.7,
+          616.3
+        ]
+      ],
+      "displayAngles": [
+        30,
+        150
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1091,
+      "sourceTile": "13533184_2880000.jpg",
+      "pixels": [
+        [
+          698.4,
+          598.2
+        ],
+        [
+          757.2,
+          599.2
+        ],
+        [
+          756.8,
+          608.4
+        ],
+        [
+          698.4,
+          607.5
+        ]
+      ],
+      "displayAngles": [
+        20,
+        160
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    },
+    {
+      "id": 1100,
+      "sourceTile": "13533184_2880000.jpg",
+      "pixels": [
+        [
+          730.9,
+          1093.6
+        ],
+        [
+          791.1,
+          1093.9
+        ],
+        [
+          790.1,
+          1130.0
+        ],
+        [
+          730.2,
+          1129.0
+        ]
+      ],
+      "displayAngles": [
+        30,
+        150
+      ],
+      "note": "Manually traced visible outer border from enlarged official source tile; corners stored in original source pixels (visual tracing precision about 1–2 pixels). Hatch display angles approximate; spacing and width unknown."
+    }
+  ],
+  "pending": [
+    {
+      "id": 529,
+      "reason": "Road crosshatch confirmed; building shadow hides lower boundary and corners."
+    },
+    {
+      "id": 532,
+      "reason": "Road crosshatch at actual lower tile edge; full outer border extends beyond tile."
+    },
+    {
+      "id": 534,
+      "reason": "Same tile-edge grid area as 532; lower corners outside source tile."
+    },
+    {
+      "id": 540,
+      "reason": "Road crosshatch confirmed; imagery watermark obscures parts of border/corner evidence."
+    },
+    {
+      "id": 544,
+      "reason": "Road crosshatch confirmed; imagery watermark obscures lower-left border/corner."
+    },
+    {
+      "id": 545,
+      "reason": "Same grid as 544, split raw component; watermark obscures border."
+    },
+    {
+      "id": 563,
+      "reason": "Road crosshatch confirmed; foliage hides left boundary and corners."
+    },
+    {
+      "id": 565,
+      "reason": "Road crosshatch confirmed; building shadow hides lower-right corner."
+    },
+    {
+      "id": 573,
+      "reason": "Two road-grid fragments; watermark and shadow hide full outer borders."
+    },
+    {
+      "id": 574,
+      "reason": "Road crosshatch confirmed; building shadow hides lower-right corner."
+    },
+    {
+      "id": 575,
+      "reason": "Road crosshatch confirmed; building shadow hides lower boundary and corners."
+    },
+    {
+      "id": 576,
+      "reason": "Road crosshatch confirmed; foliage/shadow hides right side and corners."
+    },
+    {
+      "id": 581,
+      "reason": "Road crosshatch confirmed; lower/left border disappears in building shadow."
+    },
+    {
+      "id": 584,
+      "reason": "Road crosshatch confirmed; dark shadow obscures left/lower boundary."
+    },
+    {
+      "id": 589,
+      "reason": "Road crosshatch confirmed; imagery watermark obscures right-side corners."
+    },
+    {
+      "id": 590,
+      "reason": "Same grid as 589, split raw component with watermark-obscured corner evidence."
+    },
+    {
+      "id": 592,
+      "reason": "Same complete road grid as accepted 591; split raw component."
+    },
+    {
+      "id": 593,
+      "reason": "Road crosshatch confirmed; foliage hides lower-right corner."
+    },
+    {
+      "id": 598,
+      "reason": "Positive fragment of the same road grid as accepted 599; expanded source confirms location."
+    },
+    {
+      "id": 600,
+      "reason": "Same road grid as accepted 599; split raw component."
+    },
+    {
+      "id": 605,
+      "reason": "Irregular road crosshatch confirmed; watermark prevents reliable complete outer-border tracing."
+    },
+    {
+      "id": 607,
+      "reason": "Road crosshatch confirmed; lower corners in shadow/foliage."
+    },
+    {
+      "id": 609,
+      "reason": "Yellow bordered feature beside sports court under canopy; road surface/crosshatch and full border uncertain."
+    },
+    {
+      "id": 610,
+      "reason": "Same obscured feature as 609; needs clearer surface evidence."
+    },
+    {
+      "id": 652,
+      "reason": "Road crosshatch at actual top tile edge; upper corners outside tile."
+    },
+    {
+      "id": 658,
+      "reason": "Road crosshatch confirmed; building shadow hides left boundary corner."
+    },
+    {
+      "id": 690,
+      "reason": "Road crosshatch confirmed; irregular full outline partly obscured in building shadow."
+    },
+    {
+      "id": 705,
+      "reason": "Road crosshatch confirmed; separate lower grid next to existing 704 has boundary obscured by building shadow."
+    },
+    {
+      "id": 712,
+      "reason": "Road crosshatch confirmed; building/vehicle shadow hides most outer boundary."
+    },
+    {
+      "id": 718,
+      "reason": "Road crosshatch confirmed; irregular multi-sided boundary under watermark/shadow cannot be traced reliably."
+    },
+    {
+      "id": 721,
+      "reason": "Road crosshatch at actual bottom tile edge; lower boundary outside tile."
+    },
+    {
+      "id": 724,
+      "reason": "Road crosshatch confirmed; enlarged original source shows the upper-left boundary/corner obscured by shadow/watermark, so the tentative quadrilateral was rejected during overlay QA."
+    },
+    {
+      "id": 726,
+      "reason": "Road crosshatch confirmed; lower boundary and corner in shadow."
+    },
+    {
+      "id": 734,
+      "reason": "Two joined road-crosshatch components; watermark obscures lower boundary."
+    },
+    {
+      "id": 735,
+      "reason": "Road crosshatch confirmed; shadow hides lower boundary."
+    },
+    {
+      "id": 736,
+      "reason": "Road crosshatch confirmed; shadow hides lower-left corner."
+    },
+    {
+      "id": 744,
+      "reason": "Road crosshatch confirmed; building shadow hides most border/corners."
+    },
+    {
+      "id": 746,
+      "reason": "Road crosshatch confirmed; shadow hides left outer corner."
+    },
+    {
+      "id": 748,
+      "reason": "Fragments of accepted 749 and pending 751; raw component joins separate boxes via road line."
+    },
+    {
+      "id": 751,
+      "reason": "Road crosshatch confirmed; lower border/corners in building shadow."
+    },
+    {
+      "id": 756,
+      "reason": "Road crosshatch confirmed; watermark/shadow obscures outer corner."
+    },
+    {
+      "id": 772,
+      "reason": "Separate smaller road box beside accepted 771; vehicle hides upper-left corner."
+    },
+    {
+      "id": 786,
+      "reason": "Road crosshatch at top tile edge; upper boundary outside source tile."
+    },
+    {
+      "id": 788,
+      "reason": "Road crosshatch at top tile edge; upper boundary outside source tile."
+    },
+    {
+      "id": 792,
+      "reason": "Road crosshatch at left tile edge; left boundary outside source tile."
+    },
+    {
+      "id": 795,
+      "reason": "Road crosshatch confirmed; shadow hides left-side corners."
+    },
+    {
+      "id": 805,
+      "reason": "Road crosshatch confirmed; building shadow hides irregular upper-left border."
+    },
+    {
+      "id": 806,
+      "reason": "Road crosshatch confirmed; lower border/corners in shadow."
+    },
+    {
+      "id": 807,
+      "reason": "Road crosshatch confirmed; lower-left corner in shadow."
+    },
+    {
+      "id": 808,
+      "reason": "Road crosshatch confirmed; lower-left border in shadow."
+    },
+    {
+      "id": 809,
+      "reason": "Road crosshatch confirmed; lower-left border in shadow."
+    },
+    {
+      "id": 810,
+      "reason": "Road crosshatch confirmed; lower-left border in shadow."
+    },
+    {
+      "id": 813,
+      "reason": "Road crosshatch at actual right tile edge; right-hand corners outside tile."
+    },
+    {
+      "id": 814,
+      "reason": "Same right-edge grid as 813, split raw component."
+    },
+    {
+      "id": 819,
+      "reason": "Road crosshatch confirmed; building shadow hides lower-left corner."
+    },
+    {
+      "id": 822,
+      "reason": "Fragment of same grid as 823; source crop shows foliage/shadow over left lower corner."
+    },
+    {
+      "id": 823,
+      "reason": "Road crosshatch confirmed; shadow hides lower-left corner."
+    },
+    {
+      "id": 825,
+      "reason": "Road crosshatch confirmed; lower edge and corner under dark shadow."
+    },
+    {
+      "id": 826,
+      "reason": "Road crosshatch confirmed; building shadow hides lower-left corner."
+    },
+    {
+      "id": 832,
+      "reason": "Different shadowed road box adjacent to accepted 830; lower boundary hidden."
+    },
+    {
+      "id": 834,
+      "reason": "Road crosshatch confirmed; full boundary obscured by tree/building shadow."
+    },
+    {
+      "id": 841,
+      "reason": "Same road crosshatch as accepted 840; split raw component."
+    },
+    {
+      "id": 848,
+      "reason": "Road crosshatch confirmed; shadow hides lower-left corner."
+    },
+    {
+      "id": 850,
+      "reason": "Road crosshatch confirmed; vegetation hides left boundary/corners."
+    },
+    {
+      "id": 864,
+      "reason": "Road crosshatch confirmed; foliage hides upper-left corner."
+    },
+    {
+      "id": 879,
+      "reason": "Positive lower-edge fragment in candidate contact crop; likely associated with accepted 880, but cannot independently establish another full box."
+    },
+    {
+      "id": 882,
+      "reason": "Road crosshatch confirmed; lower-left boundary/corner hidden by shadow."
+    },
+    {
+      "id": 885,
+      "reason": "Road crosshatch confirmed; lower border/corners hidden by building shadow."
+    },
+    {
+      "id": 888,
+      "reason": "Road crosshatch confirmed; lower-right corner hidden by shadow."
+    },
+    {
+      "id": 890,
+      "reason": "Positive road-grid fragment adjacent to building; complete boundary not clear."
+    },
+    {
+      "id": 892,
+      "reason": "Road crosshatch confirmed; watermark obscures outer-border corner evidence."
+    },
+    {
+      "id": 909,
+      "reason": "Same road grid as 911, fragment joined to a long road line; dark source cannot confirm all outer corners."
+    },
+    {
+      "id": 911,
+      "reason": "Road crosshatch confirmed; lower corners/border too dark under shadow."
+    },
+    {
+      "id": 921,
+      "reason": "Road crosshatch confirmed; watermark overlaps lower boundary/corners."
+    },
+    {
+      "id": 923,
+      "reason": "Road crosshatch confirmed; building shadow hides right-side corners."
+    },
+    {
+      "id": 930,
+      "reason": "Same road crosshatch as accepted 929; raw component includes connected yellow road line."
+    },
+    {
+      "id": 934,
+      "reason": "Same complete road grid as accepted 933; split raw component."
+    },
+    {
+      "id": 935,
+      "reason": "Same road grid as accepted 933; raw component includes crosswalk and curb."
+    },
+    {
+      "id": 941,
+      "reason": "Same road crosshatch as accepted 940; split raw component."
+    },
+    {
+      "id": 985,
+      "reason": "Road crosshatch confirmed; tree shadow hides left/lower corner."
+    },
+    {
+      "id": 996,
+      "reason": "Road crosshatch confirmed; watermark obscures irregular right boundary and corner."
+    },
+    {
+      "id": 1003,
+      "reason": "Road crosshatch confirmed; building shadow hides upper-left outline."
+    },
+    {
+      "id": 1007,
+      "reason": "Road crosshatch confirmed; truck hides upper-left border/corner."
+    },
+    {
+      "id": 1008,
+      "reason": "Road crosshatch confirmed; building shadow hides lower-right boundary."
+    },
+    {
+      "id": 1015,
+      "reason": "Road crosshatch confirmed; building shadow hides lower-left corner."
+    },
+    {
+      "id": 1017,
+      "reason": "Road crosshatch confirmed; adjoining triangle/elongated box share road lines; irregular full outline needs separate tracing."
+    },
+    {
+      "id": 1029,
+      "reason": "Same complete road crosshatch as accepted 1030; expanded crop confirms raw component connects it to a road line."
+    },
+    {
+      "id": 1039,
+      "reason": "Road crosshatch confirmed; shadow hides right boundary and corners."
+    },
+    {
+      "id": 1040,
+      "reason": "Road crosshatch confirmed; building occludes upper-right border/corner."
+    },
+    {
+      "id": 1041,
+      "reason": "Road crosshatch confirmed; watermark obscures lower-side corner evidence."
+    },
+    {
+      "id": 1046,
+      "reason": "Road crosshatch confirmed; canopy/shadow hides left boundary."
+    },
+    {
+      "id": 1066,
+      "reason": "Road crosshatch confirmed; tree/building shadow hides left boundary/corners."
+    },
+    {
+      "id": 1073,
+      "reason": "Road crosshatch confirmed; shadow hides upper-right boundary/corner."
+    },
+    {
+      "id": 1088,
+      "reason": "Road crosshatch confirmed; tree/building shadow hides left boundary."
+    },
+    {
+      "id": 1096,
+      "reason": "Road crosshatch confirmed; vegetation/shadow obscures lower boundary."
+    },
+    {
+      "id": 1098,
+      "reason": "Road crosshatch at actual right tile edge; right corners outside tile."
+    }
+  ],
+  "rejectedIds": [
+    530,
+    531,
+    533,
+    535,
+    539,
+    541,
+    542,
+    547,
+    548,
+    549,
+    550,
+    551,
+    552,
+    553,
+    558,
+    560,
+    561,
+    562,
+    564,
+    566,
+    567,
+    568,
+    569,
+    570,
+    571,
+    572,
+    577,
+    578,
+    580,
+    583,
+    585,
+    586,
+    587,
+    588,
+    594,
+    595,
+    596,
+    597,
+    601,
+    602,
+    603,
+    606,
+    608,
+    611,
+    612,
+    613,
+    614,
+    615,
+    616,
+    617,
+    619,
+    621,
+    622,
+    623,
+    624,
+    625,
+    626,
+    627,
+    628,
+    629,
+    630,
+    631,
+    632,
+    633,
+    634,
+    635,
+    636,
+    637,
+    638,
+    639,
+    640,
+    641,
+    642,
+    643,
+    644,
+    645,
+    646,
+    647,
+    648,
+    649,
+    650,
+    651,
+    653,
+    654,
+    655,
+    656,
+    657,
+    659,
+    660,
+    661,
+    662,
+    663,
+    664,
+    665,
+    666,
+    667,
+    668,
+    669,
+    670,
+    671,
+    672,
+    673,
+    674,
+    675,
+    676,
+    677,
+    678,
+    679,
+    680,
+    681,
+    682,
+    683,
+    684,
+    685,
+    686,
+    687,
+    688,
+    689,
+    691,
+    692,
+    693,
+    694,
+    695,
+    696,
+    697,
+    698,
+    699,
+    700,
+    701,
+    702,
+    703,
+    706,
+    707,
+    708,
+    709,
+    710,
+    711,
+    713,
+    714,
+    715,
+    716,
+    717,
+    719,
+    720,
+    722,
+    725,
+    727,
+    728,
+    729,
+    730,
+    732,
+    733,
+    737,
+    738,
+    739,
+    740,
+    741,
+    742,
+    745,
+    747,
+    750,
+    755,
+    757,
+    759,
+    760,
+    761,
+    762,
+    763,
+    764,
+    765,
+    767,
+    768,
+    769,
+    770,
+    773,
+    774,
+    775,
+    776,
+    777,
+    778,
+    779,
+    780,
+    782,
+    783,
+    784,
+    785,
+    789,
+    790,
+    791,
+    793,
+    794,
+    796,
+    797,
+    798,
+    799,
+    800,
+    801,
+    802,
+    803,
+    804,
+    811,
+    812,
+    815,
+    816,
+    817,
+    818,
+    820,
+    821,
+    824,
+    827,
+    828,
+    829,
+    831,
+    833,
+    835,
+    837,
+    838,
+    842,
+    843,
+    844,
+    847,
+    851,
+    852,
+    853,
+    854,
+    855,
+    856,
+    857,
+    859,
+    862,
+    863,
+    866,
+    867,
+    868,
+    869,
+    870,
+    872,
+    873,
+    874,
+    875,
+    877,
+    878,
+    881,
+    883,
+    886,
+    887,
+    889,
+    891,
+    893,
+    895,
+    896,
+    897,
+    900,
+    901,
+    902,
+    904,
+    905,
+    906,
+    907,
+    908,
+    910,
+    912,
+    913,
+    914,
+    915,
+    916,
+    917,
+    918,
+    920,
+    922,
+    924,
+    927,
+    928,
+    931,
+    932,
+    936,
+    937,
+    938,
+    939,
+    942,
+    943,
+    944,
+    945,
+    946,
+    947,
+    948,
+    949,
+    950,
+    951,
+    952,
+    953,
+    954,
+    955,
+    956,
+    957,
+    958,
+    959,
+    960,
+    961,
+    962,
+    963,
+    964,
+    965,
+    966,
+    967,
+    968,
+    969,
+    970,
+    971,
+    972,
+    973,
+    974,
+    975,
+    976,
+    977,
+    978,
+    979,
+    980,
+    981,
+    982,
+    983,
+    986,
+    987,
+    988,
+    989,
+    990,
+    991,
+    992,
+    993,
+    994,
+    995,
+    998,
+    999,
+    1000,
+    1001,
+    1002,
+    1004,
+    1005,
+    1006,
+    1009,
+    1010,
+    1011,
+    1012,
+    1013,
+    1014,
+    1016,
+    1018,
+    1020,
+    1021,
+    1023,
+    1025,
+    1026,
+    1028,
+    1031,
+    1032,
+    1033,
+    1034,
+    1035,
+    1036,
+    1037,
+    1038,
+    1042,
+    1043,
+    1044,
+    1047,
+    1048,
+    1049,
+    1050,
+    1051,
+    1052,
+    1053,
+    1054,
+    1055,
+    1056,
+    1059,
+    1060,
+    1061,
+    1062,
+    1063,
+    1064,
+    1065,
+    1067,
+    1068,
+    1069,
+    1070,
+    1074,
+    1075,
+    1076,
+    1077,
+    1078,
+    1079,
+    1080,
+    1081,
+    1085,
+    1086,
+    1089,
+    1090,
+    1092,
+    1093,
+    1094,
+    1095,
+    1097,
+    1099,
+    1101,
+    1102,
+    1103,
+    1104
+  ],
+  "existingIds": [
+    536,
+    582,
+    604,
+    704,
+    758,
+    781,
+    846,
+    865,
+    876,
+    1024,
+    1027
+  ]
+}
