@@ -147,10 +147,10 @@ function vehicleKit(kind){
  return{paint:merge(parts([[1.8,.7,4.4,0,.62,0],[1.6,.5,2.2,0,1.2,.25]])),trim:merge([...parts([[1.62,.42,2.0,0,1.22,.25]]),...[[-.82,-1.35],[.82,-1.35],[-.82,1.35],[.82,1.35]].map(([x,z])=>new T.CylinderGeometry(.33,.33,.24,10).rotateZ(Math.PI/2).translate(x,.33,z)),...(kind==='taxi'?parts([[.7,.22,.3,0,1.56,.35]]):[])]),lights:merge(parts([[.36,.14,.05,-.6,.72,-2.21],[.36,.14,.05,.6,.72,-2.21],[.4,.12,.05,-.6,.78,2.21],[.4,.12,.05,.6,.78,2.21]])),length:4.4,radius:1.3};
 }
 
-export function createStreetLife(scene,{features,buildings,ground,colliders,fixtures,exclude,spawn}){
+export function createStreetLife(scene,{features,buildings,ground,colliders,fixtures,exclude,spawn,markings=true}){
  const life={groups:{},night:0};
  // 標線
- {const m=buildLaneMarkings(features,ground),g=new T.Group();for(const [color,arr] of Object.entries(m.groups)){if(!arr.index.length)continue;const mesh=new T.Mesh(geom(arr.position,arr.index),new T.MeshStandardMaterial({color:color==='white'?'#ecebe4':'#e3b23c',roughness:.7,polygonOffset:true,polygonOffsetFactor:-5,polygonOffsetUnits:-5}));mesh.receiveShadow=true;g.add(mesh);}scene.add(g);life.groups.markings=g;life.markingStats=m;}
+ {const m=markings?buildLaneMarkings(features,ground):{groups:{},lines:0},g=new T.Group();for(const [color,arr] of Object.entries(m.groups)){if(!arr.index.length)continue;const mesh=new T.Mesh(geom(arr.position,arr.index),new T.MeshStandardMaterial({color:color==='white'?'#ecebe4':'#e3b23c',roughness:.7,polygonOffset:true,polygonOffsetFactor:-5,polygonOffsetUnits:-5}));mesh.receiveShadow=true;g.add(mesh);}scene.add(g);life.groups.markings=g;life.markingStats=m;}
  // 店面
  {const s=buildShopfronts(buildings,features,ground,{exclude}),g=new T.Group();
   const glassMat=new T.MeshStandardMaterial({map:shopGlassTexture(),roughness:.25,metalness:.3,emissive:'#ffc070',emissiveIntensity:0});
