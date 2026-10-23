@@ -18,7 +18,7 @@ export function createBusMaterial(){const m=new T.MeshStandardMaterial({roughnes
 'float fg=busRect(vec2(p.x,p.y-1.82),vec2(1.2,.58),.14)*smoothstep(.012,.024,abs(p.x))*front,rg=busRect(vec2(p.x,p.y-2.06),vec2(.92,.36),.08)*rear;',
 'float d0=busRect(vec2(p.z-4.86,p.y-1.44),vec2(.5,1.),.05)*side*curb,d1=busRect(vec2(p.z+1.01,p.y-1.44),vec2(.51,1.),.05)*side*curb;',
 'float doorGlass=max(busRect(vec2(abs(p.z-4.86)-.25,p.y-1.50),vec2(.20,.84),.035)*d0,busRect(vec2(abs(p.z+1.01)-.255,p.y-1.50),vec2(.204,.84),.035)*d1);',
-'float glass=clamp(max(max(fg,rg),max(band*mullion,doorGlass)),0.,1.);float stripe=smoothstep(.90,.93,p.y)*(1.-smoothstep(1.17,1.20,p.y));vec3 col=mix(vec3(.86,.91,.95),vec3(.018,.18,.47),stripe);col=mix(col,vec3(.015,.025,.04),max(d0,d1));col=mix(col,mix(vec3(.018,.035,.060),vec3(.06,.10,.15),clamp(p.y-1.3,0.,1.)),glass);',
+'float driverWin=busRect(vec2(p.z-4.86,p.y-1.88),vec2(.5,.64),.1)*side*(1.-curb);float glass=clamp(max(max(fg,rg),max(max(band*mullion,doorGlass),driverWin)),0.,1.);float stripe=smoothstep(.90,.93,p.y)*(1.-smoothstep(1.17,1.20,p.y));vec3 col=mix(vec3(.86,.91,.95),vec3(.018,.18,.47),stripe);col=mix(col,vec3(.015,.025,.04),max(d0,d1));col=mix(col,mix(vec3(.018,.035,.060),vec3(.06,.10,.15),clamp(p.y-1.3,0.,1.)),glass);',
 'float vent=busRect(vec2(p.x,p.y-.98),vec2(.78,.34),.05)*rear;col=mix(col,vec3(.04,.05,.06)*(.4+.45*step(.5,fract(p.y*16.))),vent);',
 'float head=busRect(vec2(abs(p.x)-.82,p.y-.80),vec2(.23,.065),.04)*front,tail=busRect(vec2(abs(p.x)-1.04,p.y-1.05),vec2(.075,.14),.04)*rear;',
 'col=mix(col,vec3(.82,.91,1.),head);col=mix(col,vec3(.45,.012,.018),tail);float plate=busRect(vec2(p.x,p.y-.77),vec2(.16,.06),.008)*max(front,rear);col=mix(col,vec3(.9,.91,.86),plate);',
