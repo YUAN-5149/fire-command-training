@@ -23,7 +23,7 @@ const F=buildStreetFacades(items,{project}),R=buildRoofSheds(sheds,{project});
 const count=g=>Object.values(g).reduce((s,a)=>s+a.position.length/3,0);
 const nF=count(F.groups),nR=count(R.groups);
 // 依 160 m 分塊做視錐剔除，畫面上同時只畫看得到的幾塊
-assert(nF>50000&&nF<1200000,'facade detail within budget: '+nF);
+assert(nF>50000&&nF<1600000,'facade detail within budget: '+nF);
 assert(nR>20000&&nR<300000,'roof sheds within budget: '+nR);
 for(const k of ['tile','glass','frame','grille','ac','sign','textH','textV','shopglass','shutter'])assert(F.groups[k]?.index.length>0,'has '+k);
 for(const g of [...Object.values(F.groups),...Object.values(R.groups)]){

@@ -205,5 +205,7 @@ export function addShophouses({T,scene,facades,roofs}){
  scene.add(group);
  // 夜間：店面玻璃與招牌發光
  const setNight=l=>{M.shopglass.emissiveIntensity=.25+l*1.4;M.sign.emissiveIntensity=l*.55;M.glassLit.emissiveIntensity=.12+l*1.1;M.glassLit.emissive.set(l>.3?'#ffd9a0':'#7f97a8');};
- return {group,verts,setNight};
+ // 距離剔除：離鏡頭超過 maxDist 的分塊不畫（細部在遠處看不出來，只增加繪製量）
+ const update=(eye,maxDist=400)=>{for(const m of group.children){const s=m.geometry.boundingSphere;m.visible=Math.hypot(s.center.x-eye.x,s.center.z-eye.z)-s.radius<maxDist;}};
+ return {group,verts,setNight,update};
 }

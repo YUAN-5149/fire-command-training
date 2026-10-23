@@ -35,7 +35,7 @@ import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=roads-20261023';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
 import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings,styleOf} from './xinyi-facades.js?v=6';
-import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=6';
+import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=7';
 import {kitPlacements,createFacadeKits} from './facade-kits.js?v=2';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';
 import {drapeSite,enhanceEoc} from './eoc-detail.js?v=parking-20261023';
@@ -83,7 +83,7 @@ const zhuangjingIds=new Set(zhuangjingData?.buildingIds??[]);
 const landmarks=await loadLandmarks().catch(()=>[]);for(const a of landmarks)if(a.collider)district.buildings.push(footprintBuilding(a));
 // 逐街精修（building-overrides-xinyi.json）：官方 LOD1 缺漏的量體依 OSM 外框補建（含碰撞與地面高程）。
 const legacyFacades=new URLSearchParams(location.search).get('facades')==='legacy';
-const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=15').then(r=>r.ok?r.json():null).catch(()=>null);
+const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=16').then(r=>r.ok?r.json():null).catch(()=>null);
 const overrides=overrideIndex(overrideData);if(overrideData)district.buildings.push(...fillBuildings(overrideData,district));
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox);
@@ -910,7 +910,7 @@ function frame(now){
  zhuangjing?.update(state);
  const crewStatus=zhuangjing&&Math.hypot(state.x-zhuangjing.layout.x,state.z-zhuangjing.layout.z)<28?zhuangjing.status:stationTeam.status();if($('stationCrewStatus').textContent!==crewStatus)$('stationCrewStatus').textContent=crewStatus;
  state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);
- eocDetail?.update(t,camera.position);youBike?.update(camera.position);
+ eocDetail?.update(t,camera.position);youBike?.update(camera.position);shophouse?.update(camera.position);
  life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{eye:camera.position,siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
  updateAerial(dt);
  updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt,{eye:camera.position});if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);
