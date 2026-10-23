@@ -12,7 +12,7 @@ import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js?v=runtime-20261023';
 import {rigWheels} from './wheel-rig.js?v=s25';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=runtime-20261023';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=traffic-detail-20261023';
 import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s25';
 import {createBigMap} from './xinyi-street-map.js?v=roads-20261023';
 import {createAudio} from './xinyi-street-audio.js?v=s25';
