@@ -830,3 +830,6 @@ function buildLightbarGeometry(spec = BODY_SPECS.sedan) {
 }
 
 export { CAR_PARTS, BODY_SPECS, carLayout, carBodyHalfWidthAt, taxiSignPlacement, buildCarGeometry, buildCarProxyGeometry, buildLightbarGeometry };
+
+// Additive exports for the retained upstream bus adapter; geometry algorithms unchanged.
+export {buildBodyLoft,part,roundedBox};

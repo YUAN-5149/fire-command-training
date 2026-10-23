@@ -74,3 +74,7 @@ node --no-warnings --experimental-loader ./tests/three-loader.mjs tests/xinyi-st
 ### 汽機車外觀
 
 延續既有slop GitHub汽車，細修圓潤車體及輪圈；方塊機車改為踏板車與坐姿騎士，加入轉動輪胎及車燈。116輛車仍使用5組批次繪製。來源、測試與實機待驗證項目見[外觀細修紀錄](docs/xinyi-traffic-detail-20261023.md)。
+
+### 示意公車
+
+接入原引用倉庫的低地板公車模型，最多4輛，與原116輛汽機車共用密度控制。公車沿較寬幹道路段試行，標示示意車流；沒有合適直行銜接時停等，未套用真實路線或時刻。來源與驗證見[公車接入紀錄](docs/xinyi-bus-20261023.md)。

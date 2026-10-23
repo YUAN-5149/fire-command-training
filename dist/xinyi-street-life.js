@@ -1,3 +1,4 @@
+import {BUS_COUNT,busRoadFeatures,busContinuations,busFootprint,makeBusKit,createBusMaterial,createBusDepth,createBusSignMaterial} from './xinyi-bus.js?v=bus-20261023';
 import {roundedCarSpec,buildRoundedCar,createRoundedCarMaterial,buildScooterGeometry,createScooterMaterial,createWheelDepth} from './xinyi-traffic-models.js?v=traffic-detail-20261023';
 import {createVehicleGrid} from './xinyi-performance.js?v=runtime-20261023';
 // 信義街景漫遊・街道生活層（全部為示意，非實測、非實際店家／車流）：
@@ -143,10 +144,11 @@ const SLOP_KINDS={sedan:'sedan',suv:'suv',police:'sedan',taxi:'taxi'};
 function vehicleKit(kind){
  if(SLOP_KINDS[kind]){const spec=roundedCarSpec(SLOP_KINDS[kind]);return{slop:spec,length:spec.zFront-spec.zRear,radius:1.3};}
  if(kind==='scooter')return {scooter:true,length:1.8,radius:.6};
+ if(kind==='bus')return makeBusKit();
  throw Error('Unknown traffic vehicle: '+kind);
 }
 
-export function createStreetLife(scene,{features,buildings,ground,colliders,fixtures,exclude,spawn,markings=true}){
+export function createStreetLife(scene,{features,buildings,ground,colliders,fixtures,exclude,spawn,markings=true,busFeatures=features}){
  const life={groups:{},night:0};
  // 標線
  {const m=markings?buildLaneMarkings(features,ground):{groups:{},lines:0},g=new T.Group();for(const [color,arr] of Object.entries(m.groups)){if(!arr.index.length)continue;const mesh=new T.Mesh(geom(arr.position,arr.index),new T.MeshStandardMaterial({color:color==='white'?'#ecebe4':'#e3b23c',roughness:.7,polygonOffset:true,polygonOffsetFactor:-5,polygonOffsetUnits:-5}));mesh.receiveShadow=true;g.add(mesh);}scene.add(g);life.groups.markings=g;life.markingStats=m;}
@@ -164,20 +166,22 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
   trunk.castShadow=crown.castShadow=true;g.add(trunk,crown);scene.add(g);life.groups.trees=g;life.treeCount=trees.length;}
  // 車流
  const lanes=buildLanes(features);life.laneCount=lanes.length;
- const counts={sedan:30,suv:18,police:5,taxi:18,scooter:45},kits=Object.fromEntries(Object.keys(counts).map(k=>[k,vehicleKit(k)])),vehicles=[],traffic=new T.Group();
+ const busLanes=buildLanes(busRoadFeatures(busFeatures)).filter(l=>l.length>=24);const allowedBusLanes=new Set(busLanes);for(const l of busLanes){l.next=l.next.filter(n=>allowedBusLanes.has(n));l.back=null;}life.busStats={count:busLanes.length?BUS_COUNT:0,lanes:busLanes.length};
+ const counts={sedan:30,suv:18,police:5,taxi:18,scooter:45,...(busLanes.length?{bus:BUS_COUNT}:{})},kits=Object.fromEntries(Object.keys(counts).map(k=>[k,vehicleKit(k)])),vehicles=[],traffic=new T.Group();
  const lightMat=new T.MeshStandardMaterial({color:'#fff3cf',emissive:'#ffe2a0',emissiveIntensity:.2});life.lightMat=lightMat;
  let seed=11;const rand=()=>(seed=(seed*16807)%2147483647)/2147483647,total=lanes.reduce((n,l)=>n+l.length,0);
- const pickLane=()=>{let r=rand()*total;for(const l of lanes){r-=l.length;if(r<=0)return l;}return lanes[0];};
+ const pickLane=(bus=false)=>{const pool=bus?busLanes:lanes;let r=rand()*(bus?busLanes.reduce((n,l)=>n+l.length,0):total);for(const l of pool){r-=l.length;if(r<=0)return l;}return pool[0];};
  const carColors=['#d9dcdf','#22262a','#8b1d22','#2b4a7a','#9aa3a8','#f2f2ee','#3d5c3a','#5a5f66'];
  for(const [kind,n] of Object.entries(counts)){const kit=kits[kind];let meshes;
-  if(kit.slop||kit.scooter){const g=kit.slop?buildRoundedCar(kit.slop):buildScooterGeometry();g.setAttribute('wheelRoll',new T.InstancedBufferAttribute(new Float32Array(n),1));g.setAttribute('paintColor',new T.InstancedBufferAttribute(new Float32Array(n*3),3));g.setAttribute('carState',new T.InstancedBufferAttribute(new Float32Array(n*4),4));
+  if(kit.bus){const body=new T.InstancedMesh(kit.body,createBusMaterial(),n),sign=new T.InstancedMesh(kit.sign,createBusSignMaterial(),n);body.name='slop bus';body.customDepthMaterial=createBusDepth();kit.body.setAttribute('wheelRoll',new T.InstancedBufferAttribute(new Float32Array(n),1));kit.body.setAttribute('carState',new T.InstancedBufferAttribute(new Float32Array(n*4),4));meshes={body,sign};}
+  else if(kit.slop||kit.scooter){const g=kit.slop?buildRoundedCar(kit.slop):buildScooterGeometry();g.setAttribute('wheelRoll',new T.InstancedBufferAttribute(new Float32Array(n),1));g.setAttribute('paintColor',new T.InstancedBufferAttribute(new Float32Array(n*3),3));g.setAttribute('carState',new T.InstancedBufferAttribute(new Float32Array(n*4),4));
    const body=new T.InstancedMesh(g,kit.slop?createRoundedCarMaterial(kit.slop):createScooterMaterial(),n);body.name=(kit.slop?'rounded slop ':'detailed ')+kind;body.customDepthMaterial=createWheelDepth(kit.slop?{radius:kit.slop.wheelRadius,axle:kit.slop.wheelZ,car:true}:{radius:.26,axle:.61});meshes={body};}
 
   for(const m of Object.values(meshes)){m.castShadow=true;m.frustumCulled=false;traffic.add(m);}
-  for(let i=0;i<n;i++){let lane=pickLane(),s=rand()*lane.length;for(let k=0;k<20&&Math.hypot(lanePose(lane,s).x-spawn.x,lanePose(lane,s).z-spawn.z)<30;k++){lane=pickLane();s=rand()*lane.length;}
+  for(let i=0;i<n;i++){let lane=pickLane(kit.bus),s=kit.bus?7+rand()*Math.max(0,lane.length-14):rand()*lane.length;for(let k=0;k<20&&Math.hypot(lanePose(lane,s).x-spawn.x,lanePose(lane,s).z-spawn.z)<30;k++){lane=pickLane(kit.bus);s=kit.bus?7+rand()*Math.max(0,lane.length-14):rand()*lane.length;}
    const col=new T.Color(kind==='taxi'?'#f2c21b':kind==='police'?'#f4f4f2':kind==='scooter'?['#c8ccd0','#1e2226','#b33a2c','#3a6fb0','#e8e4da'][i%5]:carColors[(i*3+(kind==='suv'?1:0))%carColors.length]);
    if(kit.slop||kit.scooter){const g=meshes.body.geometry;g.attributes.paintColor.setXYZ(i,col.r,col.g,col.b);g.attributes.carState.setXYZW(i,0,0,0,kind==='police'?1:0);}
-   vehicles.push({kind,i,n,active:true,kit,meshes,lane,s,v:0,max:(lane.speed+rand()*3)*(kind==='scooter'?1.1:1),side:kind==='scooter'?Math.min(lane.width/4-.6,1.4):0,x:0,z:0,heading:0});}}
+   vehicles.push({kind,i,n,active:true,kit,meshes,lane,s,v:0,max:kit.bus?6:(lane.speed+rand()*3)*(kind==='scooter'?1.1:1),side:kind==='scooter'?Math.min(lane.width/4-.6,1.4):0,x:0,z:0,heading:0});}}
  scene.add(traffic);life.groups.traffic=traffic;life.vehicles=vehicles;
  // 行人
  const walkPaths=[];for(const f of features){if(!['sidewalk','walk'].includes(f.kind))continue;for(const path of f.paths){const lp=localPath(path,2);if(lp.length>=15)walkPaths.push({...lp,width:f.width||1.8});}}
@@ -194,23 +198,23 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
  function obstacleAhead(veh,others,player){
   const fx=-Math.sin(veh.heading),fz=-Math.cos(veh.heading),look=veh.kit.length/2+Math.max(5,veh.v*1.2);let gap=Infinity;
   const test=(x,z,r)=>{const dx=x-veh.x,dz=z-veh.z,ahead=dx*fx+dz*fz,lat=Math.abs(-dx*fz+dz*fx);if(ahead>0&&ahead<look+r&&lat<1.2+r)gap=Math.min(gap,ahead-r);};
-  for(const o of others)if(o.active&&o!==veh&&Math.abs(o.x-veh.x)<30&&Math.abs(o.z-veh.z)<30)test(o.x,o.z,o.kit.radius);
+  for(const o of others)if(o.active&&o!==veh&&Math.abs(o.x-veh.x)<30&&Math.abs(o.z-veh.z)<30){if(o.kit.bus)for(const c of busFootprint(o))test(c[0],c[1],c[2]);else test(o.x,o.z,o.kit.radius);}
   for(const c of player)test(c[0],c[1],c[2]);
   return gap;
  }
  life.update=(dt,t,blockers,{siren=null,eye=null}={})=>{
   if(life.groups.traffic.visible){vehicleGrid.rebuild(vehicles);for(const veh of vehicles){if(!veh.active)continue;
-   const gap=obstacleAhead(veh,vehicleGrid.near(veh.x,veh.z),blockers);let target=gap<veh.kit.length/2+1.5?0:gap<veh.kit.length/2+8?veh.max*.3:veh.max;
+   const busNext=veh.kit.bus?busContinuations(veh.lane):null;const gap=Math.min(obstacleAhead(veh,vehicleGrid.near(veh.x,veh.z),blockers),veh.kit.bus&&!busNext.length?veh.lane.length-veh.s:Infinity);let target=gap<veh.kit.length/2+1.5?0:gap<veh.kit.length/2+8?veh.max*.3:veh.max;
    // 消防車（含自動出勤的分隊車輛，可傳入多部）鳴警笛接近（35 m 內）時，NPC 車輛停車並靠右讓道（示意）。
    // 讓道：減速停車並往右側路邊靠（示意），讓消防車從旁通過。
    const yieldNow=[siren].flat().some(sv=>sv&&Math.hypot(sv.x-veh.x,sv.z-veh.z)<35);if(yieldNow)target=0;veh.pull=Math.max(0,Math.min(1,(veh.pull??0)+(yieldNow?1:-.5)*dt));
    const dv=Math.max(-8*dt,Math.min(3*dt,target-veh.v));veh.brake=dv<-.5*dt||target===0?1:0;veh.v+=dv;veh.s+=veh.v*dt;
-   while(veh.s>veh.lane.length){veh.s-=veh.lane.length;const next=veh.lane.next.length?veh.lane.next[Math.floor(rand()*veh.lane.next.length)]:veh.lane.back??pickLane();veh.lane=next;veh.max=(next.speed+rand()*3)*(veh.kind==='scooter'?1.1:1);}
+   while(veh.s>veh.lane.length){if(veh.kit.bus&&!busContinuations(veh.lane).length){veh.s=Math.max(0,veh.lane.length-7.5);veh.v=0;break;}veh.s-=veh.lane.length;const choices=veh.kit.bus?busContinuations(veh.lane):veh.lane.next;const next=choices.length?choices[Math.floor(rand()*choices.length)]:veh.lane.back??pickLane();veh.lane=next;veh.max=veh.kit.bus?6:(next.speed+rand()*3)*(veh.kind==='scooter'?1.1:1);}
    const p=lanePose(veh.lane,veh.s),rx=Math.cos(p.heading),rz=-Math.sin(p.heading);
    const side=veh.side+(veh.pull??0)*2.2;veh.x=p.x+rx*side;veh.z=p.z+rz*side;veh.heading+=Math.atan2(Math.sin(p.heading-veh.heading),Math.cos(p.heading-veh.heading))*Math.min(1,dt*8);
    vehicleGrid.update(veh);
-   tmp.position.set(veh.x,ground.at(veh.x,veh.z),veh.z);tmp.rotation.set(0,veh.heading+(veh.kit.slop?Math.PI:0),0);tmp.updateMatrix();for(const m of Object.values(veh.meshes))m.setMatrixAt(veh.i,tmp.matrix);
-   if(veh.kit.slop||veh.kit.scooter){const attrs=veh.meshes.body.geometry.attributes;veh.wheelRoll=((veh.wheelRoll??0)+(veh.kit.scooter?-1:1)*veh.v*dt/(veh.kit.slop?.wheelRadius??.26))%(Math.PI*2);attrs.wheelRoll.setX(veh.i,veh.wheelRoll);attrs.wheelRoll.needsUpdate=true;const a=attrs.carState;if(a.getX(veh.i)!==veh.brake){a.setX(veh.i,veh.brake);a.needsUpdate=true;}}
+   tmp.position.set(veh.x,ground.at(veh.x,veh.z),veh.z);tmp.rotation.set(0,veh.heading+(veh.kit.slop||veh.kit.bus?Math.PI:0),0);tmp.updateMatrix();for(const m of Object.values(veh.meshes))m.setMatrixAt(veh.i,tmp.matrix);
+   if(veh.kit.slop||veh.kit.scooter||veh.kit.bus){const attrs=veh.meshes.body.geometry.attributes;veh.wheelRoll=((veh.wheelRoll??0)+(veh.kit.scooter?-1:1)*veh.v*dt/(veh.kit.slop?.wheelRadius??veh.kit.wheelRadius??.26))%(Math.PI*2);attrs.wheelRoll.setX(veh.i,veh.wheelRoll);attrs.wheelRoll.needsUpdate=true;const a=attrs.carState;if(a.getX(veh.i)!==veh.brake){a.setX(veh.i,veh.brake);a.needsUpdate=true;}}
   }
   for(const m of traffic.children)m.instanceMatrix.needsUpdate=true;}
   if(life.groups.people.visible){crowd.begin();peds.forEach((q,i)=>{if(i>=life.pedActive)return;q.s+=q.v*q.dir*dt;if(q.s>q.p.length||q.s<0){q.dir*=-1;q.s=Math.max(0,Math.min(q.p.length,q.s));}
@@ -219,7 +223,7 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
    q.rig.update(dt,x,z,Math.atan2(dx,dz),groundAt);crowd.add(q.rig,eye?Math.hypot(x-eye.x,z-eye.z):0);});
    crowd.end();}
  };
- life.circles=()=>life.groups.traffic.visible?vehicles.filter(v=>v.active).map(v=>[v.x,v.z,v.kit.radius,(v.pull??0)>.6]):[];// 第 4 欄：已靠邊讓道
+ life.circles=()=>life.groups.traffic.visible?vehicles.filter(v=>v.active).flatMap(v=>v.kit.bus?busFootprint(v):[[v.x,v.z,v.kit.radius,(v.pull??0)>.6]]):[];// 第 4 欄：已靠邊讓道
  // 畫質密度：只繪製與模擬前 ratio 比例的車輛與行人。
  life.pedActive=pedCount;life.peds=peds;
  life.setDensity=ratio=>{for(const v of vehicles){const keep=Math.ceil(v.n*ratio);v.active=v.i<keep;for(const m of Object.values(v.meshes))m.count=keep;}life.pedActive=Math.ceil(pedCount*ratio);};

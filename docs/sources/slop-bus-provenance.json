@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/mrdoob/slop-newyork",
+  "commit": "f98e8da6e9c032dd03be45a1e6b3203ec62aae3d",
+  "source": "js/actor-models.js",
+  "license": "MIT, retained dist/vendor/slop/LICENSE",
+  "extraction": {
+    "from": "const BUS_PARTS =",
+    "until": "let _busWheelMat = null;",
+    "geometry": "verbatim except ES module imports/exports"
+  },
+  "adaptation": "Local GLSL material, generic demonstration destination, merged wheels and original dimensions; independent wide-road traffic"
+}
