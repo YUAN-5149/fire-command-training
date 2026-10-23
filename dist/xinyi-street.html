@@ -113,6 +113,14 @@
     <div class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 汽車、機車與公車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 推估車道線（含雙黃線）</label><label><input type="checkbox" id="lifeTrees" checked> 補植行道樹</label></div>
     <label><input type="checkbox" id="officialPaint" checked> 官方紅黃線與明確標記中線</label>
     <div class="toggles"><label><input type="checkbox" id="zebraMapped" checked> 黑白斑馬線（OSM 已標記）</label><label><input type="checkbox" id="zebraReview" checked> 其餘穿越道示意（條紋待核對）</label></div>
+    <h2>YouBike 公共自行車站</h2>
+    <label><input type="checkbox" id="youBike" checked> 顯示 YouBike 站點與示意自行車</label>
+    <p id="youBikeStatus" class="note" role="status">載入官方 YouBike 站點…</p>
+    <label for="youBikeStation">信義區站點</label>
+    <select id="youBikeStation" aria-describedby="youBikeStationDetail" style="max-width:100%"></select>
+    <button id="youBikeLocate">在地圖標示此站</button>
+    <p id="youBikeStationDetail" class="note"></p>
+    <p class="note"><a href="https://data.taipei/dataset/detail?id=c6bc8aed-557d-41d5-bfb1-8da24f78f2fb" target="_blank" rel="noopener">臺北市官方 YouBike 資料</a>。黃色 U 為站點標記；代表性柱列不是實測範圍，自行車暫不提供騎乘。</p>
     <label><input type="checkbox" id="yellowBoxes" checked> 網狀黃線（2025 影像判讀）</label>
     <p id="yellowBoxStatus" class="note" role="status">載入網狀黃線…</p>
     <p class="note"><a href="https://www.historygis.udd.gov.taipei/urban/?id=B5775BBE" target="_blank" rel="noopener">影像來源：臺北市政府都市發展局</a>。已核對可辨識的影像外框，非現地量測；遮蔽、褪色及模糊位置仍可能漏辨。</p>
@@ -164,6 +172,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s45-parking-20261023"></script>
+<script type="module" src="xinyi-street.js?v=s45-youbike-20261023"></script>
 </body>
 </html>

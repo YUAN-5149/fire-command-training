@@ -1,3 +1,4 @@
+import {addYouBikeStations} from './xinyi-youbike.js?v=youbike-20261023';
 import {createFrameBudget,createFrameWindow} from './xinyi-performance.js?v=runtime-20261023';
 import {addYellowBoxes} from './xinyi-yellow-boxes.js?v=yellowbox-20261023';
 import {addZebraCrossings} from './xinyi-zebra-crossings.js?v=zebra-20261023';
@@ -112,9 +113,9 @@ let detailMats,farMat,facadeSigns=null,shophouse=null;
  const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});detailMats=createDetailMaterials(GisMaterial);litWindows(detailMats.glass);scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:detailMats}));
 }
 // 應變中心：場地（停車場、廣場、樹與車）貼合地形，補上原模型檢視頁的表面質感與夜間亮窗、停機坪邊燈。
-let eocDetail=null;
+let eocDetail=null,eocRoot=null,youBike=null;
 addLandmarksToThree({T,scene,GLTFLoader,ground,project}).then(list=>{const e=list.find(l=>l.anchor.key==='eoc');if(!e)return;
- drapeSite(e.root,ground);eocDetail=enhanceEoc(e.root);try{eocDetail.setNight(TIME_PRESETS[state.time].lights);}catch{}}).catch(e=>console.error(e));
+ drapeSite(e.root,ground);eocRoot=e.root;youBike?.replaceLegacyEoc(e.root);eocDetail=enhanceEoc(e.root);try{eocDetail.setNight(TIME_PRESETS[state.time].lights);}catch{}}).catch(e=>console.error(e));
 // 街道：預設為逐車道路面（osm2streets：車道、人行道、路口、中線、車道線、箭頭、停止線）；
 // ?roads=legacy 改回原本依 OSM 寬度展開的示意路面＋精修鋪面。兩者都保留 OSM zebra 斑馬線。
 const legacyRoads=new URLSearchParams(location.search).get('roads')==='legacy';
@@ -129,6 +130,8 @@ else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=me
 const zebraCrossings=addZebraCrossings({T,scene,features:navigationFeatures,ground});
 const yellowBoxData=await fetch('assets/xinyi-yellow-boxes.json?v=yellowbox-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
 const yellowBoxes=yellowBoxData?addYellowBoxes({T,scene,data:yellowBoxData,ground}):null;
+const youBikeData=await fetch('assets/xinyi-youbike.json?v=youbike-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
+if(youBikeData){youBike=addYouBikeStations({scene,data:youBikeData,features:navigationFeatures,ground});if(eocRoot)youBike.replaceLegacyEoc(eocRoot);}
 
 // 外圍沿完整行政界線裁切的 OSM 道路；不由道路等級猜測紅黃線。
 if(roadNetwork)for(const g of buildStreetBase(roadNetwork.outerFeatures.map(f=>f.kind==='sidewalk'?{...f,kind:'walk'}:f),ground,()=>false)){
@@ -338,7 +341,7 @@ function sceneCircles(traffic){
  return out;
 }
 // 地圖標記：傷患區（人數）、救護車停靠點、雲梯車。
-function mapMarkers(){const out=zhuangjing?[zhuangjing.marker()]:[];const m=mission?.mci;
+function mapMarkers(){const out=[...(zhuangjing?[zhuangjing.marker()]:[]),...(youBike?.markers(state.x,state.z)??[])];const m=mission?.mci;
  if(m){const left=m.patients.filter(p=>p.state!=='transported'&&p.figure.root.visible);if(left.length){const c=left.reduce((a,p)=>a.add(p.figure.root.position),new T.Vector3()).multiplyScalar(1/left.length);out.push({x:c.x,z:c.z,color:'#f85149',label:`傷患 ${left.length}`});}
   out.push({x:m.staging.x,z:m.staging.z,color:'#f5f5f5',label:'救護車停靠'});}
  if(mission?.entry&&mission.phase<6)out.push({x:mission.entry.x,z:mission.entry.z,color:'#ffd33d',label:'建物入口'});
@@ -891,7 +894,7 @@ function frame(now){
  zhuangjing?.update(state);
  const crewStatus=zhuangjing&&Math.hypot(state.x-zhuangjing.layout.x,state.z-zhuangjing.layout.z)<28?zhuangjing.status:stationTeam.status();if($('stationCrewStatus').textContent!==crewStatus)$('stationCrewStatus').textContent=crewStatus;
  state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);
- eocDetail?.update(t,camera.position);
+ eocDetail?.update(t,camera.position);youBike?.update(camera.position);
  life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{eye:camera.position,siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
  updateAerial(dt);
  updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt,{eye:camera.position});
@@ -956,6 +959,16 @@ $('sens').value=settings.sens;$('sensValue').textContent=(+settings.sens).toFixe
 $('invertY').checked=settings.invertY;$('invertY').onchange=()=>{settings.invertY=$('invertY').checked;saveSettings();};
 function setLifeVisible(group,visible){life.groups[group].visible=visible;if(group==='markings'&&laneMesh)for(const m of laneMesh.children)if(m.userData.inferredPaint)m.visible=visible;}
 for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);box.checked=settings.life[group];setLifeVisible(group,box.checked);box.onchange=()=>{setLifeVisible(group,box.checked);settings.life[group]=box.checked;saveSettings();};}
+$('youBike').checked=settings.youBike!==false;youBike?.setVisible($('youBike').checked);
+$('youBike').disabled=!youBike;
+$('youBike').onchange=()=>{settings.youBike=$('youBike').checked;youBike?.setVisible(settings.youBike);saveSettings();};
+const stationSelect=$('youBikeStation');
+for(const s of youBike?.records??[]){const o=document.createElement('option');o.value=s.id;o.textContent=s.name;stationSelect.append(o);}
+stationSelect.value='500112017';
+function describeYouBike(){const s=youBike?.records.find(s=>s.id===stationSelect.value);$('youBikeStationDetail').textContent=s?s.address+'｜官方柱位總數 '+s.capacity+'（畫面僅呈現部分示意柱與車）':'';}
+stationSelect.onchange=describeYouBike;describeYouBike();
+$('youBikeLocate').disabled=!youBike;$('youBikeLocate').onclick=()=>{const s=youBike.records.find(s=>s.id===stationSelect.value);if(s){setWaypoint(s.x,s.z,'YouBike・'+s.name);setPaused(false);openMap();}};
+$('youBikeStatus').textContent=youBike?'已匯入信義區 '+youBike.records.length+' 站（官方資料 '+youBikeData.stations[0].sourceUpdated+'）。站點座標依官方資料；車柱方向、間距及高程待現勘。自行車僅為示意，非即時可借數；附近 125 m 顯示細節。':'YouBike 資料未載入；原有場景保留，請重新整理。';
 $('yellowBoxes').checked=settings.yellowBoxes!==false;if(yellowBoxes)yellowBoxes.group.visible=$('yellowBoxes').checked;
 $('yellowBoxes').onchange=()=>{settings.yellowBoxes=$('yellowBoxes').checked;if(yellowBoxes)yellowBoxes.group.visible=settings.yellowBoxes;saveSettings();};
 $('yellowBoxStatus').textContent=yellowBoxData?'網狀黃線：已掃描 '+yellowBoxData.coverage.tilesScanned+' 個影像分區，匯入 '+yellowBoxes.count+' 處，另 '+yellowBoxData.counts.deferredBoundary+' 筆候選外框待核對。來源為2025影像；線寬、間距及目前現況待核對，遮蔽處可能漏辨。':'網狀黃線資料未載入，請重新整理後核對。';
@@ -979,5 +992,5 @@ renderLoad();
 $('loading').hidden=true;
 {const at=new URLSearchParams(location.search).get('at');if(at)goToLandmark(at);}
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);}}};
+window.__xinyiStreet={youBike,zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);}}};
 requestAnimationFrame(frame);
