@@ -1,3 +1,4 @@
+import {addYellowBoxes} from './xinyi-yellow-boxes.js?v=yellowbox-20261023';
 import {addZebraCrossings} from './xinyi-zebra-crossings.js?v=zebra-20261023';
 import {addRoadPaint,explicitDivider,outerGroundGeometry} from './xinyi-road-paint.js?v=roads-20261023';
 import {addZhuangjingStation} from './zhuangjing-station.js?v=zhuangjing-20261023';
@@ -122,6 +123,9 @@ else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=me
 
 }
 const zebraCrossings=addZebraCrossings({T,scene,features:navigationFeatures,ground});
+const yellowBoxData=await fetch('assets/xinyi-yellow-boxes.json?v=yellowbox-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
+const yellowBoxes=yellowBoxData?addYellowBoxes({T,scene,data:yellowBoxData,ground}):null;
+
 // 外圍沿完整行政界線裁切的 OSM 道路；不由道路等級猜測紅黃線。
 if(roadNetwork)for(const g of buildStreetBase(roadNetwork.outerFeatures.map(f=>f.kind==='sidewalk'?{...f,kind:'walk'}:f),ground,()=>false)){
  const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})});m.castShadow=false;m.name='Xinyi outer OSM road';scene.add(m);
@@ -944,6 +948,9 @@ $('sens').value=settings.sens;$('sensValue').textContent=(+settings.sens).toFixe
 $('invertY').checked=settings.invertY;$('invertY').onchange=()=>{settings.invertY=$('invertY').checked;saveSettings();};
 function setLifeVisible(group,visible){life.groups[group].visible=visible;if(group==='markings'&&laneMesh)for(const m of laneMesh.children)if(m.userData.inferredPaint)m.visible=visible;}
 for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);box.checked=settings.life[group];setLifeVisible(group,box.checked);box.onchange=()=>{setLifeVisible(group,box.checked);settings.life[group]=box.checked;saveSettings();};}
+$('yellowBoxes').checked=settings.yellowBoxes!==false;if(yellowBoxes)yellowBoxes.group.visible=$('yellowBoxes').checked;
+$('yellowBoxes').onchange=()=>{settings.yellowBoxes=$('yellowBoxes').checked;if(yellowBoxes)yellowBoxes.group.visible=settings.yellowBoxes;saveSettings();};
+$('yellowBoxStatus').textContent=yellowBoxData?'網狀黃線：已掃描 '+yellowBoxData.coverage.tilesScanned+' 個影像分區，匯入 '+yellowBoxes.count+' 處，另 '+yellowBoxData.counts.deferredBoundary+' 筆候選外框待核對。來源為2025影像；線寬、間距及目前現況待核對，遮蔽處可能漏辨。':'網狀黃線資料未載入，請重新整理後核對。';
 $('zebraMapped').checked=settings.zebraMapped!==false;zebraCrossings.groups.mapped.visible=$('zebraMapped').checked;
 $('zebraReview').checked=settings.zebraReview!==false;zebraCrossings.groups.review.visible=$('zebraReview').checked;
 $('zebraMapped').onchange=()=>{settings.zebraMapped=$('zebraMapped').checked;zebraCrossings.groups.mapped.visible=settings.zebraMapped;saveSettings();};
