@@ -43,8 +43,12 @@ export function pickFloor(task,{fireFloor,floors,burning={},assigned=[]}){
  const order=[fireFloor+1,fireFloor,...floors.filter(f=>f<fireFloor).reverse()].filter(f=>floors.includes(f)&&!taken.has(f));return order[0]??null;
 }
 
+// Station vehicles leave straight through their own open bay before joining the road graph.
+export function squadDeparturePath(v,route=null){const start=v.stationExit??v,points=route?offsetRight(route):[[start.x,start.z],[v.pose.x,v.pose.z]],out=v.stationExit?[[v.x,v.z],[start.x,start.z],...points]:points;
+ const path=[...out,[v.pose.x,v.pose.z]];return path.filter((p,i)=>!i||Math.hypot(p[0]-path[i-1][0],p[1]-path[i-1][1])>1e-6);}
+
 // ---------- 3D 與行為 ----------
-export function createSquads({scene,template,createPerson,ground,colliders,graph,life,beaconMatch=/beacon|warning|LED strip|red.*lens|emergency.*lens|red.*flasher/i}){
+export function createSquads({scene,template,createPerson,ground,colliders,graph,life,playerHome=null,beaconMatch=/beacon|warning|LED strip|red.*lens|emergency.*lens|red.*flasher/i}){
  const squads=[];let size=5;
  const mkVehicle=(sq,k)=>{const root=new T.Group(),model=template.clone(true);model.rotation.y=-Math.PI/2;root.add(model);const beacons=[];
   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(beaconMatch.test(o.material?.name||'')){o.material=o.material.clone();o.material.color?.set('#c61f16');o.material.emissive?.set('#ff180a');beacons.push(o.material);}}});
@@ -67,12 +71,12 @@ export function createSquads({scene,template,createPerson,ground,colliders,graph
   const homes=homePositions(site,graph,squads.length),poses=stagingPoses(site,graph,free,squads.length*2,{existing:playerTruck?[{x:playerTruck.x,z:playerTruck.z}]:[]});
   squads.forEach((sq,i)=>{sq.task='enroute';sq.dispatched=now;sq.arrived=null;sq.floor=null;sq.log=[{t:now,text:'派遣出勤'}];
    sq.vehicles.forEach((v,k)=>{const pose=poses[i*2+k]??poses.at(-1);v.pose=pose;v.water=SQUAD.water;v.root.visible=true;v.siren=true;
-    let start;if(i===0&&playerTruck){const f=[-Math.sin(playerTruck.heading),-Math.cos(playerTruck.heading)];start={x:playerTruck.x-f[0]*(9+k*0),z:playerTruck.z-f[1]*9,heading:playerTruck.heading};v.followPlayer=k===1;}
+    let start;if(i===0&&playerTruck){const f=[-Math.sin(playerTruck.heading),-Math.cos(playerTruck.heading)];start=playerHome??{x:playerTruck.x-f[0]*9,z:playerTruck.z-f[1]*9,heading:playerTruck.heading};v.stationExit=playerHome?.exit??null;v.followPlayer=k===1;}
     else{const h=homes[i]??{x:site.x+300,z:site.z};start={x:h.x+(k?-6:0),z:h.z,heading:0};}
     place(v,start.x,start.z,start.heading);v.delay=i===0?0:SQUAD.turnout+k*4;v.state=i===0&&k===0?'player':'wait';v.path=null;if(v.state==='player')v.root.visible=false;});
    for(const p of sq.people){p.g.visible=false;p.inside=false;p.goal=null;}sq.hose.visible=false;sq.water3d.visible=false;});
   return poses;}
- function route(v){if(!v.pose)return;const r=findRouteSafe(v.x,v.z,v.pose.x,v.pose.z);if(!r){v.path=[[v.x,v.z],[v.pose.x,v.pose.z]];}else v.path=offsetRight(r.points);v.path.push([v.pose.x,v.pose.z]);v.s=0;v.len=polyLength(v.path);v.state='driving';v.routeT=0;}
+ function route(v){if(!v.pose)return;const start=v.stationExit??v,r=findRouteSafe(start.x,start.z,v.pose.x,v.pose.z);v.path=squadDeparturePath(v,r?.points);v.stationExit=null;v.s=0;v.len=polyLength(v.path);v.state='driving';v.routeT=0;}
  let findRouteSafe=()=>null;
  function arrive(sq,v,now){place(v,v.pose.x,v.pose.z,v.pose.heading);v.state='parked';v.v=0;
   if(sq.vehicles.every(x=>x.state==='parked'||x.state==='player')&&!sq.arrived){sq.arrived=now;sq.task='standby';sq.log.push({t:now,text:'抵達現場、人員下車待命'});

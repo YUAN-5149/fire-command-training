@@ -105,6 +105,8 @@ export function nearestStreet(features,x,z,maxDistance=18){
 
 // Default dispatch home: Xinyi fire station's existing apparatus apron.
 export function spawnPoint(features,landmarks=[]){
- const p=stationPositions(landmarks.find(a=>a.key==='hq')),[x,z]=project(...p.player),[tx,tz]=project(...p.truck);
- return {x,z,heading:p.heading,road:'忠孝東路五段',station:p.station.name,address:p.station.address,truck:{x:tx,z:tz,heading:p.heading}};
+ const p=stationPositions(landmarks.find(a=>a.key==='hq')),[x,z]=project(...p.player),[tx,tz]=project(...p.truck),[ax,az]=project(...p.aerial);
+ const [sx,sz]=project(...p.support),[ex,ez]=project(...p.supportExit);
+ const crew=p.crew.map(c=>{const [x,z]=project(...c);return {x,z};});
+ return {x,z,heading:p.heading,road:'忠孝東路五段',station:p.station.name,address:p.station.address,truck:{x:tx,z:tz,heading:p.heading},aerial:{x:ax,z:az,heading:p.heading},support:{x:sx,z:sz,heading:p.heading,exit:{x:ex,z:ez}},crew};
 }
