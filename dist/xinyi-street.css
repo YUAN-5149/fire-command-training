@@ -213,7 +213,7 @@ button.primary{background:#c8202b;border-color:#ff6b6b}
 body.touch .brand{padding:6px 10px 6px 6px}
 body.touch .brand strong{white-space:nowrap;font-size:14px}
 body.touch .brand small{font-size:12px;white-space:nowrap;max-width:42vw;overflow:hidden;text-overflow:ellipsis}
-body.touch #night,body.touch #reset,body.touch #enter,body.touch #siren{display:none}
+body.touch #runButton,body.touch #night,body.touch #reset,body.touch #enter,body.touch #siren{display:none}
 body.touch .actions{flex-wrap:nowrap;gap:5px}
 body.touch .actions button{padding:7px 9px;font-size:13px;white-space:nowrap}
 body.touch #minimap{width:120px;height:120px;right:10px;bottom:10px}
