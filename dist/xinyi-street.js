@@ -1,3 +1,5 @@
+import {createFrameBudget,createFrameWindow} from './xinyi-performance.js?v=runtime-20261023';
+import {addYellowBoxes} from './xinyi-yellow-boxes.js?v=yellowbox-20261023';
 import {addZebraCrossings} from './xinyi-zebra-crossings.js?v=zebra-20261023';
 import {addRoadPaint,explicitDivider,outerGroundGeometry} from './xinyi-road-paint.js?v=roads-20261023';
 import {addZhuangjingStation} from './zhuangjing-station.js?v=zhuangjing-20261023';
@@ -8,9 +10,9 @@ import {stationSurface,stationCollisionBuildings} from './xinyi-station-spawn.js
 // 只把經緯度轉成本地公尺並改以 Three.js 呈現。外觀為示意；未使用 taipei-gta 的地圖、程式或素材。
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
-import {createActionScene} from './action-scene.js?v=smooth-20261023';
+import {createActionScene} from './action-scene.js?v=runtime-20261023';
 import {rigWheels} from './wheel-rig.js?v=s25';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=roads-20261023';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=runtime-20261023';
 import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s25';
 import {createBigMap} from './xinyi-street-map.js?v=roads-20261023';
 import {createAudio} from './xinyi-street-audio.js?v=s25';
@@ -125,6 +127,9 @@ else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=me
 
 }
 const zebraCrossings=addZebraCrossings({T,scene,features:navigationFeatures,ground});
+const yellowBoxData=await fetch('assets/xinyi-yellow-boxes.json?v=yellowbox-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
+const yellowBoxes=yellowBoxData?addYellowBoxes({T,scene,data:yellowBoxData,ground}):null;
+
 // 外圍沿完整行政界線裁切的 OSM 道路；不由道路等級猜測紅黃線。
 if(roadNetwork)for(const g of buildStreetBase(roadNetwork.outerFeatures.map(f=>f.kind==='sidewalk'?{...f,kind:'walk'}:f),ground,()=>false)){
  const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})});m.castShadow=false;m.name='Xinyi outer OSM road';scene.add(m);
@@ -790,7 +795,9 @@ $('tSpray').addEventListener('pointerdown',()=>{state.touchSpray=true;});for(con
 $('mapBtn').onclick=()=>openMap();$('mapClose').onclick=()=>closeMap();$('mapIn').onclick=()=>bigmap.zoom(1.3);$('mapOut').onclick=()=>bigmap.zoom(1/1.3);$('mapMe').onclick=()=>bigmap.center();
 $('mapClear').onclick=()=>clearWaypoint();$('mapTruckWp').onclick=()=>setWaypoint(truck.x,truck.z,'消防車');
 $('menuMap').onclick=()=>{setPaused(false);openMap();};
-function drawMinimap(){
+const minimapBudget=createFrameBudget(10);
+function drawMinimap(now){
+ if(!minimapBudget.due(now,state.mode))return;
  if(state.mode==='interior'&&indoor.plan){indoor.drawMap(mctx,mini.width);return;}
  const s=mini.width,zoom=state.mode==='drive'?.55:.9;mctx.save();mctx.clearRect(0,0,s,s);mctx.beginPath();mctx.arc(s/2,s/2,s/2,0,Math.PI*2);mctx.clip();
  mctx.fillStyle='#1c252b';mctx.fillRect(0,0,s,s);mctx.translate(s/2,s/2);mctx.rotate(state.yaw);mctx.scale(zoom,zoom);
@@ -808,7 +815,7 @@ function drawMinimap(){
 }
 
 // 更新
-const clock=new T.Timer();let streetTimer=0;
+const clock=new T.Timer();clock.connect(document);let streetTimer=0;const promptBudget=createFrameBudget(10);
 function input(){const k=state.keys;let f=(k.has('w')||k.has('arrowup')?1:0)-(k.has('s')||k.has('arrowdown')?1:0),r=(k.has('d')||k.has('arrowright')?1:0)-(k.has('a')||k.has('arrowleft')?1:0);f+=state.stick[1]+state.pad.move[1];r+=state.stick[0]+state.pad.move[0];if(state.mode==='drive')f+=state.pad.throttle-state.pad.reverse;return [Math.max(-1,Math.min(1,f)),Math.max(-1,Math.min(1,r))];}
 const playerGait=createWalkMotion();
 function updateWalk(dt){
@@ -826,7 +833,8 @@ function updateWalk(dt){
  }
  const gait=playerGait.update(dt,Math.hypot(state.x-beforeX,state.z-beforeZ)),stride=gait.swing;person.legs[0].rotation.x=stride;person.legs[1].rotation.x=-stride;person.arms[0].rotation.x=-stride*.8;person.arms[1].rotation.x=stride*.8;
  player.position.set(state.x,ground.at(state.x,state.z)+gait.bob,state.z);player.rotation.y=state.facing;
- const ne=nearEntry();$('prompt').hidden=!nearTruck()&&!ne;$('prompt').textContent=ne?(matchMedia('(pointer:coarse)').matches?'點「上車」進入建物（示意）':'按 E 進入建物（示意平面）'):matchMedia('(pointer:coarse)').matches?'點「上車」駕駛消防車':'按 E 駕駛消防車；按 U 選攜帶裝備';
+ if(promptBudget.due(clock.getElapsed()*1000,state.mode)){const ne=nearEntry();$('prompt').hidden=!nearTruck()&&!ne;$('prompt').textContent=ne?(matchMedia('(pointer:coarse)').matches?'點「上車」進入建物（示意）':'按 E 進入建物（示意平面）'):matchMedia('(pointer:coarse)').matches?'點「上車」駕駛消防車':'按 E 駕駛消防車；按 U 選攜帶裝備';}
+
 }
 function truckCircles(){const f=[-Math.sin(truck.heading),-Math.cos(truck.heading)];return [-2.4,0,2.4].map(o=>[truck.x+f[0]*o,truck.z+f[1]*o,1.45]);}
 function updateDrive(dt){
@@ -875,8 +883,8 @@ function frame(now){
  requestAnimationFrame(frame);
  // 30 FPS 省電：未到間隔就跳過這一幀；暫停時停止模擬與繪製。
  if(settings.fps===30&&now-lastFrame<1000/30-2)return;lastFrame=now;
- if(pollPad()||state.paused||bigmap.open){clock.update();return;}
- clock.update();const dt=Math.min(clock.getDelta(),.05),t=clock.getElapsed();quality.sample(dt);
+ if(document.hidden||pollPad()||state.paused||bigmap.open){clock.update(now);return;}
+ clock.update(now);const rawDt=clock.getDelta(),dt=Math.min(rawDt,.05),t=clock.getElapsed();quality.sample(rawDt);
  lookPad(dt);
  stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});
  zhuangjing?.update(state);
@@ -885,8 +893,8 @@ function frame(now){
  eocDetail?.update(t);
  life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{eye:camera.position,siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
  updateAerial(dt);
- updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt);
- if(state.mode==='interior'){updateNavigation(dt);{const dTruck=30;audio.update({t,siren:truck.siren?1/(1+dTruck/25):0,speed:0,driving:false,ambient:.3});}drawMinimap();indoor.render(renderer,camera,state.yaw,fpPitch());return;}
+ updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt,{eye:camera.position});
+ if(state.mode==='interior'){updateNavigation(dt);{const dTruck=30;audio.update({t,siren:truck.siren?1/(1+dTruck/25):0,speed:0,driving:false,ambient:.3});}drawMinimap(now);indoor.render(renderer,camera,state.yaw,fpPitch());return;}
  // 消防車貼地，依前後輪地面高差俯仰。
  const fx=-Math.sin(truck.heading),fz=-Math.cos(truck.heading),yf=ground.at(truck.x+fx*2.3,truck.z+fz*2.3),yr=ground.at(truck.x-fx*2.1,truck.z-fz*2.1);
  truck.root.position.set(truck.x,(yf+yr)/2,truck.z);truck.root.rotation.set(Math.atan2(yf-yr,4.4),truck.heading,0,'YXZ');
@@ -904,7 +912,7 @@ function frame(now){
  updateNavigation(dt);
  {const dTruck=Math.hypot(state.x-truck.x,state.z-truck.z),driving=state.mode==='drive';audio.update({t,siren:truck.siren?(driving?1:1/(1+dTruck/25)):0,speed:truck.v,driving,ambient:state.time==='night'?.6:1});}
  streetTimer-=dt;if(streetTimer<0){streetTimer=.4;$('street').textContent=nearestStreet(navigationFeatures,state.x,state.z)??'信義區（無道路名稱）';}
- drawMinimap();renderer.render(scene,camera);
+ drawMinimap(now);renderer.render(scene,camera);
 }
 // 直式手機：垂直視角放大（60°→最多 80°），左右才看得到街道兩側（移植自 main）。
 const portrait=()=>innerWidth<innerHeight;
@@ -916,15 +924,15 @@ const settings=(()=>{try{const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||
 const saveSettings=()=>{try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch{}};
 // 畫質：解析度倍率、陰影、NPC 密度、可視距離。自動模式依裝置起始，實測平均幀率過低時逐級降低。
 const QUALITY={low:{label:'低',pr:.75,shadow:0,density:.35,far:.7},medium:{label:'中',pr:1.25,shadow:1024,density:.7,far:.85},high:{label:'高',pr:2,shadow:2048,density:1,far:1}};
-const quality={level:'medium',auto:matchMedia('(pointer:coarse)').matches||Math.min(screen.width,screen.height)<700?'low':'medium',frames:0,time:0,
+const quality={level:'medium',auto:matchMedia('(pointer:coarse)').matches||Math.min(screen.width,screen.height)<700?'low':'medium',meter:createFrameWindow(),
  resolved(){return settings.quality==='auto'?this.auto:settings.quality;},
- pixelRatio(){return Math.min(devicePixelRatio,QUALITY[this.resolved()].pr);},
+ pixelRatio(){return Math.min(devicePixelRatio,QUALITY[this.resolved()].pr,settings.quality==='auto'?1:Infinity);},
  apply(){const q=QUALITY[this.level=this.resolved()];renderer.setPixelRatio(this.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);
   sun.castShadow=q.shadow>0;if(q.shadow&&sun.shadow.mapSize.x!==q.shadow){sun.shadow.mapSize.set(q.shadow,q.shadow);sun.shadow.map?.dispose();sun.shadow.map=null;}
   life.setDensity(q.density);camera.far=2500*q.far;camera.updateProjectionMatrix();scene.fog.far=TIME_PRESETS[state.time].fogFar*q.far;
   $('qualityDetail').textContent=`目前：${q.label}（解析度 ${Math.round(this.pixelRatio()*100)}%、陰影${q.shadow?q.shadow+' px':'關閉'}、車流行人 ${Math.round(q.density*100)}%）`+(settings.quality==='auto'?'，自動模式':'');},
- sample(dt){this.frames++;this.time+=dt;if(this.time<4)return;const fps=this.frames/this.time;this.frames=0;this.time=0;$('fps').textContent=Math.round(fps)+' FPS · '+QUALITY[this.level].label;
-  const target=settings.fps===30?24:40;if(settings.quality==='auto'&&fps<target&&this.auto!=='low'){this.auto=this.auto==='high'?'medium':'low';this.apply();}}};
+ sample(dt){const sample=this.meter.sample(dt);if(!sample)return;const fps=sample.fps;$('fps').textContent=Math.round(fps)+' FPS · '+QUALITY[this.level].label;
+  const target=settings.fps===30?26:50;if(settings.quality==='auto'&&fps<target&&this.auto!=='low'){this.auto=this.auto==='high'?'medium':'low';this.apply();}}};
 function setPaused(on,page){if(on)syncGisLink();state.paused=on;on?audio.suspend():audio.resume();$('menu').hidden=!on;state.keys.clear();state.stick=[0,0];if(on)showPage(page??'settings');}
 function showPage(page){for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.classList.toggle('active',b.dataset.page===page);for(const sec of document.querySelectorAll('.menu-body [data-page]'))sec.hidden=sec.dataset.page!==page;}
 for(const b of document.querySelectorAll('.menu-nav [data-page]'))b.onclick=()=>showPage(b.dataset.page);
@@ -947,6 +955,9 @@ $('sens').value=settings.sens;$('sensValue').textContent=(+settings.sens).toFixe
 $('invertY').checked=settings.invertY;$('invertY').onchange=()=>{settings.invertY=$('invertY').checked;saveSettings();};
 function setLifeVisible(group,visible){life.groups[group].visible=visible;if(group==='markings'&&laneMesh)for(const m of laneMesh.children)if(m.userData.inferredPaint)m.visible=visible;}
 for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);box.checked=settings.life[group];setLifeVisible(group,box.checked);box.onchange=()=>{setLifeVisible(group,box.checked);settings.life[group]=box.checked;saveSettings();};}
+$('yellowBoxes').checked=settings.yellowBoxes!==false;if(yellowBoxes)yellowBoxes.group.visible=$('yellowBoxes').checked;
+$('yellowBoxes').onchange=()=>{settings.yellowBoxes=$('yellowBoxes').checked;if(yellowBoxes)yellowBoxes.group.visible=settings.yellowBoxes;saveSettings();};
+$('yellowBoxStatus').textContent=yellowBoxData?'網狀黃線：已掃描 '+yellowBoxData.coverage.tilesScanned+' 個影像分區，匯入 '+yellowBoxes.count+' 處，另 '+yellowBoxData.counts.deferredBoundary+' 筆候選外框待核對。來源為2025影像；線寬、間距及目前現況待核對，遮蔽處可能漏辨。':'網狀黃線資料未載入，請重新整理後核對。';
 $('zebraMapped').checked=settings.zebraMapped!==false;zebraCrossings.groups.mapped.visible=$('zebraMapped').checked;
 $('zebraReview').checked=settings.zebraReview!==false;zebraCrossings.groups.review.visible=$('zebraReview').checked;
 $('zebraMapped').onchange=()=>{settings.zebraMapped=$('zebraMapped').checked;zebraCrossings.groups.mapped.visible=settings.zebraMapped;saveSettings();};

@@ -1,0 +1,2250 @@
+{
+  "reviewedIds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155,
+    156,
+    157,
+    158,
+    159,
+    160,
+    161,
+    162,
+    163,
+    164,
+    165,
+    166,
+    167,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    179,
+    180,
+    181,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    189,
+    190,
+    191,
+    192,
+    193,
+    194,
+    195,
+    196,
+    197,
+    198,
+    199,
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240,
+    241,
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    259,
+    260,
+    261,
+    262,
+    263,
+    264,
+    265,
+    266,
+    267,
+    268,
+    269,
+    270,
+    271,
+    272,
+    273,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    287,
+    288,
+    289,
+    290,
+    291,
+    292,
+    293,
+    294,
+    295,
+    296,
+    297,
+    298,
+    299,
+    300,
+    301,
+    302,
+    303,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    314,
+    315,
+    316,
+    317,
+    318,
+    319,
+    320,
+    321,
+    322,
+    323,
+    324,
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    331,
+    332,
+    333,
+    334,
+    335,
+    336,
+    337,
+    338,
+    339,
+    340,
+    341,
+    342,
+    343,
+    344,
+    345,
+    346,
+    347,
+    348,
+    349,
+    350,
+    351,
+    352,
+    353,
+    354,
+    355,
+    356,
+    357,
+    358,
+    359,
+    360,
+    361,
+    362,
+    363,
+    364,
+    365,
+    366,
+    367,
+    368,
+    369,
+    370,
+    371,
+    372,
+    373,
+    374,
+    375,
+    376,
+    377,
+    378,
+    379,
+    380,
+    381,
+    382,
+    383,
+    384,
+    385,
+    386,
+    387,
+    388,
+    389,
+    390,
+    391,
+    392,
+    393,
+    394,
+    395,
+    396,
+    397,
+    398,
+    399,
+    400,
+    401,
+    402,
+    403,
+    404,
+    405,
+    406,
+    407,
+    408,
+    409,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420,
+    421,
+    422,
+    423,
+    424,
+    425,
+    426,
+    427,
+    428,
+    429,
+    430,
+    431,
+    432
+  ],
+  "accepted": [
+    {
+      "id": 9,
+      "sourceTile": "13531136_2878464.jpg",
+      "pixels": [
+        [
+          962.1,
+          178.6
+        ],
+        [
+          975.9,
+          165.9
+        ],
+        [
+          980.6,
+          170.8
+        ],
+        [
+          973.0,
+          190.2
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531136_2878464.jpg"
+      ]
+    },
+    {
+      "id": 16,
+      "sourceTile": "13531136_2878464.jpg",
+      "pixels": [
+        [
+          1866.3,
+          469.3
+        ],
+        [
+          1903.2,
+          417.8
+        ],
+        [
+          1939.1,
+          442.8
+        ],
+        [
+          1919.7,
+          469.8
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531136_2878464.jpg"
+      ]
+    },
+    {
+      "id": 33,
+      "sourceTile": "13531136_2878464.jpg",
+      "pixels": [
+        [
+          757.7,
+          793.2
+        ],
+        [
+          771.1,
+          793.2
+        ],
+        [
+          774.4,
+          800.5
+        ],
+        [
+          774.1,
+          812.9
+        ],
+        [
+          753.2,
+          811.9
+        ]
+      ],
+      "displayAngles": [
+        42,
+        132
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531136_2878464.jpg"
+      ]
+    },
+    {
+      "id": 34,
+      "sourceTile": "13531136_2878464.jpg",
+      "pixels": [
+        [
+          1641.0,
+          864.8
+        ],
+        [
+          1658.1,
+          870.0
+        ],
+        [
+          1648.1,
+          898.9
+        ],
+        [
+          1631.8,
+          894.1
+        ]
+      ],
+      "displayAngles": [
+        30,
+        120
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531136_2878464.jpg"
+      ]
+    },
+    {
+      "id": 51,
+      "sourceTile": "13531136_2878464.jpg",
+      "pixels": [
+        [
+          782.8,
+          1230.2
+        ],
+        [
+          791.2,
+          1220.8
+        ],
+        [
+          808.4,
+          1237.8
+        ],
+        [
+          799.3,
+          1247.5
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531136_2878464.jpg"
+      ]
+    },
+    {
+      "id": 53,
+      "sourceTile": "13531136_2878464.jpg",
+      "pixels": [
+        [
+          738.6,
+          1276.2
+        ],
+        [
+          752.0,
+          1262.5
+        ],
+        [
+          770.8,
+          1282.4
+        ],
+        [
+          756.4,
+          1296.1
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531136_2878464.jpg"
+      ]
+    },
+    {
+      "id": 56,
+      "sourceTile": "13531136_2878464.jpg",
+      "pixels": [
+        [
+          683.0,
+          1331.7
+        ],
+        [
+          703.0,
+          1312.0
+        ],
+        [
+          722.4,
+          1332.3
+        ],
+        [
+          702.1,
+          1349.5
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531136_2878464.jpg"
+      ]
+    },
+    {
+      "id": 74,
+      "sourceTile": "13531648_2877440.jpg",
+      "pixels": [
+        [
+          1542.9,
+          115.0
+        ],
+        [
+          1566.8,
+          108.0
+        ],
+        [
+          1578.3,
+          148.1
+        ],
+        [
+          1556.1,
+          155.9
+        ]
+      ],
+      "displayAngles": [
+        40,
+        130
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2877440.jpg"
+      ]
+    },
+    {
+      "id": 119,
+      "sourceTile": "13531648_2877952.jpg",
+      "pixels": [
+        [
+          543.4,
+          739.6
+        ],
+        [
+          576.3,
+          724.1
+        ],
+        [
+          584.2,
+          738.4
+        ],
+        [
+          551.0,
+          753.9
+        ]
+      ],
+      "displayAngles": [
+        24,
+        114
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2877952.jpg"
+      ]
+    },
+    {
+      "id": 129,
+      "sourceTile": "13531648_2877952.jpg",
+      "pixels": [
+        [
+          918.1,
+          1004.8
+        ],
+        [
+          944.8,
+          996.4
+        ],
+        [
+          954.0,
+          1016.1
+        ],
+        [
+          927.1,
+          1032.1
+        ]
+      ],
+      "displayAngles": [
+        14,
+        104
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2877952.jpg"
+      ]
+    },
+    {
+      "id": 143,
+      "sourceTile": "13531648_2877952.jpg",
+      "pixels": [
+        [
+          1362.8,
+          1650.1
+        ],
+        [
+          1384.9,
+          1642.8
+        ],
+        [
+          1392.6,
+          1675.8
+        ],
+        [
+          1373.8,
+          1681.8
+        ]
+      ],
+      "displayAngles": [
+        40,
+        130
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2877952.jpg"
+      ]
+    },
+    {
+      "id": 153,
+      "sourceTile": "13531648_2878464.jpg",
+      "pixels": [
+        [
+          1900.0,
+          57.3
+        ],
+        [
+          1925.9,
+          34.0
+        ],
+        [
+          1955.4,
+          66.2
+        ],
+        [
+          1929.2,
+          89.1
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878464.jpg"
+      ]
+    },
+    {
+      "id": 164,
+      "sourceTile": "13531648_2878464.jpg",
+      "pixels": [
+        [
+          502.1,
+          542.6
+        ],
+        [
+          540.6,
+          543.8
+        ],
+        [
+          540.6,
+          552.3
+        ],
+        [
+          501.8,
+          551.4
+        ]
+      ],
+      "displayAngles": [
+        40,
+        130
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878464.jpg"
+      ]
+    },
+    {
+      "id": 184,
+      "sourceTile": "13531648_2878464.jpg",
+      "pixels": [
+        [
+          633.1,
+          1462.3
+        ],
+        [
+          659.5,
+          1462.0
+        ],
+        [
+          659.5,
+          1480.1
+        ],
+        [
+          632.5,
+          1479.8
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878464.jpg"
+      ]
+    },
+    {
+      "id": 214,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          962.7,
+          137.8
+        ],
+        [
+          970.2,
+          125.9
+        ],
+        [
+          984.5,
+          130.8
+        ],
+        [
+          977.0,
+          144.7
+        ]
+      ],
+      "displayAngles": [
+        20,
+        110
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 215,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          674.5,
+          198.6
+        ],
+        [
+          686.3,
+          175.2
+        ],
+        [
+          711.6,
+          189.2
+        ],
+        [
+          699.0,
+          213.2
+        ]
+      ],
+      "displayAngles": [
+        30,
+        120
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 222,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          1092.4,
+          422.5
+        ],
+        [
+          1099.1,
+          410.6
+        ],
+        [
+          1118.1,
+          419.6
+        ],
+        [
+          1109.4,
+          436.6
+        ]
+      ],
+      "displayAngles": [
+        20,
+        110
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 225,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          1260.8,
+          524.8
+        ],
+        [
+          1276.5,
+          502.1
+        ],
+        [
+          1299.0,
+          515.4
+        ],
+        [
+          1287.2,
+          538.2
+        ]
+      ],
+      "displayAngles": [
+        30,
+        120
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 256,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          1597.0,
+          1661.9
+        ],
+        [
+          1636.4,
+          1662.2
+        ],
+        [
+          1636.4,
+          1704.4
+        ],
+        [
+          1597.3,
+          1704.1
+        ]
+      ],
+      "displayAngles": [
+        45,
+        135
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 259,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          496.6,
+          1808.8
+        ],
+        [
+          538.6,
+          1775.0
+        ],
+        [
+          558.4,
+          1801.8
+        ],
+        [
+          516.8,
+          1835.6
+        ]
+      ],
+      "displayAngles": [
+        5,
+        95
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 262,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          325.6,
+          1934.9
+        ],
+        [
+          342.6,
+          1916.7
+        ],
+        [
+          362.3,
+          1933.7
+        ],
+        [
+          343.2,
+          1959.2
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 265,
+      "sourceTile": "13531648_2879488.jpg",
+      "pixels": [
+        [
+          1235.1,
+          32.2
+        ],
+        [
+          1272.1,
+          24.6
+        ],
+        [
+          1276.9,
+          53.6
+        ],
+        [
+          1238.0,
+          61.6
+        ]
+      ],
+      "displayAngles": [
+        35,
+        125
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2879488.jpg"
+      ]
+    },
+    {
+      "id": 267,
+      "sourceTile": "13531648_2879488.jpg",
+      "pixels": [
+        [
+          961.2,
+          41.7
+        ],
+        [
+          985.4,
+          39.1
+        ],
+        [
+          988.3,
+          61.0
+        ],
+        [
+          962.6,
+          62.2
+        ]
+      ],
+      "displayAngles": [
+        40,
+        130
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2879488.jpg"
+      ]
+    },
+    {
+      "id": 268,
+      "sourceTile": "13531648_2879488.jpg",
+      "pixels": [
+        [
+          1618.4,
+          152.4
+        ],
+        [
+          1639.7,
+          112.7
+        ],
+        [
+          1662.6,
+          125.6
+        ],
+        [
+          1641.3,
+          166.0
+        ]
+      ],
+      "displayAngles": [
+        28,
+        118
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2879488.jpg"
+      ]
+    },
+    {
+      "id": 275,
+      "sourceTile": "13531648_2879488.jpg",
+      "pixels": [
+        [
+          1420.9,
+          243.1
+        ],
+        [
+          1432.5,
+          219.1
+        ],
+        [
+          1442.3,
+          223.6
+        ],
+        [
+          1430.0,
+          248.8
+        ]
+      ],
+      "displayAngles": [
+        30,
+        120
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2879488.jpg"
+      ]
+    },
+    {
+      "id": 277,
+      "sourceTile": "13531648_2879488.jpg",
+      "pixels": [
+        [
+          1108.3,
+          318.6
+        ],
+        [
+          1123.3,
+          293.5
+        ],
+        [
+          1142.1,
+          304.2
+        ],
+        [
+          1127.7,
+          330.1
+        ]
+      ],
+      "displayAngles": [
+        28,
+        118
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2879488.jpg"
+      ]
+    },
+    {
+      "id": 294,
+      "sourceTile": "13531648_2879488.jpg",
+      "pixels": [
+        [
+          1119.4,
+          1440.2
+        ],
+        [
+          1122.3,
+          1427.6
+        ],
+        [
+          1129.0,
+          1419.2
+        ],
+        [
+          1158.8,
+          1445.5
+        ],
+        [
+          1145.7,
+          1459.5
+        ]
+      ],
+      "displayAngles": [
+        5,
+        95
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2879488.jpg"
+      ]
+    },
+    {
+      "id": 304,
+      "sourceTile": "13531648_2879488.jpg",
+      "pixels": [
+        [
+          955.6,
+          1725.5
+        ],
+        [
+          977.3,
+          1689.0
+        ],
+        [
+          1003.4,
+          1704.5
+        ],
+        [
+          983.7,
+          1741.8
+        ]
+      ],
+      "displayAngles": [
+        35,
+        125
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2879488.jpg"
+      ]
+    },
+    {
+      "id": 312,
+      "sourceTile": "13531648_2879488.jpg",
+      "pixels": [
+        [
+          840.8,
+          1952.3
+        ],
+        [
+          852.3,
+          1932.2
+        ],
+        [
+          871.1,
+          1942.3
+        ],
+        [
+          860.2,
+          1963.5
+        ]
+      ],
+      "displayAngles": [
+        75,
+        165
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13531648_2879488.jpg"
+      ]
+    },
+    {
+      "id": 382,
+      "sourceTile": "13532160_2877440.jpg",
+      "pixels": [
+        [
+          141.8,
+          805.0
+        ],
+        [
+          151.1,
+          794.9
+        ],
+        [
+          164.0,
+          807.6
+        ],
+        [
+          155.4,
+          816.9
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13532160_2877440.jpg"
+      ]
+    },
+    {
+      "id": 386,
+      "sourceTile": "13532160_2877440.jpg",
+      "pixels": [
+        [
+          222.9,
+          1359.2
+        ],
+        [
+          240.4,
+          1343.5
+        ],
+        [
+          251.0,
+          1356.5
+        ],
+        [
+          232.3,
+          1368.3
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13532160_2877440.jpg"
+      ]
+    },
+    {
+      "id": 388,
+      "sourceTile": "13532160_2877440.jpg",
+      "pixels": [
+        [
+          94.6,
+          1446.0
+        ],
+        [
+          118.2,
+          1425.6
+        ],
+        [
+          140.0,
+          1446.0
+        ],
+        [
+          117.7,
+          1469.6
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13532160_2877440.jpg"
+      ]
+    },
+    {
+      "id": 424,
+      "sourceTile": "13532160_2878464.jpg",
+      "pixels": [
+        [
+          665.1,
+          150.6
+        ],
+        [
+          684.4,
+          132.0
+        ],
+        [
+          702.8,
+          150.3
+        ],
+        [
+          683.8,
+          169.6
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13532160_2878464.jpg"
+      ]
+    },
+    {
+      "id": 431,
+      "sourceTile": "13532160_2878464.jpg",
+      "pixels": [
+        [
+          1037.0,
+          513.9
+        ],
+        [
+          1045.6,
+          486.5
+        ],
+        [
+          1071.6,
+          491.8
+        ],
+        [
+          1064.0,
+          526.8
+        ]
+      ],
+      "displayAngles": [
+        40,
+        130
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown.",
+      "sourceTiles": [
+        "13532160_2878464.jpg"
+      ]
+    },
+    {
+      "id": 152,
+      "sourceTile": "13531648_2878464.jpg",
+      "pixels": [
+        [
+          23.4,
+          19.4
+        ],
+        [
+          34.3,
+          -14.6
+        ],
+        [
+          61.0,
+          -7.3
+        ],
+        [
+          51.9,
+          27.9
+        ]
+      ],
+      "displayAngles": [
+        30,
+        120
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown. Adjacent cached orthophoto tiles inspected on exact 512m alignment; pixel corners may extend beyond anchor tile.",
+      "sourceTiles": [
+        "13531648_2878976.jpg",
+        "13531648_2878464.jpg"
+      ]
+    },
+    {
+      "id": 206,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          464.9,
+          6.9
+        ],
+        [
+          493.3,
+          -53.3
+        ],
+        [
+          510.5,
+          -44.4
+        ],
+        [
+          478.8,
+          15.2
+        ]
+      ],
+      "displayAngles": [
+        30,
+        120
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown. Adjacent cached orthophoto tiles inspected on exact 512m alignment; pixel corners may extend beyond anchor tile.",
+      "sourceTiles": [
+        "13531648_2879488.jpg",
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 207,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          1051.1,
+          21.5
+        ],
+        [
+          1079.1,
+          -0.2
+        ],
+        [
+          1096.2,
+          19.5
+        ],
+        [
+          1064.5,
+          39.9
+        ]
+      ],
+      "displayAngles": [
+        5,
+        95
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown. Adjacent cached orthophoto tiles inspected on exact 512m alignment; pixel corners may extend beyond anchor tile.",
+      "sourceTiles": [
+        "13531648_2879488.jpg",
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 208,
+      "sourceTile": "13531648_2878976.jpg",
+      "pixels": [
+        [
+          772.2,
+          34.5
+        ],
+        [
+          782.3,
+          18.8
+        ],
+        [
+          798.5,
+          30.1
+        ],
+        [
+          788.4,
+          45.2
+        ]
+      ],
+      "displayAngles": [
+        20,
+        110
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown. Adjacent cached orthophoto tiles inspected on exact 512m alignment; pixel corners may extend beyond anchor tile.",
+      "sourceTiles": [
+        "13531648_2878976.jpg"
+      ]
+    },
+    {
+      "id": 422,
+      "sourceTile": "13532160_2878464.jpg",
+      "pixels": [
+        [
+          812.5,
+          6.2
+        ],
+        [
+          836.7,
+          -14.0
+        ],
+        [
+          855.5,
+          5.5
+        ],
+        [
+          830.6,
+          26.3
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown. Adjacent cached orthophoto tiles inspected on exact 512m alignment; pixel corners may extend beyond anchor tile.",
+      "sourceTiles": [
+        "13532160_2878976.jpg",
+        "13532160_2878464.jpg"
+      ]
+    },
+    {
+      "id": 128,
+      "sourceTile": "13531648_2877952.jpg",
+      "pixels": [
+        [
+          474.1,
+          1008.9
+        ],
+        [
+          499.9,
+          987.2
+        ],
+        [
+          530.9,
+          1020.6
+        ],
+        [
+          505.8,
+          1048.7
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Outer yellow border manually traced from enlarged official 2025 orthophoto; hatch spacing and widths unknown. Adjacent cached orthophoto tiles inspected on exact 512m alignment; pixel corners may extend beyond anchor tile.",
+      "sourceTiles": [
+        "13531648_2877952.jpg"
+      ]
+    }
+  ],
+  "existingIds": [
+    61,
+    112,
+    154,
+    227,
+    229,
+    345
+  ],
+  "pending": [
+    {
+      "id": 7,
+      "reason": "Adjacent cached source tiles inspected. Crosshatching confirmed, but tree/shadow/text/structure overlaps still prevent a reliable complete outer border; retain pending."
+    },
+    {
+      "id": 22,
+      "reason": "Visible two-family yellow grid, but outer border has obscured or incomplete portions; do not infer missing corners."
+    },
+    {
+      "id": 31,
+      "reason": "Visible two-family yellow grid, but outer border has obscured or incomplete portions; do not infer missing corners."
+    },
+    {
+      "id": 36,
+      "reason": "Visible two-family yellow grid, but outer border has obscured or incomplete portions; do not infer missing corners."
+    },
+    {
+      "id": 37,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 39,
+      "reason": "Visible two-family yellow grid, but outer border has obscured or incomplete portions; do not infer missing corners."
+    },
+    {
+      "id": 41,
+      "reason": "Visible two-family yellow grid, but outer border has obscured or incomplete portions; do not infer missing corners."
+    },
+    {
+      "id": 50,
+      "reason": "Two-family grid confirmed, but deep shadow covers the left outer border; reliable left corners cannot be traced."
+    },
+    {
+      "id": 58,
+      "reason": "Adjacent cached source tiles inspected. Crosshatching confirmed, but tree/shadow/text/structure overlaps still prevent a reliable complete outer border; retain pending."
+    },
+    {
+      "id": 73,
+      "reason": "Visible two-family yellow grid, but outer border has obscured or incomplete portions; do not infer missing corners."
+    },
+    {
+      "id": 76,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 79,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 83,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 88,
+      "reason": "Adjacent cached source tiles inspected. Crosshatching confirmed, but tree/shadow/text/structure overlaps still prevent a reliable complete outer border; retain pending."
+    },
+    {
+      "id": 89,
+      "reason": "Adjacent cached source tiles inspected. Crosshatching confirmed, but tree/shadow/text/structure overlaps still prevent a reliable complete outer border; retain pending."
+    },
+    {
+      "id": 93,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 94,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 124,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 127,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 133,
+      "reason": "Visible two-family yellow grid, but outer border has obscured or incomplete portions; do not infer missing corners."
+    },
+    {
+      "id": 137,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 163,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 185,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 187,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 194,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 200,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 203,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 210,
+      "reason": "Adjacent cached source tiles inspected. Crosshatching confirmed, but tree/shadow/text/structure overlaps still prevent a reliable complete outer border; retain pending."
+    },
+    {
+      "id": 211,
+      "reason": "Adjacent cached source tiles inspected. Crosshatching confirmed, but tree/shadow/text/structure overlaps still prevent a reliable complete outer border; retain pending."
+    },
+    {
+      "id": 212,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 213,
+      "reason": "Adjacent cached source tiles inspected. Crosshatching confirmed, but tree/shadow/text/structure overlaps still prevent a reliable complete outer border; retain pending."
+    },
+    {
+      "id": 219,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 221,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 224,
+      "reason": "Duplicate source fragment of accepted candidate 225; adjacent-tile inspection confirms same physical box. Do not add a second polygon."
+    },
+    {
+      "id": 231,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 234,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 239,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 240,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 241,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 243,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 246,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 250,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 252,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 253,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 254,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 258,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 263,
+      "reason": "Duplicate source fragment of accepted candidate 152; adjacent-tile inspection confirms same physical box. Do not add a second polygon."
+    },
+    {
+      "id": 269,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 270,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 279,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 290,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 291,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 295,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 299,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 305,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 307,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 310,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 313,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 314,
+      "reason": "Duplicate source fragment of accepted candidate 206; adjacent-tile inspection confirms same physical box. Do not add a second polygon."
+    },
+    {
+      "id": 320,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 321,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 332,
+      "reason": "Adjacent cached source tiles inspected. Crosshatching confirmed, but tree/shadow/text/structure overlaps still prevent a reliable complete outer border; retain pending."
+    },
+    {
+      "id": 385,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 425,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 428,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 429,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    },
+    {
+      "id": 432,
+      "reason": "Yellow crosshatching confirmed; current enlarged crop has shadow, vegetation, structure, vehicle, or crop-edge obstruction at part of outer border; retain pending."
+    }
+  ],
+  "rejectedIds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    17,
+    18,
+    19,
+    20,
+    21,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    32,
+    35,
+    38,
+    40,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    52,
+    54,
+    55,
+    57,
+    59,
+    60,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    75,
+    77,
+    78,
+    80,
+    81,
+    82,
+    84,
+    85,
+    86,
+    87,
+    90,
+    91,
+    92,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    120,
+    121,
+    122,
+    123,
+    125,
+    126,
+    130,
+    131,
+    132,
+    134,
+    135,
+    136,
+    138,
+    139,
+    140,
+    141,
+    142,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    155,
+    156,
+    157,
+    158,
+    159,
+    160,
+    161,
+    162,
+    165,
+    166,
+    167,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    179,
+    180,
+    181,
+    182,
+    183,
+    186,
+    188,
+    189,
+    190,
+    191,
+    192,
+    193,
+    195,
+    196,
+    197,
+    198,
+    199,
+    201,
+    202,
+    204,
+    205,
+    209,
+    216,
+    217,
+    218,
+    220,
+    223,
+    226,
+    228,
+    230,
+    232,
+    233,
+    235,
+    236,
+    237,
+    238,
+    242,
+    244,
+    245,
+    247,
+    248,
+    249,
+    251,
+    255,
+    257,
+    260,
+    261,
+    264,
+    266,
+    271,
+    272,
+    273,
+    274,
+    276,
+    278,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    287,
+    288,
+    289,
+    292,
+    293,
+    296,
+    297,
+    298,
+    300,
+    301,
+    302,
+    303,
+    306,
+    308,
+    309,
+    311,
+    315,
+    316,
+    317,
+    318,
+    319,
+    322,
+    323,
+    324,
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    331,
+    333,
+    334,
+    335,
+    336,
+    337,
+    338,
+    339,
+    340,
+    341,
+    342,
+    343,
+    344,
+    346,
+    347,
+    348,
+    349,
+    350,
+    351,
+    352,
+    353,
+    354,
+    355,
+    356,
+    357,
+    358,
+    359,
+    360,
+    361,
+    362,
+    363,
+    364,
+    365,
+    366,
+    367,
+    368,
+    369,
+    370,
+    371,
+    372,
+    373,
+    374,
+    375,
+    376,
+    377,
+    378,
+    379,
+    380,
+    381,
+    383,
+    384,
+    387,
+    389,
+    390,
+    391,
+    392,
+    393,
+    394,
+    395,
+    396,
+    397,
+    398,
+    399,
+    400,
+    401,
+    402,
+    403,
+    404,
+    405,
+    406,
+    407,
+    408,
+    409,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420,
+    421,
+    423,
+    426,
+    427,
+    430
+  ],
+  "reviewNote": "All 9 raw contact sheets inspected. Rejections include roofs, cars/taxis, vegetation, parking bay stripes, curbs, and one-direction diagonal traffic-island markings."
+}
