@@ -695,7 +695,7 @@ function loadAerial(){
  aerialLoading??=new GLTFLoader().loadAsync('assets/aerial-ladder.glb').then(gltf=>aerial=createXinyiAerial({scene,source:gltf.scene,createPerson:actionKit.createPerson,ground,obstacleIndex:buildObstacleIndex(district.buildings),crewMembers:stationTeam.people.slice(1,3).map(p=>p.person),onCrewAssign:stationTeam.assignAerial,onCrewReturn:stationTeam.returnAerial})).catch(e=>{aerialLoading=null;throw e;});
  return aerialLoading;
 }
-try{await loadAerial();aerial.park(spawn.aerial);gis?.hide('aerial');}catch(e){showNotice('分隊雲梯車載入失敗，可按 L 重試：'+e.message,10000);}
+loadAerial().then(a=>{a.park(spawn.aerial);gis?.hide('aerial');syncAerialUi();}).catch(e=>showNotice('分隊雲梯車載入失敗，可按 L 重試：'+e.message,10000));
 function setAerialMode(mode){aerialMode=mode;previewGroup.visible=mode==='preview';aerialPreview=null;aerialTimer=0;syncAerialUi();}
 function aerialSite(){return mission&&mission.phase<6?mission.site:null;}
 async function aerialAction(){
