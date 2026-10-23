@@ -1,4 +1,4 @@
-import {createWalkMotion,smoothHeading} from './character-motion.js?v=smooth-20261023';
+import {createWalkMotion,smoothHeading} from './character-motion.js?v=cadence-20261023';
 // Station crew are autonomous passengers; the yellow commander remains the only player.
 import * as T from 'three';
 export const STATION_CREW=Object.freeze(['小隊長','隊員','隊員','隊員']);

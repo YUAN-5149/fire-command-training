@@ -1,5 +1,5 @@
-import {createWalkMotion,smoothHeading} from './character-motion.js?v=smooth-20261023';
-import {createStationCrew} from './xinyi-station-crew.js?v=smooth-20261023';
+import {createWalkMotion,smoothHeading} from './character-motion.js?v=cadence-20261023';
+import {createStationCrew} from './xinyi-station-crew.js?v=cadence-20261023';
 import {stationSurface,stationCollisionBuildings} from './xinyi-station-spawn.js?v=garage-20261023';
 // 信義街景漫遊：與 GIS 頁（taipei-map.html?place=xinyi 預設狀態）共用同一套建物、街道與設施建構函式，
 // 只把經緯度轉成本地公尺並改以 Three.js 呈現。外觀為示意；未使用 taipei-gta 的地圖、程式或素材。
