@@ -125,7 +125,7 @@
     <select id="youBikeStation" aria-describedby="youBikeStationDetail" style="max-width:100%"></select>
     <button id="youBikeLocate">在地圖標示此站</button>
     <p id="youBikeStationDetail" class="note"></p>
-    <p class="note"><a href="https://data.taipei/dataset/detail?id=c6bc8aed-557d-41d5-bfb1-8da24f78f2fb" target="_blank" rel="noopener">臺北市官方 YouBike 資料</a>。黃色 U 為站點標記；代表性柱列不是實測範圍，自行車暫不提供騎乘。</p>
+    <p class="note"><a href="https://data.taipei/dataset/detail?id=c6bc8aed-557d-41d5-bfb1-8da24f78f2fb" target="_blank" rel="noopener">臺北市官方 YouBike 資料</a>。黃色 U 為站點標記；依官方容量呈現柱位總數；排列不是實測範圍，自行車暫不提供騎乘。</p>
     <label><input type="checkbox" id="yellowBoxes" checked> 網狀黃線（2025 影像判讀）</label>
     <p id="yellowBoxStatus" class="note" role="status">載入網狀黃線…</p>
     <p class="note"><a href="https://www.historygis.udd.gov.taipei/urban/?id=B5775BBE" target="_blank" rel="noopener">影像來源：臺北市政府都市發展局</a>。已核對可辨識的影像外框，非現地量測；遮蔽、褪色及模糊位置仍可能漏辨。</p>
@@ -178,6 +178,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s48-minimap-20261023"></script>
+<script type="module" src="xinyi-street.js?v=s49-ground-capacity-20261023"></script>
 </body>
 </html>

@@ -1,5 +1,6 @@
+import {createWalkSurface,placeCharacterFeet} from './xinyi-walk-surface.js?v=ground-20261023';
 import {MINI_ZOOM_LEVELS,miniZoom,stepMiniZoom,miniMapMetrics} from './xinyi-minimap.js?v=minimap-20261023';
-import {addYouBikeStations} from './xinyi-youbike.js?v=youbike-20261023';
+import {addYouBikeStations} from './xinyi-youbike.js?v=capacity-20261023';
 import {createFrameBudget,createFrameWindow} from './xinyi-performance.js?v=runtime-20261023';
 import {addYellowBoxes} from './xinyi-yellow-boxes.js?v=yellowbox-20261023';
 import {addZebraCrossings} from './xinyi-zebra-crossings.js?v=zebra-20261023';
@@ -87,6 +88,7 @@ const overrides=overrideIndex(overrideData);if(overrideData)district.buildings.p
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox);
 ground.at=stationSurface(ground,project,landmarks.find(a=>a.key==='hq'));
+const walkSurface=createWalkSurface(ground);
 const colliders=buildColliders(stationCollisionBuildings(district.buildings,landmarks.find(a=>a.key==='hq')),ground);
 let detailMats,farMat,facadeSigns=null,shophouse=null;
 // 建物：精修範圍（中心約 250 m）用 buildXinyiDetail，其餘用 buildDistrictBatch，與 GIS 頁預設相同。
@@ -116,27 +118,27 @@ let detailMats,farMat,facadeSigns=null,shophouse=null;
 // 應變中心：場地（停車場、廣場、樹與車）貼合地形，補上原模型檢視頁的表面質感與夜間亮窗、停機坪邊燈。
 let eocDetail=null,eocRoot=null,youBike=null;
 addLandmarksToThree({T,scene,GLTFLoader,ground,project}).then(list=>{const e=list.find(l=>l.anchor.key==='eoc');if(!e)return;
- drapeSite(e.root,ground);eocRoot=e.root;youBike?.replaceLegacyEoc(e.root);eocDetail=enhanceEoc(e.root);try{eocDetail.setNight(TIME_PRESETS[state.time].lights);}catch{}}).catch(e=>console.error(e));
+ drapeSite(e.root,ground);walkSurface.addDraped(e.root);eocRoot=e.root;youBike?.replaceLegacyEoc(e.root);eocDetail=enhanceEoc(e.root);try{eocDetail.setNight(TIME_PRESETS[state.time].lights);}catch{}}).catch(e=>console.error(e));
 // 街道：預設為逐車道路面（osm2streets：車道、人行道、路口、中線、車道線、箭頭、停止線）；
 // ?roads=legacy 改回原本依 OSM 寬度展開的示意路面＋精修鋪面。兩者都保留 OSM zebra 斑馬線。
 const legacyRoads=new URLSearchParams(location.search).get('roads')==='legacy';
 const laneData=legacyRoads?null:await fetch('assets/lanes-xinyi.json?v=s30').then(r=>r.ok?r.json():null).catch(()=>null);
 let laneMesh=null;
-if(laneData)laneMesh=addLanesToScene({T,scene,data:laneData,ground});
-else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:g.raised?-2:-1,polygonOffsetUnits:g.raised?-2:-1})});m.castShadow=false;scene.add(m);}
+if(laneData){laneMesh=addLanesToScene({T,scene,data:laneData,ground});walkSurface.addMeshes(laneMesh.children.filter(m=>!m.userData.inferredPaint));}
+else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:g.raised?-2:-1,polygonOffsetUnits:g.raised?-2:-1})});m.castShadow=false;scene.add(m);walkSurface.addMeshes([m]);}
 {if(!laneData){const d=buildStreetDetail(streets.features),mats=createStreetMaterials(GisMaterial);for(const m of Object.values(mats)){m.polygonOffset=true;m.polygonOffsetFactor=m.polygonOffsetUnits=-3;}
- const m=mesh(toLocal(d.position,ground,true),{uv:d.uv,groups:d.groups,materials:mats});m.castShadow=false;scene.add(m);}
+ const m=mesh(toLocal(d.position,ground,true),{uv:d.uv,groups:d.groups,materials:mats});m.castShadow=false;scene.add(m);walkSurface.addMeshes([m]);}
 
 }
 const zebraCrossings=addZebraCrossings({T,scene,features:navigationFeatures,ground});
 const yellowBoxData=await fetch('assets/xinyi-yellow-boxes.json?v=yellowbox-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
 const yellowBoxes=yellowBoxData?addYellowBoxes({T,scene,data:yellowBoxData,ground}):null;
 const youBikeData=await fetch('assets/xinyi-youbike.json?v=youbike-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
-if(youBikeData){youBike=addYouBikeStations({scene,data:youBikeData,features:navigationFeatures,ground});if(eocRoot)youBike.replaceLegacyEoc(eocRoot);}
+if(youBikeData){youBike=addYouBikeStations({scene,data:youBikeData,features:navigationFeatures,ground:walkSurface});if(eocRoot)youBike.replaceLegacyEoc(eocRoot);}
 
 // 外圍沿完整行政界線裁切的 OSM 道路；不由道路等級猜測紅黃線。
 if(roadNetwork)for(const g of buildStreetBase(roadNetwork.outerFeatures.map(f=>f.kind==='sidewalk'?{...f,kind:'walk'}:f),ground,()=>false)){
- const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})});m.castShadow=false;m.name='Xinyi outer OSM road';scene.add(m);
+ const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})});m.castShadow=false;m.name='Xinyi outer OSM road';scene.add(m);walkSurface.addMeshes([m]);
 }
 if(roadNetwork){const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(outerGroundGeometry({bbox:roadNetwork.bbox,coreBbox:district.bbox,project,ground}),3));g.computeVertexNormals();const m=new T.Mesh(g,new T.MeshStandardMaterial({color:'#8f8b80',roughness:1,side:T.DoubleSide}));m.receiveShadow=true;m.name='outer estimated ground (not DEM)';scene.add(m);}
 const officialPaint=curbData?addRoadPaint({T,scene,data:curbData,ground}):null;
@@ -199,7 +201,7 @@ const routeGraphs={walk:buildRouteGraph(navigationFeatures),drive:buildRouteGrap
 const pois=(firstBatch.sites??[]).filter(s=>s.name&&s.polygon?.length).map(s=>{const pts=s.polygon.map(p=>project(p[0],p[1]));return {name:s.name,x:pts.reduce((a,p)=>a+p[0],0)/pts.length,z:pts.reduce((a,p)=>a+p[1],0)/pts.length};});
 if(zhuangjing)pois.push({name:'莊敬分隊・大隊待命',x:zhuangjing.layout.x,z:zhuangjing.layout.z});
 const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',paused:false,keys:new Set(),stick:[0,0],run:false,walkT:0,pad:readPad(null),padPrev:[]};
-const stationTeam=createStationCrew({scene,createPerson:actionKit.createPerson,ground,colliders,spawn});
+const stationTeam=createStationCrew({scene,createPerson:actionKit.createPerson,ground:walkSurface,colliders,spawn});
 function placeTruck(){truck.x=spawn.truck.x;truck.z=spawn.truck.z;truck.heading=spawn.truck.heading;truck.v=0;truck.steer=0;}
 // 前往精細地標（消防局、災害應變中心）：站在入口前，面向建物。
 function goToLandmark(key){if(key==='zhuangjing'&&zhuangjing){if(state.mode==='interior')exitBuilding();if(state.mode==='drive'){if(Math.abs(truck.v)>1.5){flashHint('請先停車下車，再前往莊敬分隊');return;}toggleVehicle();}const p=zhuangjing.visitPoint();state.mode='walk';state.x=p.x;state.z=p.z;state.facing=state.yaw=p.heading;state.pitch=.32;state.dist=7;state.keys.clear();player.visible=true;zhuangjing.update(state);syncUi();showNotice(zhuangjing.status+'；建物外牆與車庫面待現況精修。',9000);return;}const a=landmarks.find(l=>l.key===key);if(!a)return;if(state.mode==='interior')exitBuilding();if(state.mode==='drive')toggleVehicle();const [lon,lat]=localToLonLat(a,a.entry.x,a.entry.y),[x,z]=project(lon,lat),p=colliders.resolve(x,z,.4);state.mode='walk';state.x=p.x;state.z=p.z;state.facing=state.yaw=(a.heading+(a.entry.facing||0))*Math.PI/180;player.visible=true;syncUi();}
@@ -850,7 +852,7 @@ function updateWalk(dt){
   state.x=p.x;state.z=p.z;const target=Math.atan2(-dx,-dz);state.facing=smoothHeading(state.facing,target,dt);state.walkT+=dt*speed*2.2;
  }
  const gait=playerGait.update(dt,Math.hypot(state.x-beforeX,state.z-beforeZ)),stride=gait.swing;person.legs[0].rotation.x=stride;person.legs[1].rotation.x=-stride;person.arms[0].rotation.x=-stride*.8;person.arms[1].rotation.x=stride*.8;
- player.position.set(state.x,ground.at(state.x,state.z)+gait.bob,state.z);player.rotation.y=state.facing;
+ player.position.set(state.x,walkSurface.at(state.x,state.z)+gait.bob,state.z);player.rotation.y=state.facing;
  if(promptBudget.due(clock.getElapsed()*1000,state.mode)){const ne=nearEntry();$('prompt').hidden=!nearTruck()&&!ne;$('prompt').textContent=ne?(matchMedia('(pointer:coarse)').matches?'點「上車」進入建物（示意）':'按 E 進入建物（示意平面）'):matchMedia('(pointer:coarse)').matches?'點「上車」駕駛消防車':'按 E 駕駛消防車；按 U 選攜帶裝備';}
 
 }
@@ -911,7 +913,7 @@ function frame(now){
  eocDetail?.update(t,camera.position);youBike?.update(camera.position);shophouse?.update(camera.position);
  life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{eye:camera.position,siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
  updateAerial(dt);
- updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt,{eye:camera.position});
+ updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt,{eye:camera.position});if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);
  if(state.mode==='interior'){updateNavigation(dt);{const dTruck=30;audio.update({t,siren:truck.siren?1/(1+dTruck/25):0,speed:0,driving:false,ambient:.3});}drawMinimap(now);indoor.render(renderer,camera,state.yaw,fpPitch());return;}
  // 消防車貼地，依前後輪地面高差俯仰。
  const fx=-Math.sin(truck.heading),fz=-Math.cos(truck.heading),yf=ground.at(truck.x+fx*2.3,truck.z+fz*2.3),yr=ground.at(truck.x-fx*2.1,truck.z-fz*2.1);
@@ -920,7 +922,7 @@ function frame(now){
  // 相機
  state.camHold=Math.max(0,(state.camHold||0)-dt);
  if(state.mode==='drive'&&!state.camHold&&Math.abs(truck.v)>.5){const want=truck.heading;state.yaw+=Math.atan2(Math.sin(want-state.yaw),Math.cos(want-state.yaw))*Math.min(1,dt*2.5);}
- const tx=state.x,tz=state.z,ty=ground.at(tx,tz)+(state.mode==='drive'?2.8:1.5);state.camX=tx;state.camZ=tz;
+ const tx=state.x,tz=state.z,ty=(state.mode==='walk'?walkSurface.at(tx,tz):ground.at(tx,tz))+(state.mode==='drive'?2.8:1.5);state.camX=tx;state.camZ=tz;
  let d=state.dist+(state.mode==='drive'?Math.abs(truck.v)*.22:0);
  // 相機碰撞：沿視線往外取樣，碰到落地牆面就把相機拉到牆前，避免鏡頭穿進建物。
  for(let s=1.5;s<=d;s+=.6){const x=tx+Math.sin(state.yaw)*Math.cos(state.pitch)*s,z=tz+Math.cos(state.yaw)*Math.cos(state.pitch)*s;if(colliders.resolve(x,z,.3).hit){d=Math.max(1.4,s-.6);break;}}
@@ -983,10 +985,10 @@ $('youBike').onchange=()=>{settings.youBike=$('youBike').checked;youBike?.setVis
 const stationSelect=$('youBikeStation');
 for(const s of youBike?.records??[]){const o=document.createElement('option');o.value=s.id;o.textContent=s.name;stationSelect.append(o);}
 stationSelect.value='500112017';
-function describeYouBike(){const s=youBike?.records.find(s=>s.id===stationSelect.value);$('youBikeStationDetail').textContent=s?s.address+'｜官方柱位總數 '+s.capacity+'（畫面僅呈現部分示意柱與車）':'';}
+function describeYouBike(){const s=youBike?.records.find(s=>s.id===stationSelect.value);$('youBikeStationDetail').textContent=s?s.address+'｜官方柱位總數 '+s.capacity+'（柱數完整；排列與車數為示意）':'';}
 stationSelect.onchange=describeYouBike;describeYouBike();
 $('youBikeLocate').disabled=!youBike;$('youBikeLocate').onclick=()=>{const s=youBike.records.find(s=>s.id===stationSelect.value);if(s){setWaypoint(s.x,s.z,'YouBike・'+s.name);setPaused(false);openMap();}};
-$('youBikeStatus').textContent=youBike?'已匯入信義區 '+youBike.records.length+' 站（官方資料 '+youBikeData.stations[0].sourceUpdated+'）。站點座標依官方資料；車柱方向、間距及高程待現勘。自行車僅為示意，非即時可借數；附近 125 m 顯示細節。':'YouBike 資料未載入；原有場景保留，請重新整理。';
+$('youBikeStatus').textContent=youBike?'已匯入信義區 '+youBike.records.length+' 站（官方資料 '+youBikeData.stations[0].sourceUpdated+'）。站點座標依官方資料；車柱方向、間距及高程待現勘。依官方容量顯示完整柱數；排列與自行車停放為示意，非即時可借數。附近 125 m 顯示細節。':'YouBike 資料未載入；原有場景保留，請重新整理。';
 $('yellowBoxes').checked=settings.yellowBoxes!==false;if(yellowBoxes)yellowBoxes.group.visible=$('yellowBoxes').checked;
 $('yellowBoxes').onchange=()=>{settings.yellowBoxes=$('yellowBoxes').checked;if(yellowBoxes)yellowBoxes.group.visible=settings.yellowBoxes;saveSettings();};
 $('yellowBoxStatus').textContent=yellowBoxData?'網狀黃線：已掃描 '+yellowBoxData.coverage.tilesScanned+' 個影像分區，匯入 '+yellowBoxes.count+' 處，另 '+yellowBoxData.counts.deferredBoundary+' 筆候選外框待核對。來源為2025影像；線寬、間距及目前現況待核對，遮蔽處可能漏辨。':'網狀黃線資料未載入，請重新整理後核對。';
@@ -1010,5 +1012,5 @@ renderLoad();
 $('loading').hidden=true;
 {const at=new URLSearchParams(location.search).get('at');if(at)goToLandmark(at);}
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={youBike,zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);}}};
+window.__xinyiStreet={walkSurface,youBike,zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);}}};
 requestAnimationFrame(frame);
