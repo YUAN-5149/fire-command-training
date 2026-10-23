@@ -1,3 +1,4 @@
+import {replaceEocParkedCars} from './eoc-parked-cars.js?v=parking-20261023';
 // 臺北市災害應變中心在信義街景漫遊的細部（原模型檢視頁 taipei-eoc.js 移入）：
 //   drapeSite   場地物件（extras.drape）貼合街景地形：surface＝鋪面逐頂點跟著地面，object＝車輛、樹整個搬到地面
 //   enhanceEoc  模型沒有貼圖，以世界座標在 shader 補牆板縫、石材、柏油與鋪面質感，夜間玻璃依格子亂數亮窗，
@@ -64,6 +65,7 @@ export function drapeSite(root,ground,{lift=.05}={}){
 }
 
 export function enhanceEoc(root,{base=root.position.y}={}){
+ const parking=replaceEocParkedCars(root);
  const lit=[],edge=[],seen=new Set(),uBase={value:base};let sock=null;
  root.traverse(o=>{
   if(/windsock/i.test(o.name))sock=o;
@@ -92,8 +94,8 @@ export function enhanceEoc(root,{base=root.position.y}={}){
  });
  let night=0;
  return {
-  sock,lit,edge,
+  sock,lit,edge,parking,
   setNight(l){night=l;for(const m of lit)m.emissiveIntensity=l*m.userData.litMax;for(const m of edge)m.emissiveIntensity=l*3;},
-  update(t){if(night>0)for(const m of edge)m.emissiveIntensity=night*(4+2*Math.sin(t*4));}
+  update(t,eye){parking.update(eye);if(night>0)for(const m of edge)m.emissiveIntensity=night*(4+2*Math.sin(t*4));}
  };
 }

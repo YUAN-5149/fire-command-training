@@ -35,7 +35,7 @@ import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFaca
 import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=5';
 import {kitPlacements,createFacadeKits} from './facade-kits.js?v=1';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';
-import {drapeSite,enhanceEoc} from './eoc-detail.js?v=1';
+import {drapeSite,enhanceEoc} from './eoc-detail.js?v=parking-20261023';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=garage-20261023';
@@ -891,7 +891,7 @@ function frame(now){
  zhuangjing?.update(state);
  const crewStatus=zhuangjing&&Math.hypot(state.x-zhuangjing.layout.x,state.z-zhuangjing.layout.z)<28?zhuangjing.status:stationTeam.status();if($('stationCrewStatus').textContent!==crewStatus)$('stationCrewStatus').textContent=crewStatus;
  state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);
- eocDetail?.update(t);
+ eocDetail?.update(t,camera.position);
  life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{eye:camera.position,siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
  updateAerial(dt);
  updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt,{eye:camera.position});
