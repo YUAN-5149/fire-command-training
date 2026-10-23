@@ -112,8 +112,10 @@
     <h2>街道生活層（示意）</h2>
     <div class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 車流與機車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 推估車道線（含雙黃線）</label><label><input type="checkbox" id="lifeTrees" checked> 補植行道樹</label></div>
     <label><input type="checkbox" id="officialPaint" checked> 官方紅黃線與明確標記中線</label>
+    <div class="toggles"><label><input type="checkbox" id="zebraMapped" checked> 黑白斑馬線（OSM 已標記）</label><label><input type="checkbox" id="zebraReview" checked> 其餘穿越道示意（條紋待核對）</label></div>
+    <p id="zebraStatus" class="note" role="status">載入人行穿越道…</p>
     <p id="roadDataStatus" class="note" role="status">正在載入全區道路與官方紅黃線…</p>
-    <p class="note">紅黃線依市府向量位置；線寬為顯示值。斑馬線限 OSM 明確標記，條紋尺寸待核對。推估車道線可單獨關閉；黃虛線尚無完整定位資料。外圍地形、路幅及建物細節尚未現勘。</p>
+    <p class="note">紅黃線依市府向量位置；線寬為顯示值。斑馬線採白色條紋與深色路面相間；其餘穿越道樣式可獨立關閉，條紋與尺寸待核對。推估車道線可單獨關閉；黃虛線尚無完整定位資料。外圍地形、路幅及建物細節尚未現勘。</p>
     <p class="note"><a href="https://data.taipei/dataset/detail?id=a9c282c5-3a43-41ed-badc-f9c1bdf1cc34" target="_blank" rel="noopener">市府紅黃線資料</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> · <a href="https://data.taipei/dataset/detail?id=1601ef3a-c253-4988-b047-943d9e786143" target="_blank" rel="noopener">行政區界</a></p>
     <p class="note" id="qualityDetail"></p>
    </section>
@@ -158,6 +160,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s41-roads-20261023"></script>
+<script type="module" src="xinyi-street.js?v=s41-zebra-20261023"></script>
 </body>
 </html>

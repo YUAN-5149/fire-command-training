@@ -1,3 +1,4 @@
+import {addZebraCrossings} from './xinyi-zebra-crossings.js?v=zebra-20261023';
 import {addRoadPaint,explicitDivider,outerGroundGeometry} from './xinyi-road-paint.js?v=roads-20261023';
 import {addZhuangjingStation} from './zhuangjing-station.js?v=zhuangjing-20261023';
 import {createWalkMotion,smoothHeading} from './character-motion.js?v=cadence-20261023';
@@ -34,7 +35,6 @@ import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandma
 import {drapeSite,enhanceEoc} from './eoc-detail.js?v=1';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
-import {buildZebraCrossings} from './geo-street-fixtures.js?v=roads-20261023';
 import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=garage-20261023';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
@@ -119,9 +119,9 @@ if(laneData)laneMesh=addLanesToScene({T,scene,data:laneData,ground});
 else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:g.raised?-2:-1,polygonOffsetUnits:g.raised?-2:-1})});m.castShadow=false;scene.add(m);}
 {if(!laneData){const d=buildStreetDetail(streets.features),mats=createStreetMaterials(GisMaterial);for(const m of Object.values(mats)){m.polygonOffset=true;m.polygonOffsetFactor=m.polygonOffsetUnits=-3;}
  const m=mesh(toLocal(d.position,ground,true),{uv:d.uv,groups:d.groups,materials:mats});m.castShadow=false;scene.add(m);}
- const position=[],index=[];for(const z of buildZebraCrossings(navigationFeatures,{all:true}))for(const ring of z.rings){const s=position.length/3;for(const p of ring.slice(0,4))position.push(p[0],p[1],.06);index.push(s,s+1,s+2,s,s+2,s+3);}
- const zebra=mesh(toLocal(new Float64Array(position),ground,true),{index,material:new T.MeshStandardMaterial({color:'#eeeae0',roughness:.8,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4})});zebra.castShadow=false;scene.add(zebra);
+
 }
+const zebraCrossings=addZebraCrossings({T,scene,features:navigationFeatures,ground});
 // 外圍沿完整行政界線裁切的 OSM 道路；不由道路等級猜測紅黃線。
 if(roadNetwork)for(const g of buildStreetBase(roadNetwork.outerFeatures.map(f=>f.kind==='sidewalk'?{...f,kind:'walk'}:f),ground,()=>false)){
  const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})});m.castShadow=false;m.name='Xinyi outer OSM road';scene.add(m);
@@ -944,6 +944,11 @@ $('sens').value=settings.sens;$('sensValue').textContent=(+settings.sens).toFixe
 $('invertY').checked=settings.invertY;$('invertY').onchange=()=>{settings.invertY=$('invertY').checked;saveSettings();};
 function setLifeVisible(group,visible){life.groups[group].visible=visible;if(group==='markings'&&laneMesh)for(const m of laneMesh.children)if(m.userData.inferredPaint)m.visible=visible;}
 for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);box.checked=settings.life[group];setLifeVisible(group,box.checked);box.onchange=()=>{setLifeVisible(group,box.checked);settings.life[group]=box.checked;saveSettings();};}
+$('zebraMapped').checked=settings.zebraMapped!==false;zebraCrossings.groups.mapped.visible=$('zebraMapped').checked;
+$('zebraReview').checked=settings.zebraReview!==false;zebraCrossings.groups.review.visible=$('zebraReview').checked;
+$('zebraMapped').onchange=()=>{settings.zebraMapped=$('zebraMapped').checked;zebraCrossings.groups.mapped.visible=settings.zebraMapped;saveSettings();};
+$('zebraReview').onchange=()=>{settings.zebraReview=$('zebraReview').checked;zebraCrossings.groups.review.visible=settings.zebraReview;saveSettings();};
+$('zebraStatus').textContent='黑白斑馬線：'+zebraCrossings.counts.mapped+' 段有 OSM 斑馬線標記；另 '+zebraCrossings.counts.review+' 段已有穿越道位置，條紋樣式待核對。寬度、條紋與間距仍為示意。';
 $('officialPaint').checked=settings.officialPaint!==false;if(officialPaint)officialPaint.visible=$('officialPaint').checked;if(mappedPaint)mappedPaint.visible=$('officialPaint').checked;
 $('officialPaint').onchange=()=>{settings.officialPaint=$('officialPaint').checked;if(officialPaint)officialPaint.visible=settings.officialPaint;if(mappedPaint)mappedPaint.visible=settings.officialPaint;saveSettings();};
 addEventListener('resize',resize);applyTime('afternoon');quality.apply();resize();
