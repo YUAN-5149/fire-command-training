@@ -179,16 +179,29 @@ export function signAtlases(T){
   [...t].forEach((ch,j)=>{const y=yc+(j-(t.length-1)/2)*s*1.05;g.strokeText(ch,x,y);g.fillText(ch,x,y);});});});
  return {H,V};
 }
+// 純函式：把一組幾何依三角形所在的格子（預設 160 m）切塊，讓 three.js 逐塊做視錐剔除（整區一個網格永遠都要畫）。
+export function chunkGroup(a,cell=160){
+ const tri=a.index.length/3,buckets=new Map();
+ for(let t=0;t<tri;t++){const i=a.index[t*3];const key=Math.floor(a.position[i*3]/cell)+','+Math.floor(a.position[i*3+2]/cell);
+  let b=buckets.get(key);if(!b)buckets.set(key,b={map:new Map(),position:[],normal:[],uv:[],color:[],index:[]});
+  for(let k=0;k<3;k++){const v=a.index[t*3+k];let n=b.map.get(v);
+   if(n===undefined){n=b.position.length/3;b.map.set(v,n);b.position.push(a.position[v*3],a.position[v*3+1],a.position[v*3+2]);
+    b.normal.push(a.normal[v*3],a.normal[v*3+1],a.normal[v*3+2]);b.uv.push(a.uv[v*2],a.uv[v*2+1]);b.color.push(a.color[v*3],a.color[v*3+1],a.color[v*3+2]);}
+   b.index.push(n);}}
+ return [...buckets.entries()].map(([key,{map,...g}])=>({key,...g}));
+}
+
 export function addShophouses({T,scene,facades,roofs}){
  const group=new T.Group(),M=createShophouseMaterials(T),atl=signAtlases(T);group.name='shophouse detail';
  M.textH=new T.MeshBasicMaterial({map:atl.H,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
  M.textV=new T.MeshBasicMaterial({map:atl.V,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,side:T.DoubleSide});
  let verts=0;
  for(const [name,src] of [['street facades',facades.groups],['roof sheds',roofs.groups]])for(const [k,a] of Object.entries(src)){
-  if(!a.index.length)continue;const g=new T.BufferGeometry();
-  g.setAttribute('position',new T.Float32BufferAttribute(a.position,3));g.setAttribute('normal',new T.Float32BufferAttribute(a.normal,3));
-  g.setAttribute('uv',new T.Float32BufferAttribute(a.uv,2));g.setAttribute('color',new T.Float32BufferAttribute(a.color,3));g.setIndex(a.index);g.computeBoundingSphere();
-  const m=new T.Mesh(g,M[k]);m.name=name+' '+k;m.castShadow=!k.startsWith('text');m.receiveShadow=true;group.add(m);verts+=a.position.length/3;}
+  if(!a.index.length)continue;
+  for(const c of chunkGroup(a)){const g=new T.BufferGeometry();
+   g.setAttribute('position',new T.Float32BufferAttribute(c.position,3));g.setAttribute('normal',new T.Float32BufferAttribute(c.normal,3));
+   g.setAttribute('uv',new T.Float32BufferAttribute(c.uv,2));g.setAttribute('color',new T.Float32BufferAttribute(c.color,3));g.setIndex(c.index);g.computeBoundingSphere();
+   const m=new T.Mesh(g,M[k]);m.name=name+' '+k+' '+c.key;m.castShadow=!k.startsWith('text');m.receiveShadow=true;group.add(m);verts+=c.position.length/3;}}
  scene.add(group);
  // 夜間：店面玻璃與招牌發光
  const setNight=l=>{M.shopglass.emissiveIntensity=.25+l*1.4;M.sign.emissiveIntensity=l*.55;M.glassLit.emissiveIntensity=.12+l*1.1;M.glassLit.emissive.set(l>.3?'#ffd9a0':'#7f97a8');};
