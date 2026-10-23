@@ -1,3 +1,4 @@
+import {installRigidSkinBounds} from './character-motion.js?v=smooth-20261023';
 import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {clone} from './vendor/SkeletonUtils.js';
@@ -57,6 +58,7 @@ export function attachCommanderCharacter(person,{load=loadTemplate}={}){
    const next=actions.get(name);if(!next)return false;
    current?.stop();current=next;next.reset().play();return true;
   };
+  boots.forEach(installRigidSkinBounds);
   person.updateCharacter=dt=>{
    const controlled=nozzle.visible||[...arms,...legs].some(p=>Math.abs(p.rotation.x)>.001);
    if(controlled&&current!==actions.get('Idle'))person.playAnimation('Idle');

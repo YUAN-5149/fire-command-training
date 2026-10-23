@@ -1,13 +1,14 @@
-import {attachCommanderCharacter} from './commander-character.js';
-import {attachCrewCharacter} from './crew-character.js?v=ranks-20261022';
-import {attachLeadershipCharacter,LEADERSHIP_MODELS} from './leadership-character.js';
+import {characterVisible} from './character-motion.js?v=smooth-20261023';
+import {attachCommanderCharacter} from './commander-character.js?v=smooth-20261023';
+import {attachCrewCharacter} from './crew-character.js?v=smooth-20261023';
+import {attachLeadershipCharacter,LEADERSHIP_MODELS} from './leadership-character.js?v=smooth-20261023';
 import {updateInteriorSearch,retreatRoute} from './interior-search.js';
 import {surfaceHeight,stairPath} from './walk-surfaces.js';
 import {staging} from './staging.js';
 import * as T from 'three';
 export function createActionScene(scene,{examples=true}={}){
 const characters=[];
-const updateCharacters=dt=>characters.forEach(p=>p.updateCharacter(dt));
+const updateCharacters=dt=>characters.forEach(p=>{if(characterVisible(p.body))p.updateCharacter(dt);});
 const mat=c=>new T.MeshStandardMaterial({color:c,roughness:.65}),yellow=mat('#c5a253'),stripe=mat('#e4ed95'),black=mat('#202a30'),steel=mat('#9bafb7'),navy=mat('#172b46'),crimson=mat('#9e202b'),red=mat('#de303b'),helmet=mat('#e9e6d7'),glove=mat('#a59370');
 function mesh(g,geo,m,x,y,z){const o=new T.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;g.add(o);return o}
 function limb(g,x,y,length,fabric,bands=0){
