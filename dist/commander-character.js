@@ -46,10 +46,10 @@ export function attachCommanderCharacter(person,{load=loadTemplate}={}){
   body.add(visual);person.boots.splice(0,person.boots.length,...boots);
   person.visual=visual;person.modelState='ready';person.animations=[...actions.keys()];
   const controlledBones=[...armBones,...legBones],baseRotations=controlledBones.map(b=>b.quaternion.clone());
-  const worldAxis=new T.Vector3(),localAxis=new T.Vector3(),parentRotation=new T.Quaternion(),turn=new T.Quaternion();
+  const worldAxis=new T.Vector3(),localAxis=new T.Vector3(),parentRotation=new T.Quaternion(),turn=new T.Quaternion(),parentPosition=new T.Vector3(),parentScale=new T.Vector3(),bodyInverse=new T.Matrix4();
   function rotateJoint(bone,angle){
    if(!angle)return;
-   bone.parent.getWorldQuaternion(parentRotation);
+   bone.parent.matrixWorld.decompose(parentPosition,parentRotation,parentScale);
    localAxis.copy(worldAxis).applyQuaternion(parentRotation.invert());
    bone.quaternion.premultiply(turn.setFromAxisAngle(localAxis,angle));
    bone.updateWorldMatrix(false,true);
@@ -64,15 +64,15 @@ export function attachCommanderCharacter(person,{load=loadTemplate}={}){
    if(controlled&&current!==actions.get('Idle'))person.playAnimation('Idle');
    // Restore the prior animation pose: constant tracks need not be rewritten by the mixer.
    controlledBones.forEach((b,i)=>b.quaternion.copy(baseRotations[i]));
-   mixer.update(Math.min(Math.max(dt,0),.05));
+   mixer.update(Math.min(Math.max(dt,0),.25));
    controlledBones.forEach((b,i)=>baseRotations[i].copy(b.quaternion));
    syncWorld();
    worldAxis.set(1,0,0).transformDirection(body.matrixWorld);
    armBones.forEach((b,i)=>rotateJoint(b,nozzle.visible?1.15:arms[i].rotation.x*.8));
    legBones.forEach((b,i)=>rotateJoint(b,legs[i].rotation.x*.55));
-   hand.getWorldPosition(nozzle.position);body.worldToLocal(nozzle.position);
-   nozzle.position.z-=.05;nozzle.rotation.set(Math.PI/2,0,0);
-   syncWorld();
+   if(nozzle.visible){nozzle.position.setFromMatrixPosition(hand.matrixWorld).applyMatrix4(bodyInverse.copy(body.matrixWorld).invert());
+    nozzle.position.z-=.05;nozzle.rotation.set(Math.PI/2,0,0);nozzle.updateMatrixWorld(true);}
+
    for(const skeleton of skeletons)skeleton.update();
    for(const boot of boots)boot.computeBoundingBox();
   };

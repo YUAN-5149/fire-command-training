@@ -1,3 +1,4 @@
+import {createVehicleGrid} from './xinyi-performance.js?v=runtime-20261023';
 // 信義街景漫遊・街道生活層（全部為示意，非實測、非實際店家／車流）：
 // 車道標線、一樓店面招牌、補植行道樹、NPC 車流與行人、時段光影。
 // 只加在本頁；不改動 GIS 頁的官方量體、道路寬度與既有樣板。
@@ -191,6 +192,7 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
  scene.add(people);life.groups.people=people;life.pedCount=pedCount;
 
  const tmp=new T.Object3D();
+ const vehicleGrid=createVehicleGrid();
  function obstacleAhead(veh,others,player){
   const fx=-Math.sin(veh.heading),fz=-Math.cos(veh.heading),look=veh.kit.length/2+Math.max(5,veh.v*1.2);let gap=Infinity;
   const test=(x,z,r)=>{const dx=x-veh.x,dz=z-veh.z,ahead=dx*fx+dz*fz,lat=Math.abs(-dx*fz+dz*fx);if(ahead>0&&ahead<look+r&&lat<1.2+r)gap=Math.min(gap,ahead-r);};
@@ -199,8 +201,8 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
   return gap;
  }
  life.update=(dt,t,blockers,{siren=null,eye=null}={})=>{
-  if(life.groups.traffic.visible)for(const veh of vehicles){if(!veh.active)continue;
-   const gap=obstacleAhead(veh,vehicles,blockers);let target=gap<veh.kit.length/2+1.5?0:gap<veh.kit.length/2+8?veh.max*.3:veh.max;
+  if(life.groups.traffic.visible){vehicleGrid.rebuild(vehicles);for(const veh of vehicles){if(!veh.active)continue;
+   const gap=obstacleAhead(veh,vehicleGrid.near(veh.x,veh.z),blockers);let target=gap<veh.kit.length/2+1.5?0:gap<veh.kit.length/2+8?veh.max*.3:veh.max;
    // 消防車（含自動出勤的分隊車輛，可傳入多部）鳴警笛接近（35 m 內）時，NPC 車輛停車並靠右讓道（示意）。
    // 讓道：減速停車並往右側路邊靠（示意），讓消防車從旁通過。
    const yieldNow=[siren].flat().some(sv=>sv&&Math.hypot(sv.x-veh.x,sv.z-veh.z)<35);if(yieldNow)target=0;veh.pull=Math.max(0,Math.min(1,(veh.pull??0)+(yieldNow?1:-.5)*dt));
@@ -208,10 +210,11 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
    while(veh.s>veh.lane.length){veh.s-=veh.lane.length;const next=veh.lane.next.length?veh.lane.next[Math.floor(rand()*veh.lane.next.length)]:veh.lane.back??pickLane();veh.lane=next;veh.max=(next.speed+rand()*3)*(veh.kind==='scooter'?1.1:1);}
    const p=lanePose(veh.lane,veh.s),rx=Math.cos(p.heading),rz=-Math.sin(p.heading);
    const side=veh.side+(veh.pull??0)*2.2;veh.x=p.x+rx*side;veh.z=p.z+rz*side;veh.heading+=Math.atan2(Math.sin(p.heading-veh.heading),Math.cos(p.heading-veh.heading))*Math.min(1,dt*8);
+   vehicleGrid.update(veh);
    tmp.position.set(veh.x,ground.at(veh.x,veh.z),veh.z);tmp.rotation.set(0,veh.heading+(veh.kit.slop?Math.PI:0),0);tmp.updateMatrix();for(const m of Object.values(veh.meshes))m.setMatrixAt(veh.i,tmp.matrix);
    if(veh.kit.slop){const a=veh.meshes.body.geometry.attributes.carState;if(a.getX(veh.i)!==veh.brake){a.setX(veh.i,veh.brake);a.needsUpdate=true;}}
   }
-  for(const m of traffic.children)m.instanceMatrix.needsUpdate=true;
+  for(const m of traffic.children)m.instanceMatrix.needsUpdate=true;}
   if(life.groups.people.visible){crowd.begin();peds.forEach((q,i)=>{if(i>=life.pedActive)return;q.s+=q.v*q.dir*dt;if(q.s>q.p.length||q.s<0){q.dir*=-1;q.s=Math.max(0,Math.min(q.p.length,q.s));}
    const a=q.p.along;let k=1;while(k<a.length-1&&a[k]<q.s)k++;const u=Math.max(0,Math.min(1,(q.s-a[k-1])/((a[k]-a[k-1])||1))),A=q.p.pts[k-1],B=q.p.pts[k],dx=(B[0]-A[0])*q.dir,dz=(B[1]-A[1])*q.dir,l=Math.hypot(dx,dz)||1;
    const x=A[0]+(B[0]-A[0])*u-dz/l*q.off,z=A[1]+(B[1]-A[1])*u+dx/l*q.off;
