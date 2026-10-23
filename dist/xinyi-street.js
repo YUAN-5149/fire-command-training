@@ -31,6 +31,7 @@ import {addLanesToScene} from './xinyi-lanes.js?v=roads-20261023';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
 import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings,styleOf} from './xinyi-facades.js?v=6';
 import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=5';
+import {kitPlacements,createFacadeKits} from './facade-kits.js?v=1';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';
 import {drapeSite,enhanceEoc} from './eoc-detail.js?v=1';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
@@ -77,7 +78,7 @@ const zhuangjingIds=new Set(zhuangjingData?.buildingIds??[]);
 const landmarks=await loadLandmarks().catch(()=>[]);for(const a of landmarks)if(a.collider)district.buildings.push(footprintBuilding(a));
 // 逐街精修（building-overrides-xinyi.json）：官方 LOD1 缺漏的量體依 OSM 外框補建（含碰撞與地面高程）。
 const legacyFacades=new URLSearchParams(location.search).get('facades')==='legacy';
-const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=9').then(r=>r.ok?r.json():null).catch(()=>null);
+const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=11').then(r=>r.ok?r.json():null).catch(()=>null);
 const overrides=overrideIndex(overrideData);if(overrideData)district.buildings.push(...fillBuildings(overrideData,district));
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox);
@@ -102,6 +103,8 @@ let detailMats,farMat,facadeSigns=null,shophouse=null;
   const fb=buildFacadeBatch(basic,styles.buildings,overrides,{skipWall});farMat=createFacadeMaterial(T);const far=new T.Mesh(facadeGeometry(T,fb,toLocal,ground,linearColors),farMat);far.castShadow=false;far.receiveShadow=true;far.name='xinyi facades';scene.add(far);
   facadeSigns=addFacadeProps(T,scene,facadeProps(basic,styles.buildings,{project,overrides,skipWall,shed:shedHeight,facesStreet:(x,z)=>!!nearestStreet(streets.features,x,z,9)})).signMat;
   shophouse=addShophouses({T,scene,facades:buildStreetFacades(shopItems,{project}),roofs:buildRoofSheds(shedItems,{project})});
+  // 精修建物臨街牆的立面構件（窗框、窗台、陽台；building_tools 產生，facade-kits.js），背景載入
+  createFacadeKits(T,GLTFLoader,kitPlacements(basic,overrides,{project,facesStreet:nearRoad,skipWall})).then(g=>scene.add(g)).catch(e=>console.error(e));
  }else{
  const batch=buildDistrictBatch(basic);farMat=litWindows(new T.MeshStandardMaterial({vertexColors:true,roughness:.85,side:T.DoubleSide,flatShading:true}),{byColor:true});const far=mesh(toLocal(batch.position,ground),{color:batch.color,index:batch.faces,material:farMat});far.castShadow=false;scene.add(far);}
  const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});detailMats=createDetailMaterials(GisMaterial);litWindows(detailMats.glass);scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:detailMats}));
