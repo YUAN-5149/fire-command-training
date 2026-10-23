@@ -1,0 +1,400 @@
+{
+  "reviewedIds": [
+    433,
+    434,
+    435,
+    436,
+    437,
+    438,
+    439,
+    440,
+    441,
+    442,
+    443,
+    444,
+    445,
+    446,
+    447,
+    448,
+    449,
+    450,
+    451,
+    452,
+    453,
+    454,
+    455,
+    456,
+    457,
+    458,
+    459,
+    460,
+    461,
+    462,
+    463,
+    464,
+    465,
+    466,
+    467,
+    468,
+    469,
+    470,
+    471,
+    472,
+    473,
+    474,
+    475,
+    476,
+    477,
+    478,
+    479,
+    480,
+    481,
+    482,
+    483,
+    484,
+    485,
+    486,
+    487,
+    488,
+    489,
+    490,
+    491,
+    492,
+    493,
+    494,
+    495,
+    496,
+    497,
+    498,
+    499,
+    500,
+    501,
+    502,
+    503,
+    504,
+    505,
+    506,
+    507,
+    508,
+    509,
+    510,
+    511,
+    512,
+    513,
+    514,
+    515,
+    516,
+    517,
+    518,
+    519,
+    520,
+    521,
+    522,
+    523,
+    524,
+    525,
+    526,
+    527,
+    528
+  ],
+  "accepted": [
+    {
+      "id": 453,
+      "sourceTile": "13532160_2878464.jpg",
+      "pixels": [
+        [
+          979.2857142857143,
+          1764.08
+        ],
+        [
+          995.1496598639455,
+          1750.4
+        ],
+        [
+          1021.1088435374149,
+          1783.88
+        ],
+        [
+          1004.1632653061224,
+          1797.2
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Manually traced visible yellow grid perimeter from enlarged 2025 source image; approximate, not surveyed."
+    },
+    {
+      "id": 466,
+      "sourceTile": "13532160_2878976.jpg",
+      "pixels": [
+        [
+          1202.222602739726,
+          444.24
+        ],
+        [
+          1213.4212328767123,
+          419.2266666666667
+        ],
+        [
+          1245.8972602739725,
+          440.1333333333333
+        ],
+        [
+          1228.7260273972602,
+          465.8933333333333
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Manually traced visible yellow grid perimeter from enlarged 2025 source image; approximate, not surveyed."
+    },
+    {
+      "id": 477,
+      "sourceTile": "13532160_2878976.jpg",
+      "pixels": [
+        [
+          831,
+          745.3333333333334
+        ],
+        [
+          851,
+          728.6666666666666
+        ],
+        [
+          868,
+          749.6666666666666
+        ],
+        [
+          844.6666666666666,
+          766
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Manually traced visible yellow grid perimeter from enlarged 2025 source image; approximate, not surveyed."
+    },
+    {
+      "id": 520,
+      "sourceTile": "13532160_2878976.jpg",
+      "pixels": [
+        [
+          1246.030303030303,
+          1683.59
+        ],
+        [
+          1267.6868686868686,
+          1669.04
+        ],
+        [
+          1280.6161616161617,
+          1686.8233333333333
+        ],
+        [
+          1257.989898989899,
+          1704.2833333333333
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Manually traced visible yellow grid perimeter from enlarged 2025 source image; approximate, not surveyed."
+    },
+    {
+      "id": 526,
+      "sourceTile": "13532160_2878976.jpg",
+      "pixels": [
+        [
+          976.6666666666666,
+          1899.9166666666667
+        ],
+        [
+          993.4226804123712,
+          1886.6166666666666
+        ],
+        [
+          1008.2817869415808,
+          1902.7666666666667
+        ],
+        [
+          990.2611683848797,
+          1916.3833333333334
+        ]
+      ],
+      "displayAngles": [
+        0,
+        90
+      ],
+      "note": "Manually traced visible yellow grid perimeter from enlarged 2025 source image; approximate, not surveyed."
+    }
+  ],
+  "pending": [
+    {
+      "id": 438,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 439,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 449,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 451,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 452,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 462,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 465,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 471,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 475,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 480,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 485,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 487,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 492,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 493,
+      "reason": "Vehicle obscures small yellow enclosure; crosshatch type not confirmed."
+    },
+    {
+      "id": 496,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 499,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 500,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 505,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 512,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 519,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 527,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    },
+    {
+      "id": 528,
+      "reason": "Yellow grid present or suspected; complete perimeter obscured or clipped in imagery."
+    }
+  ],
+  "existingIds": [
+    441,
+    469,
+    470,
+    479,
+    481,
+    488,
+    498,
+    509,
+    523
+  ],
+  "rejectedIds": [
+    433,
+    434,
+    435,
+    436,
+    437,
+    440,
+    442,
+    443,
+    444,
+    445,
+    446,
+    447,
+    448,
+    450,
+    454,
+    455,
+    456,
+    457,
+    458,
+    459,
+    460,
+    461,
+    463,
+    464,
+    467,
+    468,
+    472,
+    473,
+    474,
+    476,
+    478,
+    482,
+    483,
+    484,
+    486,
+    489,
+    490,
+    491,
+    494,
+    495,
+    497,
+    501,
+    502,
+    503,
+    504,
+    506,
+    507,
+    508,
+    510,
+    511,
+    513,
+    514,
+    515,
+    516,
+    517,
+    518,
+    521,
+    522,
+    524,
+    525
+  ]
+}
