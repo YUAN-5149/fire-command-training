@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {project} from './xinyi-street-world.js';
 
-// Official point anchors; compact, representative dock layout is NOT a surveyed footprint.
+// Official point anchors and dock totals; row arrangement and parked bicycle occupancy are illustrative, NOT surveyed.
 export function stationPlacements(data,features=[]){
  const segments=[];
  for(const f of features){if(f.kind!=='road')continue;for(const path of f.paths??[])for(let i=1;i<path.length;i++){
@@ -9,7 +9,7 @@ export function stationPlacements(data,features=[]){
  }}
  return data.stations.map(s=>{const [x,z]=project(s.longitude,s.latitude);let distance=45,heading=0;
   for(const q of segments){const t=Math.max(0,Math.min(1,((x-q.ax)*q.dx+(z-q.az)*q.dz)/q.l2)),d=Math.hypot(x-q.ax-t*q.dx,z-q.az-t*q.dz);if(d<distance){distance=d;heading=-Math.atan2(q.dz,q.dx);}}
-  return {...s,x,z,heading,headingStatus:'estimated-road-tangent',dockCount:Math.min(6,s.capacity),bikeCount:Math.min(3,Math.ceil(s.capacity/2))};
+  return {...s,x,z,heading,headingStatus:'estimated-road-tangent',dockCount:s.capacity,bikeCount:Math.round(s.capacity*.65),columns:s.capacity<=20?s.capacity:Math.min(32,Math.ceil(s.capacity/2))};
  });
 }
 function kit(){
@@ -51,14 +51,15 @@ export function addYouBikeStations({scene,data,features,ground}){
  const records=stationPlacements(data,features),geometries=stationGeometry(),group=new T.Group();group.name='YouBike official points — representative layout';scene.add(group);
  const material=new T.MeshStandardMaterial({vertexColors:true,roughness:.8});
  const make=(geometry,n,name)=>{const mesh=new T.InstancedMesh(geometry,material,Math.max(1,n));mesh.count=0;mesh.name=name;mesh.receiveShadow=true;mesh.castShadow=false;group.add(mesh);return mesh;};
- const beacons=make(geometries.beacon,records.length,'YouBike station markers'),docks=make(geometries.dock,records.length*6,'Nearby representative docks'),bikes=make(geometries.bike,records.length*3,'Nearby representative bikes');
+ const beacons=make(geometries.beacon,records.length,'YouBike station markers'),docks=make(geometries.dock,records.reduce((n,s)=>n+s.dockCount,0),'Nearby full-capacity docks'),bikes=make(geometries.bike,records.reduce((n,s)=>n+s.bikeCount,0),'Nearby illustrative bicycles');
  const matrix=new T.Matrix4(),quat=new T.Quaternion(),pos=new T.Vector3(),scale=new T.Vector3(1,1,1),up=new T.Vector3(0,1,0);
  function place(mesh,index,s,lx,lz){const c=Math.cos(s.heading),n=Math.sin(s.heading),x=s.x+c*lx+n*lz,z=s.z-n*lx+c*lz;pos.set(x,ground.at(x,z)+.025,z);quat.setFromAxisAngle(up,s.heading);matrix.compose(pos,quat,scale);mesh.setMatrixAt(index,matrix);}
- records.forEach((s,i)=>place(beacons,i,s,-2.7,0));beacons.count=records.length;beacons.instanceMatrix.needsUpdate=true;beacons.computeBoundingSphere();
+ function refreshMarkers(){records.forEach((s,i)=>place(beacons,i,s,-Math.max(0,s.columns-1)*.75/2-.7,0));beacons.count=records.length;beacons.instanceMatrix.needsUpdate=true;beacons.computeBoundingSphere();}
+ refreshMarkers();let surfaceRevision=ground.revision;
  let lastX=Infinity,lastZ=Infinity,force=true;const active=new Set();const stats={stations:records.length,nearby:0,docks:0,bikes:0,batches:3};
- function update(eye){if(!group.visible)return;if(!force&&Math.hypot(eye.x-lastX,eye.z-lastZ)<8)return;force=false;lastX=eye.x;lastZ=eye.z;let dc=0,bc=0;
+ function update(eye){if(!group.visible)return;if(surfaceRevision!==ground.revision){surfaceRevision=ground.revision;refreshMarkers();force=true;}if(!force&&Math.hypot(eye.x-lastX,eye.z-lastZ)<8)return;force=false;lastX=eye.x;lastZ=eye.z;let dc=0,bc=0;
   for(const s of records){const near=Math.hypot(s.x-eye.x,s.z-eye.z)<(active.has(s.id)?155:125);if(!near){active.delete(s.id);continue;}active.add(s.id);
-   for(let i=0;i<s.dockCount;i++){const x=(i-(s.dockCount-1)/2)*.75;place(docks,dc++,s,x,0);if(i%2===0&&i/2<s.bikeCount)place(bikes,bc++,s,x,-.7);}
+   const rows=Math.ceil(s.dockCount/Math.max(1,s.columns));for(let i=0;i<s.dockCount;i++){const row=Math.floor(i/s.columns),columns=Math.min(s.columns,s.dockCount-row*s.columns),x=(i%s.columns-(columns-1)/2)*.75,z=(row-(rows-1)/2)*2.3;place(docks,dc++,s,x,z);if(Math.floor((i+1)*s.bikeCount/s.dockCount)>Math.floor(i*s.bikeCount/s.dockCount))place(bikes,bc++,s,x,z-.7);}
   }
   docks.count=dc;bikes.count=bc;for(const mesh of [docks,bikes]){mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();}Object.assign(stats,{nearby:active.size,docks:dc,bikes:bc});
  }
