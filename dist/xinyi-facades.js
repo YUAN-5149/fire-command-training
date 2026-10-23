@@ -134,7 +134,7 @@ float glassM=0.,litM=0.,signM=0.;vec3 signC=vec3(0.);
    }
   }else if(st>4.5&&st<5.5){base*=1.-.2*step(.9,fract(u/3.));}
   base=mix(base,base*1.08,parapet);
-  // 逐街精修：1 古典石材（拱廊、窄高窗、簷口） 2 玻璃帷幕（豎框、層間帶） 3 穿孔金屬板；參數見 building-overrides-xinyi.json
+  // 逐街精修：1 古典石材（拱廊、窄高窗、簷口） 2 玻璃帷幕（豎框、層間帶） 3 穿孔金屬板 4 預鑄混凝土方格；參數見 building-overrides-xinyi.json
   float variant=vFac.w;
   if(variant>.5&&W>1.5){
    vec3 wall=diffuseColor.rgb,gl=vFac4.rgb;float bay2=max(vFac3.x,.8),podH=vFac3.w,kind=vFac4.w;
@@ -153,7 +153,15 @@ float glassM=0.,litM=0.,signM=0.;vec3 signC=vec3(0.);
     }
    }else if(v<H-1.6){
     float win2;
-    if(variant>2.5){
+    if(variant>3.5){
+     // 4 預鑄混凝土方格：每格一窗置中，窗洞深凹（四周陰影框、上緣較深），預鑄板縫對齊格線
+     float hw=vFac3.y*.5,hh=vFac3.z*.5;
+     win2=box(bx2,.5-hw,.5+hw)*box(fy2,.5-hh,.5+hh);
+     float frame=box(bx2,.5-hw-.09,.5+hw+.09)*box(fy2,.5-hh-.06,.5+hh+.1)*(1.-win2);
+     float top=box(fy2,.5+hh,.5+hh+.1)*box(bx2,.5-hw-.09,.5+hw+.09);
+     float seam=max(step(bx2,.012)+step(.988,bx2),step(fy2,.015));
+     base=wall*(1.-.22*frame-.18*top)*(1.-.12*min(seam,1.))*(.96+.08*fh1(vec2(bi2,fl2)+seed));
+    }else if(variant>2.5){
      // 3 穿孔金屬板：板面圓點、分格線，窄長玻璃縫（窗寬比 vFac3.y，整層高）
      float dots=step(length(fract(vec2(u,v)/.45)-.5),.16),seam=max(step(fract(u/3.)-.0,.02),step(fract(v/1.5),.03));
      win2=box(bx2,.5-vFac3.y*.5,.5+vFac3.y*.5);
