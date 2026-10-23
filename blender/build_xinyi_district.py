@@ -156,6 +156,10 @@ def override_material(o):
     elif o.get('variant') == 3:
         # 穿孔金屬板：窄長玻璃縫（整層高）
         win = op('MULTIPLY', op('GREATER_THAN', bx, .5 - ww / 2), op('LESS_THAN', bx, .5 + ww / 2))
+    elif o.get('variant') == 4:
+        # 預鑄混凝土方格：每格一窗，上下置中
+        win = op('MULTIPLY', op('MULTIPLY', op('GREATER_THAN', bx, .5 - ww / 2), op('LESS_THAN', bx, .5 + ww / 2)),
+                 op('MULTIPLY', op('GREATER_THAN', fy, .5 - wh / 2), op('LESS_THAN', fy, .5 + wh / 2)))
     else:
         win = op('MULTIPLY', op('MULTIPLY', op('GREATER_THAN', bx, .5 - ww / 2), op('LESS_THAN', bx, .5 + ww / 2)),
                  op('MULTIPLY', op('GREATER_THAN', fy, .2), op('LESS_THAN', fy, .2 + wh)))
@@ -573,6 +577,8 @@ def main():
         ("songren_s5_west", (296.0, -628.0, 1.7), (276.0, -612.0, 5.5), 18),
         ("songren_s5_east", (300.0, -650.0, 1.7), (320.0, -630.0, 5.5), 18),
         ("songren_s5_roofs", (330.0, -700.0, 70.0), (300.0, -600.0, 0.0), 24),
+        ("songzhi_n", (14.0, 250.0, 2.5), (20.0, 520.0, 40.0), 18),
+        ("songzhi_cityhall", (14.0, 380.0, 1.8), (-40.0, 405.0, 14.0), 20),
     ]
     only = arg("--only")
     if only:
