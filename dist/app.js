@@ -16,7 +16,7 @@ import {staging} from './staging.js';
 import {createVehicle} from './vehicles.js';
 import {createFireState,stepFire,effectiveWater} from './fire-model.js';
 import {createFireEffects} from './fire-effects.js';
-import {createActionScene} from './action-scene.js?v=ranks-20261022';
+import {createActionScene} from './action-scene.js?v=smooth-20261023';
 import * as THREE from 'three';
 import {OrbitControls} from './vendor/OrbitControls.js';
 const $=id=>document.getElementById(id), names=['第一車組','第二車組','第三車組','第四車組'];

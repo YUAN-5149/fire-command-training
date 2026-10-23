@@ -1,5 +1,5 @@
 import {GLTFLoader} from './vendor/GLTFLoader.js';
-import {attachCommanderCharacter} from './commander-character.js';
+import {attachCommanderCharacter} from './commander-character.js?v=smooth-20261023';
 
 export const CREW_MODEL_URL=new URL('./assets/crew-navy-firefighter-v03.glb',import.meta.url);
 let templatePromise;

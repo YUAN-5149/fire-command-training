@@ -1,6 +1,6 @@
-import {CREW_MODEL_URL,loadCrewTemplate} from './crew-character.js?v=ranks-20261022';
+import {CREW_MODEL_URL,loadCrewTemplate} from './crew-character.js?v=smooth-20261023';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
-import {attachCommanderCharacter} from './commander-character.js';
+import {attachCommanderCharacter} from './commander-character.js?v=smooth-20261023';
 
 export const LEADERSHIP_MODELS={
  '小隊長':{url:CREW_MODEL_URL,name:'Squad_Leader_Navy_v03'},
