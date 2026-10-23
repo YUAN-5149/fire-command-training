@@ -26,16 +26,17 @@ for(const b of filled){
  const pts=b.walls.map(w=>project(w.a[0],w.a[1]));let A=0;for(let i=0;i<pts.length;i++){const p=pts[i],q=pts[(i+1)%pts.length];A+=p[0]*q[1]-q[0]*p[1];}A=Math.abs(A)/2;
  let R=0;for(let i=0;i<b.roofs.length;i+=3){const [p,q,r]=b.roofs.slice(i,i+3).map(v=>project(v[0],v[1]));R+=Math.abs((q[0]-p[0])*(r[1]-p[1])-(r[0]-p[0])*(q[1]-p[1]))/2;}
  assert(Math.abs(R-A)/A<.01,'roof triangulation covers footprint '+R+' vs '+A);
- const cx=pts.reduce((s,p)=>s+p[0],0)/pts.length,cz=pts.reduce((s,p)=>s+p[1],0)/pts.length;
- for(const w of b.walls){const [ax,az]=project(w.a[0],w.a[1]),[bx,bz]=project(w.b[0],w.b[1]),mx=(ax+bx)/2,mz=(az+bz)/2;
-  assert((mx-cx)*w.n[0]+(mz-cz)*-w.n[1]>-1e-6,'wall normal points outward');}
+ // 外法線：牆中點沿法線往外 0.3 m 在外框外、往內 0.3 m 在外框內（凹形外框也成立）
+ const inside=(x,z)=>{let c=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,zi]=pts[i],[xj,zj]=pts[j];if((zi>z)!==(zj>z)&&x<(xj-xi)*(z-zi)/(zj-zi)+xi)c=!c;}return c;};
+ for(const w of b.walls){const [ax,az]=project(w.a[0],w.a[1]),[bx,bz]=project(w.b[0],w.b[1]),mx=(ax+bx)/2,mz=(az+bz)/2,nx=w.n[0],nz=-w.n[1];
+  assert(!inside(mx+nx*.3,mz+nz*.3)&&inside(mx-nx*.3,mz-nz*.3),'wall normal points outward');}
 }
 assert.equal(earcut([[0,0],[4,0],[4,4],[2,1],[0,4]]).length,3,'concave ring triangulates');
 // 精修參數進到頂點屬性；精修建物不掛直立招牌
 const ov=overrideIndex(data),targets=[...district.buildings,...filled].filter(b=>ov[b.id]);
 const batch=buildFacadeBatch(targets,{},ov);
 assert.equal(batch.fac3.length,batch.fac.length);assert.equal(batch.fac4.length,batch.fac.length);
-for(const v of [1,2,3])assert(batch.fac.some((x,i)=>i%4===3&&x===v),'variant '+v+' present');
+for(const v of [1,2,3,4])assert(batch.fac.some((x,i)=>i%4===3&&x===v),'variant '+v+' present');
 for(const b of targets)if(ov[b.id].variant)assert.equal(styleOf({},b,ov).signs,false);
 // 有精修樣式（variant）的建物不掛直立招牌；只調色、樓層而沿用分類外觀的（如中華電信）照常掛
 assert.equal(facadeProps(targets.filter(b=>ov[b.id].variant),{},{project,overrides:ov}).sign.length,0);
