@@ -202,7 +202,7 @@ const stationTeam=createStationCrew({scene,createPerson:actionKit.createPerson,g
 function placeTruck(){truck.x=spawn.truck.x;truck.z=spawn.truck.z;truck.heading=spawn.truck.heading;truck.v=0;truck.steer=0;}
 // 前往精細地標（消防局、災害應變中心）：站在入口前，面向建物。
 function goToLandmark(key){if(key==='zhuangjing'&&zhuangjing){if(state.mode==='interior')exitBuilding();if(state.mode==='drive'){if(Math.abs(truck.v)>1.5){flashHint('請先停車下車，再前往莊敬分隊');return;}toggleVehicle();}const p=zhuangjing.visitPoint();state.mode='walk';state.x=p.x;state.z=p.z;state.facing=state.yaw=p.heading;state.pitch=.32;state.dist=7;state.keys.clear();player.visible=true;zhuangjing.update(state);syncUi();showNotice(zhuangjing.status+'；建物外牆與車庫面待現況精修。',9000);return;}const a=landmarks.find(l=>l.key===key);if(!a)return;if(state.mode==='interior')exitBuilding();if(state.mode==='drive')toggleVehicle();const [lon,lat]=localToLonLat(a,a.entry.x,a.entry.y),[x,z]=project(lon,lat),p=colliders.resolve(x,z,.4);state.mode='walk';state.x=p.x;state.z=p.z;state.facing=state.yaw=(a.heading+(a.entry.facing||0))*Math.PI/180;player.visible=true;syncUi();}
-function resetAll(){if(aerial&&!['idle','parked'].includes(aerial.state.phase)){flashHint('請先收梯並撤離，再回信義分隊');return;}if(state.mode==='interior')exitBuilding();state.mode='walk';state.dist=7;state.pitch=.32;state.keys.clear();state.stick=[0,0];state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();aerial?.park(spawn.aerial);stationTeam.reset();playerGait.reset();standBesideTruck();player.visible=true;syncUi();}
+function resetAll(){if(aerial&&!['idle','parked'].includes(aerial.state.phase)){flashHint('請先收梯並撤離，再回信義分隊');return;}if(state.mode==='interior')exitBuilding();state.mode='walk';state.run=false;state.dist=7;state.pitch=.32;state.keys.clear();state.stick=[0,0];state.x=spawn.x;state.z=spawn.z;state.facing=spawn.heading;state.yaw=spawn.heading;placeTruck();aerial?.park(spawn.aerial);stationTeam.reset();playerGait.reset();standBesideTruck();player.visible=true;syncUi();}
 // GIS 部署頁的配置（同一瀏覽器）：車組、人員、搶救建物與第一正面入口。第一車組＝可駕駛的水箱車。
 const geoModels=await fetch('assets/geo-models.json').then(r=>r.ok?r.json():null).catch(()=>null);
 const gis=geoModels?createGisLayer(scene,{ground,createPerson:actionKit.createPerson,models:geoModels,preloaded:{engine:truck.template}}):null;
@@ -236,8 +236,12 @@ canvas.addEventListener('wheel',e=>{if(state.mode==='interior'){e.preventDefault
  const move=e=>{const r=stick.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,l=Math.min(1,Math.hypot(dx,dy)/(r.width/2))/(Math.hypot(dx,dy)||1);state.stick=[dx*l,-dy*l];knob.style.transform=`translate(${dx*l*r.width/2}px,${dy*l*r.width/2}px)`;};
  stick.addEventListener('pointerdown',e=>{id=e.pointerId;stick.setPointerCapture(id);move(e);});stick.addEventListener('pointermove',e=>{if(e.pointerId===id)move(e);});
  const end=()=>{id=null;state.stick=[0,0];knob.style.transform='';};stick.addEventListener('pointerup',end);stick.addEventListener('pointercancel',end);
- $('tRun').addEventListener('pointerdown',()=>{state.run=!state.run;$('tRun').classList.toggle('on',state.run);});$('tEnter').addEventListener('click',()=>{if(state.mode==='interior')indoor.interact();else if(nearEntry())enterBuilding();else toggleVehicle();});
+ $('tEnter').addEventListener('click',()=>{if(state.mode==='interior')indoor.interact();else if(nearEntry())enterBuilding();else toggleVehicle();});
 }
+// Both mouse/keyboard-accessible and touch buttons toggle the same commander sprint state.
+function syncRunButtons(){for(const id of ['runButton','tRun']){const b=$(id);b.hidden=state.mode!=='walk';b.classList.toggle('on',state.run);b.setAttribute('aria-pressed',String(state.run));b.textContent=state.run?'跑步：開':'跑步：關';}}
+function toggleRun(){if(state.mode!=='walk'||state.paused||bigmap.open)return;state.run=!state.run;syncRunButtons();}
+for(const id of ['runButton','tRun']){const b=$(id);b.onclick=toggleRun;b.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')e.stopPropagation();});}
 $('enter').onclick=()=>toggleVehicle();$('siren').onclick=()=>toggleSiren();$('night').onclick=()=>cycleTime();$('reset').onclick=()=>resetAll();
 
 function nearTruck(){return Math.hypot(state.x-truck.x,state.z-truck.z)<6;}
@@ -258,6 +262,7 @@ function applyTime(name){
  detailMats.glass.emissiveIntensity=p.windows*.9;farMat.emissiveIntensity=p.windows*1.2;if(facadeSigns)facadeSigns.emissiveIntensity=p.lights*.55;shophouse?.setNight(p.lights);eocDetail?.setNight(p.lights);life.setLights(p.lights);zhuangjing?.setNight(p.lights);syncUi();
 }
 function syncUi(){
+ if(state.mode!=='walk')state.run=false;syncRunButtons();
  $('enter').textContent=state.mode==='drive'?'下車':'上車';$('siren').hidden=state.mode!=='drive';$('siren').classList.toggle('on',truck.siren);$('night').textContent='時段：'+TIME_PRESETS[state.time].label;
  $('speed').hidden=state.mode!=='drive';
  const d=state.mode==='drive',inside=state.mode==='interior';$('tRun').hidden=d||inside;$('tBrake').hidden=$('tSiren').hidden=!d;$('tSiren').classList.toggle('on',truck.siren);$('tEnter').textContent=d?'下車':inside?'門窗／撤出':'上車';
