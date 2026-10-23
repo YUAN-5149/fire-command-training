@@ -1,3 +1,4 @@
+import {MINI_ZOOM_LEVELS,miniZoom,stepMiniZoom,miniMapMetrics} from './xinyi-minimap.js?v=minimap-20261023';
 import {addYouBikeStations} from './xinyi-youbike.js?v=youbike-20261023';
 import {createFrameBudget,createFrameWindow} from './xinyi-performance.js?v=runtime-20261023';
 import {addYellowBoxes} from './xinyi-yellow-boxes.js?v=yellowbox-20261023';
@@ -271,6 +272,7 @@ function syncUi(){
 // 小地圖：預先繪製路網與牆線，執行時依視角旋轉。
 // 全區底圖涵蓋原點 ±3500 m；缺圖資時沿用原核心底圖。
 const mini=$('minimap'),mctx=mini.getContext('2d'),MAP=3072,mapScale=MAP/(roadNetwork?7000:2000),mapImg=document.createElement('canvas');
+let minimapZoom=1,minimapDisplaySize=214,minimapControlKey='';
 {mapImg.width=mapImg.height=MAP;const g=mapImg.getContext('2d');g.fillStyle='#26323a';g.fillRect(0,0,MAP,MAP);const P=(x,z)=>[MAP/2+x*mapScale,MAP/2+z*mapScale];
  g.lineCap='round';g.lineJoin='round';
  for(const f of navigationFeatures){g.strokeStyle=f.kind==='road'?'#8e9aa2':f.kind==='crossing'?'#d9dcdc':'#55636b';g.lineWidth=Math.max(f.kind==='road'?(f.width||6):1.5,1)*mapScale;
@@ -805,22 +807,29 @@ $('mapBtn').onclick=()=>openMap();$('mapClose').onclick=()=>closeMap();$('mapIn'
 $('mapClear').onclick=()=>clearWaypoint();$('mapTruckWp').onclick=()=>setWaypoint(truck.x,truck.z,'消防車');
 $('menuMap').onclick=()=>{setPaused(false);openMap();};
 const minimapBudget=createFrameBudget(10);
+function syncMinimapControls(metrics){
+ const inside=state.mode==='interior',key=[inside,minimapZoom,state.mode,minimapDisplaySize,mini.width].join(':');if(key===minimapControlKey)return;minimapControlKey=key;
+ $('miniZoomOut').disabled=inside||minimapZoom<=MINI_ZOOM_LEVELS[0];$('miniZoomIn').disabled=inside||minimapZoom>=MINI_ZOOM_LEVELS.at(-1);$('miniZoomReset').disabled=inside;
+ $('miniZoomReset').textContent=Number(minimapZoom.toFixed(2))+'×';$('miniZoomReset').title='目前 '+minimapZoom+' 倍；點一下回復預設';
+ $('minimapScale').hidden=inside;if(metrics){$('minimapScaleText').textContent=metrics.label;$('minimapScaleBar').style.width=metrics.barPixels+'px';$('minimapScale').setAttribute('aria-label','此線段代表 '+metrics.label);}
+}
+function changeMinimapZoom(value){if(state.mode==='interior')return;minimapZoom=miniZoom(value);settings.minimapZoom=minimapZoom;saveSettings();minimapControlKey='';syncMinimapControls(miniMapMetrics({mode:state.mode,zoom:minimapZoom,mapScale,canvasSize:mini.width,displaySize:minimapDisplaySize}));}
 function drawMinimap(now){
  if(!minimapBudget.due(now,state.mode))return;
- if(state.mode==='interior'&&indoor.plan){indoor.drawMap(mctx,mini.width);return;}
- const s=mini.width,zoom=state.mode==='drive'?.55:.9;mctx.save();mctx.clearRect(0,0,s,s);mctx.beginPath();mctx.arc(s/2,s/2,s/2,0,Math.PI*2);mctx.clip();
+ if(state.mode==='interior'&&indoor.plan){syncMinimapControls(null);indoor.drawMap(mctx,mini.width);return;}
+ const s=mini.width,metrics=miniMapMetrics({mode:state.mode,zoom:minimapZoom,mapScale,canvasSize:s,displaySize:minimapDisplaySize}),zoom=metrics.scale,ratio=metrics.pixelRatio,icon=ratio/zoom;syncMinimapControls(metrics);mctx.save();mctx.clearRect(0,0,s,s);mctx.beginPath();mctx.arc(s/2,s/2,s/2,0,Math.PI*2);mctx.clip();
  mctx.fillStyle='#1c252b';mctx.fillRect(0,0,s,s);mctx.translate(s/2,s/2);mctx.rotate(state.yaw);mctx.scale(zoom,zoom);
  const cx=MAP/2+state.camX*mapScale,cz=MAP/2+state.camZ*mapScale;mctx.drawImage(mapImg,-cx,-cz);
  const tx=(truck.x-state.camX)*mapScale,tz=(truck.z-state.camZ)*mapScale;
- if(state.mode==='walk'){mctx.fillStyle='#e8303a';mctx.fillRect(tx-6,tz-6,12,12);}
- for(const v of gis?.data?.vehicles??[]){if(v.unitId==='engine1'||v.unitId==='commander')continue;mctx.fillStyle=v.unitId==='aerial'?'#ffb34e':v.unitId==='ambulance'?'#f5f5f5':'#ff7a7a';const px=(v.x-state.camX)*mapScale,pz=(v.z-state.camZ)*mapScale;mctx.fillRect(px-5,pz-5,10,10);}
- if(state.route?.length>1){mctx.strokeStyle='rgba(255,211,107,.95)';mctx.lineWidth=7;mctx.lineJoin=mctx.lineCap='round';mctx.beginPath();state.route.forEach(([x,z],i)=>{const px=(x-state.camX)*mapScale,pz=(z-state.camZ)*mapScale;i?mctx.lineTo(px,pz):mctx.moveTo(px,pz);});mctx.stroke();}
- for(const mk of mapMarkers()){const px=(mk.x-state.camX)*mapScale,pz=(mk.z-state.camZ)*mapScale;mctx.fillStyle=mk.color;mctx.strokeStyle='#111';mctx.lineWidth=2;mctx.fillRect(px-7,pz-7,14,14);mctx.strokeRect(px-7,pz-7,14,14);}
- if(mission?.site&&mission.phase<6){const px=(mission.site.x-state.camX)*mapScale,pz=(mission.site.z-state.camZ)*mapScale;mctx.fillStyle='#ff3b2f';mctx.strokeStyle='#fff';mctx.lineWidth=3;mctx.beginPath();mctx.arc(px,pz,13,0,Math.PI*2);mctx.fill();mctx.stroke();}
- if(state.waypoint){const px=(state.waypoint.x-state.camX)*mapScale,pz=(state.waypoint.z-state.camZ)*mapScale;mctx.fillStyle='#ffd36b';mctx.strokeStyle='#111';mctx.lineWidth=3;mctx.beginPath();mctx.arc(px,pz,11,0,Math.PI*2);mctx.fill();mctx.stroke();}
- mctx.restore();mctx.save();mctx.translate(s/2,s/2);const facing=(state.mode==='drive'?truck.heading:state.facing)-state.yaw;mctx.rotate(-facing);
+ if(state.mode==='walk'){mctx.fillStyle='#e8303a';mctx.fillRect(tx-6*icon,tz-6*icon,12*icon,12*icon);}
+ for(const v of gis?.data?.vehicles??[]){if(v.unitId==='engine1'||v.unitId==='commander')continue;mctx.fillStyle=v.unitId==='aerial'?'#ffb34e':v.unitId==='ambulance'?'#f5f5f5':'#ff7a7a';const px=(v.x-state.camX)*mapScale,pz=(v.z-state.camZ)*mapScale;mctx.fillRect(px-5*icon,pz-5*icon,10*icon,10*icon);}
+ if(state.route?.length>1){mctx.strokeStyle='rgba(255,211,107,.95)';mctx.lineWidth=3*icon;mctx.lineJoin=mctx.lineCap='round';mctx.beginPath();state.route.forEach(([x,z],i)=>{const px=(x-state.camX)*mapScale,pz=(z-state.camZ)*mapScale;i?mctx.lineTo(px,pz):mctx.moveTo(px,pz);});mctx.stroke();}
+ for(const mk of mapMarkers()){const px=(mk.x-state.camX)*mapScale,pz=(mk.z-state.camZ)*mapScale;mctx.fillStyle=mk.color;mctx.strokeStyle='#111';mctx.lineWidth=2*icon;mctx.fillRect(px-7*icon,pz-7*icon,14*icon,14*icon);mctx.strokeRect(px-7*icon,pz-7*icon,14*icon,14*icon);}
+ if(mission?.site&&mission.phase<6){const px=(mission.site.x-state.camX)*mapScale,pz=(mission.site.z-state.camZ)*mapScale;mctx.fillStyle='#ff3b2f';mctx.strokeStyle='#fff';mctx.lineWidth=2*icon;mctx.beginPath();mctx.arc(px,pz,10*icon,0,Math.PI*2);mctx.fill();mctx.stroke();}
+ if(state.waypoint){const px=(state.waypoint.x-state.camX)*mapScale,pz=(state.waypoint.z-state.camZ)*mapScale;mctx.fillStyle='#ffd36b';mctx.strokeStyle='#111';mctx.lineWidth=2*icon;mctx.beginPath();mctx.arc(px,pz,8*icon,0,Math.PI*2);mctx.fill();mctx.stroke();}
+ mctx.restore();mctx.save();mctx.translate(s/2,s/2);mctx.scale(ratio,ratio);const facing=(state.mode==='drive'?truck.heading:state.facing)-state.yaw;mctx.rotate(-facing);
  mctx.fillStyle=state.mode==='drive'?'#ff4a4a':'#ffd36b';mctx.strokeStyle='#111';mctx.lineWidth=2;mctx.beginPath();mctx.moveTo(0,-10);mctx.lineTo(7,8);mctx.lineTo(0,4);mctx.lineTo(-7,8);mctx.closePath();mctx.fill();mctx.stroke();mctx.restore();
- mctx.fillStyle='#fff';mctx.font='bold 13px sans-serif';mctx.textAlign='center';const north=state.yaw;mctx.fillText('N',s/2+Math.sin(north)*(s/2-12),s/2-Math.cos(north)*(s/2-12)+5);
+ mctx.fillStyle='#fff';mctx.font='bold '+13*ratio+'px sans-serif';mctx.textAlign='center';const north=state.yaw;mctx.fillText('N',s/2+Math.sin(north)*(s/2-12*ratio),s/2-Math.cos(north)*(s/2-12*ratio)+5*ratio);
 }
 
 // 更新
@@ -925,12 +934,16 @@ function frame(now){
 }
 // 直式手機：垂直視角放大（60°→最多 80°），左右才看得到街道兩側（移植自 main）。
 const portrait=()=>innerWidth<innerHeight;
-function resize(){renderer.setPixelRatio(quality.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);const a=innerWidth/innerHeight;camera.aspect=a;camera.fov=a<1?Math.min(80,Math.max(60,2*Math.atan(Math.tan(35*Math.PI/180)/a)*180/Math.PI)):60;camera.updateProjectionMatrix();const s=TOUCH?120:innerWidth<=640?140:220;mini.width=mini.height=s*Math.min(devicePixelRatio,2);}
+function resize(){renderer.setPixelRatio(quality.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);const a=innerWidth/innerHeight;camera.aspect=a;camera.fov=a<1?Math.min(80,Math.max(60,2*Math.atan(Math.tan(35*Math.PI/180)/a)*180/Math.PI)):60;camera.updateProjectionMatrix();const s=TOUCH?120:innerWidth<=640?140:220;mini.width=mini.height=s*Math.min(devicePixelRatio,2);minimapDisplaySize=mini.clientWidth||s-6;minimapControlKey='';}
 // ---------- 設定與暫停選單 ----------
 // 設定只存在本機瀏覽器（localStorage）；無法存取時仍以預設值運作。
 const SETTINGS_KEY='xinyiStreetSettings',DEFAULTS={quality:'auto',fps:60,showFps:false,sens:1,invertY:false,life:{traffic:true,people:true,shops:true,markings:true,trees:true},audio:{muted:false,master:.8,siren:.7,engine:.6,ambient:.5},load:{firefighter:75,gear:25,equipment:15,stretcher:15,capacity:500},missionType:'fire'};
 const settings=(()=>{try{const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');return {...DEFAULTS,...v,life:{...DEFAULTS.life,...v.life},audio:{...DEFAULTS.audio,...v.audio},load:{...DEFAULTS.load,...v.load}};}catch{return structuredClone(DEFAULTS);}})();
 const saveSettings=()=>{try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch{}};
+minimapZoom=miniZoom(settings.minimapZoom);
+$('miniZoomOut').onclick=()=>changeMinimapZoom(stepMiniZoom(minimapZoom,-1));$('miniZoomIn').onclick=()=>changeMinimapZoom(stepMiniZoom(minimapZoom,1));$('miniZoomReset').onclick=()=>changeMinimapZoom(1);
+for(const id of ['miniZoomOut','miniZoomIn','miniZoomReset'])$(id).addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')e.stopPropagation();});
+$('minimapPanel').addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();if(e.deltaY)changeMinimapZoom(stepMiniZoom(minimapZoom,e.deltaY<0?1:-1));},{passive:false});
 // 畫質：解析度倍率、陰影、NPC 密度、可視距離。自動模式依裝置起始，實測平均幀率過低時逐級降低。
 const QUALITY={low:{label:'低',pr:.75,shadow:0,density:.35,far:.7},medium:{label:'中',pr:1.25,shadow:1024,density:.7,far:.85},high:{label:'高',pr:2,shadow:2048,density:1,far:1}};
 const quality={level:'medium',auto:matchMedia('(pointer:coarse)').matches||Math.min(screen.width,screen.height)<700?'low':'medium',meter:createFrameWindow(),

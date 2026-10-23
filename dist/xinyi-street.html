@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>信義街景漫遊｜消防訓練</title>
-<link rel="stylesheet" href="xinyi-street.css?v=run-20261023">
+<link rel="stylesheet" href="xinyi-street.css?v=minimap-20261023">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -24,7 +24,11 @@
   <button id="help" title="Esc">選單</button>
  </div>
 </header>
-<canvas id="minimap" width="220" height="220" aria-label="小地圖"></canvas>
+<div id="minimapPanel" role="group" aria-label="小地圖與縮放控制">
+ <canvas id="minimap" width="220" height="220" aria-label="小地圖，可用滑鼠滾輪縮放"></canvas>
+ <div id="minimapScale" aria-label="地圖比例尺"><span id="minimapScaleText">100 m</span><i id="minimapScaleBar"></i></div>
+ <div id="minimapControls"><button id="miniZoomOut" type="button" aria-label="縮小小地圖" title="縮小">−</button><button id="miniZoomReset" type="button" aria-label="回復小地圖預設倍率" title="回復預設">1×</button><button id="miniZoomIn" type="button" aria-label="放大小地圖" title="放大">＋</button></div>
+</div>
 <div id="speed" hidden><b id="kmh">0</b><small>km/h</small></div>
 <div id="prompt" hidden></div>
 <div id="notice" hidden role="status"></div>
@@ -137,6 +141,7 @@
     <p>預設駐地：信義分隊（忠孝東路五段32號）。中隊長與水箱車從既有車庫前庭開始；前庭位置與尺寸為模型示意，尚未現勘量測。</p><table class="keys"><tr><td>移動</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或方向鍵</td></tr><tr><td>跑步</td><td>點「跑步」切換，或按住 <kbd>Shift</kbd>；開啟後以方向鍵／搖桿移動</td></tr><tr><td>上消防車</td><td><kbd>E</kbd>（靠近時）</td></tr><tr><td>視角</td><td>滑鼠拖曳；滾輪縮放</td></tr></table>
     <h2>駕駛消防車</h2>
     <table class="keys"><tr><td>油門／倒車</td><td><kbd>W</kbd> <kbd>S</kbd></td></tr><tr><td>轉向</td><td><kbd>A</kbd> <kbd>D</kbd></td></tr><tr><td>煞車</td><td><kbd>Space</kbd></td></tr><tr><td>警示燈</td><td><kbd>Q</kbd></td></tr><tr><td>下車</td><td><kbd>E</kbd></td></tr></table>
+    <p>右下小地圖：按「＋／−」放大縮小，按中間倍率回復預設；滑鼠移至小地圖上也可用滾輪縮放。倍率會保留於此瀏覽器，比例尺隨縮放更新。室內小地圖沿用原平面顯示。</p>
     <h2>共通</h2>
     <table class="keys"><tr><td>暫停選單</td><td><kbd>Esc</kbd> 或 <kbd>P</kbd></td></tr><tr><td>消防任務（派遣火警）</td><td><kbd>T</kbd></td></tr><tr><td>佈設／收回水線</td><td><kbd>F</kbd>（停妥後、在消防車旁）</td></tr><tr><td>傷患檢傷與急救處置</td><td><kbd>K</kbd>（在傷患旁 5 m 內；窗口受困者需先救出交接）</td></tr><tr><td>後送管理（大量傷患）</td><td><kbd>J</kbd></td></tr><tr><td>雲梯車：配置／確認車位／升梯出水／收梯</td><td><kbd>L</kbd>（任務中、步行時；站在預定車輛中心位置。有受困者時先以籃架救人）</td></tr><tr><td>出水</td><td>按住 <kbd>Space</kbd>（拿水線時，依鏡頭方向瞄準）</td></tr><tr><td>瞄子：直線水柱／水霧</td><td><kbd>V</kbd></td></tr><tr><td>消防栓供水（拉水帶／連接／拆除）</td><td><kbd>G</kbd>（消防車旁拉出，示意消防栓旁連接）</td></tr><tr><td>全區地圖</td><td><kbd>M</kbd></td></tr><tr><td>切換時段</td><td><kbd>N</kbd></td></tr><tr><td>回信義分隊</td><td><kbd>R</kbd></td></tr><tr><td>操作說明</td><td><kbd>H</kbd></td></tr></table>
     <h2>建物內部（示意平面）</h2>
@@ -173,6 +178,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s46-run-20261023"></script>
+<script type="module" src="xinyi-street.js?v=s46-minimap-20261023"></script>
 </body>
 </html>
