@@ -1,3 +1,4 @@
+import {addRoadPaint,explicitDivider,outerGroundGeometry} from './xinyi-road-paint.js?v=roads-20261023';
 import {addZhuangjingStation} from './zhuangjing-station.js?v=zhuangjing-20261023';
 import {createWalkMotion,smoothHeading} from './character-motion.js?v=cadence-20261023';
 import {createStationCrew} from './xinyi-station-crew.js?v=cadence-20261023';
@@ -8,9 +9,9 @@ import * as T from 'three';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {createActionScene} from './action-scene.js?v=smooth-20261023';
 import {rigWheels} from './wheel-rig.js?v=s25';
-import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=s37c';
+import {createStreetLife,TIME_PRESETS,createSky,litWindows} from './xinyi-street-life.js?v=roads-20261023';
 import {buildRouteGraph,findRoute,roadLabels} from './xinyi-street-nav.js?v=s25';
-import {createBigMap} from './xinyi-street-map.js?v=s25';
+import {createBigMap} from './xinyi-street-map.js?v=roads-20261023';
 import {createAudio} from './xinyi-street-audio.js?v=s25';
 import {RULES,pickFireSite,siteFromBuilding,evaluateParking,sprayHits,createFireFX} from './xinyi-street-mission.js?v=s25';
 import {readPad,pickPad,rumble,BUTTONS} from './xinyi-street-gamepad.js?v=s25';
@@ -25,7 +26,7 @@ import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s25';
 import {storeKey} from './deployment-store.js?v=s25';
 import {unproject} from './xinyi-street-world.js?v=garage-20261023';
 import {buildDistrictBatch} from './geo-district.js';
-import {addLanesToScene} from './xinyi-lanes.js?v=1';
+import {addLanesToScene} from './xinyi-lanes.js?v=roads-20261023';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
 import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings,styleOf} from './xinyi-facades.js?v=6';
 import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=5';
@@ -33,7 +34,7 @@ import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandma
 import {drapeSite,enhanceEoc} from './eoc-detail.js?v=1';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
-import {buildZebraCrossings} from './geo-street-fixtures.js';
+import {buildZebraCrossings} from './geo-street-fixtures.js?v=roads-20261023';
 import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=garage-20261023';
 
 const $=id=>document.getElementById(id),step=t=>{$('loadStep').textContent=t;};
@@ -67,6 +68,9 @@ function mesh(position,{color,uv,index,groups,materials,material}){
 
 step('讀取官方建物量體與路網');
 const [district,streets,fixtures,verified,firstBatch]=await Promise.all(['district-xinyi.json','streets-xinyi.json','street-fixtures-xinyi.json','verified-fixtures-xinyi.json','xinyi-first-batch.json'].map(f=>fetch('assets/'+f+'?v=s27').then(r=>{if(!r.ok)throw Error(f+' '+r.status);return r.json();})));
+// 全區道路與官方紅黃線為獨立增量，既有核心與人工精修資料不覆寫。
+const [roadNetwork,curbData]=await Promise.all(['xinyi-road-network.json','xinyi-curb-markings.json'].map(f=>fetch('assets/'+f+'?v=roads-20261023').then(r=>{if(!r.ok)throw Error(f+' '+r.status);return r.json();}).catch(e=>{console.warn(e);return null;})));
+const navigationFeatures=roadNetwork?.features??streets.features;
 // 精細地標（消防局、災害應變中心）：缺牆面的官方量體以占地碰撞補上，畫面改用精細模型。
 const zhuangjingData=await fetch('assets/zhuangjing-station.json?v=zhuangjing-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
 const zhuangjingIds=new Set(zhuangjingData?.buildingIds??[]);
@@ -110,13 +114,25 @@ addLandmarksToThree({T,scene,GLTFLoader,ground,project}).then(list=>{const e=lis
 // ?roads=legacy 改回原本依 OSM 寬度展開的示意路面＋精修鋪面。兩者都保留 OSM zebra 斑馬線。
 const legacyRoads=new URLSearchParams(location.search).get('roads')==='legacy';
 const laneData=legacyRoads?null:await fetch('assets/lanes-xinyi.json?v=s30').then(r=>r.ok?r.json():null).catch(()=>null);
-if(laneData)addLanesToScene({T,scene,data:laneData,ground});
+let laneMesh=null;
+if(laneData)laneMesh=addLanesToScene({T,scene,data:laneData,ground});
 else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:g.raised?-2:-1,polygonOffsetUnits:g.raised?-2:-1})});m.castShadow=false;scene.add(m);}
 {if(!laneData){const d=buildStreetDetail(streets.features),mats=createStreetMaterials(GisMaterial);for(const m of Object.values(mats)){m.polygonOffset=true;m.polygonOffsetFactor=m.polygonOffsetUnits=-3;}
  const m=mesh(toLocal(d.position,ground,true),{uv:d.uv,groups:d.groups,materials:mats});m.castShadow=false;scene.add(m);}
- const position=[],index=[];for(const z of buildZebraCrossings(streets.features))for(const ring of z.rings){const s=position.length/3;for(const p of ring.slice(0,4))position.push(p[0],p[1],.06);index.push(s,s+1,s+2,s,s+2,s+3);}
+ const position=[],index=[];for(const z of buildZebraCrossings(navigationFeatures,{all:true}))for(const ring of z.rings){const s=position.length/3;for(const p of ring.slice(0,4))position.push(p[0],p[1],.06);index.push(s,s+1,s+2,s,s+2,s+3);}
  const zebra=mesh(toLocal(new Float64Array(position),ground,true),{index,material:new T.MeshStandardMaterial({color:'#eeeae0',roughness:.8,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4})});zebra.castShadow=false;scene.add(zebra);
 }
+// 外圍沿完整行政界線裁切的 OSM 道路；不由道路等級猜測紅黃線。
+if(roadNetwork)for(const g of buildStreetBase(roadNetwork.outerFeatures.map(f=>f.kind==='sidewalk'?{...f,kind:'walk'}:f),ground,()=>false)){
+ const m=mesh(new Float32Array(g.position),{index:g.index,material:new T.MeshStandardMaterial({color:g.color,roughness:.95,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})});m.castShadow=false;m.name='Xinyi outer OSM road';scene.add(m);
+}
+if(roadNetwork){const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(outerGroundGeometry({bbox:roadNetwork.bbox,coreBbox:district.bbox,project,ground}),3));g.computeVertexNormals();const m=new T.Mesh(g,new T.MeshStandardMaterial({color:'#8f8b80',roughness:1,side:T.DoubleSide}));m.receiveShadow=true;m.name='outer estimated ground (not DEM)';scene.add(m);}
+const officialPaint=curbData?addRoadPaint({T,scene,data:curbData,ground}):null;
+// 全區只有明確 divider 標記才新增中線；缺資料不猜黃虛線位置。
+const mappedDividers=roadNetwork?explicitDivider(roadNetwork.outerFeatures,project):[];
+const mappedPaint=mappedDividers.length?addLanesToScene({T,scene,ground,data:{lanes:{},intersections:[],corners:[],markings:{center:mappedDividers.flatMap(x=>x.rings)}}}):null;
+const paintStatus=$('roadDataStatus');
+if(paintStatus)paintStatus.textContent=roadNetwork&&curbData?'全區路網 '+roadNetwork.stats.features+' 段｜官方紅線 '+curbData.stats.red+' 段、黃線 '+curbData.stats.yellow+' 段（2024/07/12 圖資）。寬度、高程及現況待核對；核心車道線為推估，黃虛線缺定位資料。':'全區圖資載入不完整，目前顯示既有核心範圍；請重新整理再核對。';
 {// 地面：示意高程格網（GIS 頁使用 world-elevation 地形，此處無法離線取得，改由官方牆腳高程內插）。
  const {x0,z0,cell,nx,nz,h}=ground,position=new Float32Array(nx*nz*3),index=[];
  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)position.set([x0+i*cell,h[j*nx+i]-0.02,z0+j*cell],(j*nx+i)*3);
@@ -162,11 +178,11 @@ const truck={root:new T.Group(),model:null,x:0,z:0,heading:0,v:0,steer:0,beacons
 // 街道生活層（示意）：排除已有照片／樣板研究的量體（微風南山、ATT 相鄰外牆、第一批信義建物候選）。
 step('建立車流、行人與店面');
 const exclude=new Set([357399,265936,266115,266138,...zhuangjingIds]);(function collect(o){if(Array.isArray(o))o.forEach(collect);else if(o&&typeof o==='object')for(const [k,v] of Object.entries(o)){if(k==='officialVolumeCandidates'&&Array.isArray(v))v.forEach(id=>exclude.add(+id));else collect(v);}})(firstBatch);
-const life=createStreetLife(scene,{features:streets.features,buildings:district.buildings,ground,colliders,fixtures,exclude,spawn});
+const life=createStreetLife(scene,{features:streets.features,buildings:district.buildings,ground,colliders,fixtures,exclude,spawn,markings:!laneData});
 const sky=createSky();scene.add(sky);
 const audio=createAudio();
 // 導航：步行用全部路徑、駕駛只用車道並遵守單行道。重點建物取第一批信義建物清單（OSM 名稱；量體對應仍為候選）。
-const routeGraphs={walk:buildRouteGraph(streets.features),drive:buildRouteGraph(streets.features,{vehicle:true})};
+const routeGraphs={walk:buildRouteGraph(navigationFeatures),drive:buildRouteGraph(navigationFeatures,{vehicle:true})};
 const pois=(firstBatch.sites??[]).filter(s=>s.name&&s.polygon?.length).map(s=>{const pts=s.polygon.map(p=>project(p[0],p[1]));return {name:s.name,x:pts.reduce((a,p)=>a+p[0],0)/pts.length,z:pts.reduce((a,p)=>a+p[1],0)/pts.length};});
 if(zhuangjing)pois.push({name:'莊敬分隊・大隊待命',x:zhuangjing.layout.x,z:zhuangjing.layout.z});
 const state={mode:'walk',yaw:spawn.heading,pitch:.32,dist:7,x:spawn.x,z:spawn.z,facing:spawn.heading,time:'afternoon',paused:false,keys:new Set(),stick:[0,0],run:false,walkT:0,pad:readPad(null),padPrev:[]};
@@ -236,15 +252,15 @@ function syncUi(){
 }
 
 // 小地圖：預先繪製路網與牆線，執行時依視角旋轉。
-// 地圖底圖涵蓋原點 ±1000 m（信義範圍已往南延伸到災害應變中心、往北延伸到消防局）。
-const mini=$('minimap'),mctx=mini.getContext('2d'),MAP=3072,mapScale=MAP/2000,mapImg=document.createElement('canvas');
+// 全區底圖涵蓋原點 ±3500 m；缺圖資時沿用原核心底圖。
+const mini=$('minimap'),mctx=mini.getContext('2d'),MAP=3072,mapScale=MAP/(roadNetwork?7000:2000),mapImg=document.createElement('canvas');
 {mapImg.width=mapImg.height=MAP;const g=mapImg.getContext('2d');g.fillStyle='#26323a';g.fillRect(0,0,MAP,MAP);const P=(x,z)=>[MAP/2+x*mapScale,MAP/2+z*mapScale];
  g.lineCap='round';g.lineJoin='round';
- for(const f of streets.features){g.strokeStyle=f.kind==='road'?'#8e9aa2':f.kind==='crossing'?'#d9dcdc':'#55636b';g.lineWidth=Math.max(f.kind==='road'?(f.width||6):1.5,1)*mapScale;
+ for(const f of navigationFeatures){g.strokeStyle=f.kind==='road'?'#8e9aa2':f.kind==='crossing'?'#d9dcdc':'#55636b';g.lineWidth=Math.max(f.kind==='road'?(f.width||6):1.5,1)*mapScale;
   for(const path of f.paths){g.beginPath();path.forEach((p,i)=>{const [x,y]=P(...project(p[0],p[1]));i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();}}
  g.strokeStyle='#c9a77b';g.lineWidth=2;g.beginPath();for(const [ax,az,bx,bz] of colliders.segs){g.moveTo(...P(ax,az));g.lineTo(...P(bx,bz));}g.stroke();
 }
-const bigmap=createBigMap({overlay:$('bigmap'),canvas:$('mapCanvas'),mapImg,MAP,mapScale,labels:roadLabels(streets.features),pois,
+const bigmap=createBigMap({overlay:$('bigmap'),canvas:$('mapCanvas'),mapImg,MAP,mapScale,labels:roadLabels(navigationFeatures),pois,
  getView:()=>({x:state.x,z:state.z,facing:state.mode==='drive'?truck.heading:state.facing,driving:state.mode==='drive',truck,waypoint:state.waypoint,route:state.route,fire:mission?.site&&mission.phase<6?mission.site:null,markers:mapMarkers()}),
  onPick:(x,z)=>setWaypoint(x,z,'地圖標記')});
 function openMap(){state.keys.clear();state.stick=[0,0];audio.suspend();$('mapStreet').textContent=$('street').textContent;bigmap.show();}
@@ -884,7 +900,7 @@ function frame(now){
  sun.position.set(tx+sunDir.x*250,ground.at(tx,tz)+sunDir.y*250,tz+sunDir.z*250);sun.target.position.set(tx,ground.at(tx,tz),tz);
  updateNavigation(dt);
  {const dTruck=Math.hypot(state.x-truck.x,state.z-truck.z),driving=state.mode==='drive';audio.update({t,siren:truck.siren?(driving?1:1/(1+dTruck/25)):0,speed:truck.v,driving,ambient:state.time==='night'?.6:1});}
- streetTimer-=dt;if(streetTimer<0){streetTimer=.4;$('street').textContent=nearestStreet(streets.features,state.x,state.z)??'信義區（無道路名稱）';}
+ streetTimer-=dt;if(streetTimer<0){streetTimer=.4;$('street').textContent=nearestStreet(navigationFeatures,state.x,state.z)??'信義區（無道路名稱）';}
  drawMinimap();renderer.render(scene,camera);
 }
 // 直式手機：垂直視角放大（60°→最多 80°），左右才看得到街道兩側（移植自 main）。
@@ -926,7 +942,10 @@ const syncTime=bindSeg('timeSeg',()=>state.time,v=>{applyTime(v);quality.apply()
 $('showFps').checked=settings.showFps;$('fps').hidden=!settings.showFps;$('showFps').onchange=()=>{settings.showFps=$('showFps').checked;$('fps').hidden=!settings.showFps;saveSettings();};
 $('sens').value=settings.sens;$('sensValue').textContent=(+settings.sens).toFixed(1)+'×';$('sens').oninput=()=>{settings.sens=+$('sens').value;$('sensValue').textContent=settings.sens.toFixed(1)+'×';saveSettings();};
 $('invertY').checked=settings.invertY;$('invertY').onchange=()=>{settings.invertY=$('invertY').checked;saveSettings();};
-for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);box.checked=settings.life[group];life.groups[group].visible=box.checked;box.onchange=()=>{life.groups[group].visible=box.checked;settings.life[group]=box.checked;saveSettings();};}
+function setLifeVisible(group,visible){life.groups[group].visible=visible;if(group==='markings'&&laneMesh)for(const m of laneMesh.children)if(m.userData.inferredPaint)m.visible=visible;}
+for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);box.checked=settings.life[group];setLifeVisible(group,box.checked);box.onchange=()=>{setLifeVisible(group,box.checked);settings.life[group]=box.checked;saveSettings();};}
+$('officialPaint').checked=settings.officialPaint!==false;if(officialPaint)officialPaint.visible=$('officialPaint').checked;if(mappedPaint)mappedPaint.visible=$('officialPaint').checked;
+$('officialPaint').onchange=()=>{settings.officialPaint=$('officialPaint').checked;if(officialPaint)officialPaint.visible=settings.officialPaint;if(mappedPaint)mappedPaint.visible=settings.officialPaint;saveSettings();};
 addEventListener('resize',resize);applyTime('afternoon');quality.apply();resize();
 addEventListener('blur',()=>{if(bigmap.open)closeMap();if(!state.paused)setPaused(true);});
 // 音效設定

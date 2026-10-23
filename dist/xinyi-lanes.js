@@ -40,12 +40,12 @@ export function addLanesToScene({T,scene,data,ground}){
  const triangulate=pts=>T.ShapeUtils.triangulateShape(pts.map(p=>new T.Vector2(p.x,p.y)),[]);
  for(const [kind,rings] of Object.entries(laneGroups(data))){
   if(!rings?.length)continue;
-  const [color,lift]=LANE_STYLE[kind]??['#777777',.03],marking=lift>=.045;
+  const [color,lift]=LANE_STYLE[kind]??['#777777',.03],marking=Object.hasOwn(data.markings,kind);
   const pos=buildLaneGeometry(rings,{triangulate,groundAt:(x,z)=>ground.at(x,z),lift});
   if(!pos.length)continue;
   const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(pos,3));geo.computeVertexNormals();
   const mat=new T.MeshStandardMaterial({color,roughness:marking?.6:.95,side:T.DoubleSide,polygonOffset:true,polygonOffsetFactor:marking?-4:-2,polygonOffsetUnits:marking?-4:-2});
-  const mesh=new T.Mesh(geo,mat);mesh.name='lanes '+kind;mesh.receiveShadow=true;mesh.castShadow=false;group.add(mesh);
+  const mesh=new T.Mesh(geo,mat);mesh.name='lanes '+kind;mesh.userData.inferredPaint=marking;mesh.receiveShadow=true;mesh.castShadow=false;group.add(mesh);
  }
  scene.add(group);return group;
 }

@@ -4,7 +4,7 @@ export function createBigMap({overlay,canvas,mapImg,MAP,mapScale,labels,pois,get
  const W=()=>canvas.width/devicePixelRatio,H=()=>canvas.height/devicePixelRatio;
  const toScreen=(x,z)=>[(x-view.cx)*view.scale+W()/2,(z-view.cz)*view.scale+H()/2];
  const toWorld=(sx,sy)=>[(sx-W()/2)/view.scale+view.cx,(sy-H()/2)/view.scale+view.cz];
- const clampScale=s=>Math.min(6,Math.max(.35,s));
+ const clampScale=s=>Math.min(6,Math.max(.08,s));
  function resize(){canvas.width=innerWidth*devicePixelRatio;canvas.height=innerHeight*devicePixelRatio;}
  function arrow(x,y,rot,fill,size=11){g.save();g.translate(x,y);g.rotate(rot);g.fillStyle=fill;g.strokeStyle='#111';g.lineWidth=2;g.beginPath();g.moveTo(0,-size);g.lineTo(size*.7,size*.8);g.lineTo(0,size*.4);g.lineTo(-size*.7,size*.8);g.closePath();g.fill();g.stroke();g.restore();}
  function draw(){

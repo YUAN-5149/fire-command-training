@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><sld:StyledLayerDescriptor xmlns:sld="http://www.opengis.net/sld" xmlns="http://www.opengis.net/sld" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" version="1.0.0">
+    <sld:NamedLayer>
+        <sld:Name>ttpl:noparkin</sld:Name>
+        <sld:UserStyle>
+            <sld:Name>noparkin</sld:Name>
+            <sld:IsDefault>1</sld:IsDefault>
+            <sld:FeatureTypeStyle>
+                <sld:Name>name</sld:Name>
+                <sld:Rule>
+                    <sld:Name>禁停紅線</sld:Name>
+                    <sld:Title>禁停紅線</sld:Title>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:PropertyName>patype</ogc:PropertyName>
+                            <ogc:Literal>01</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <sld:MaxScaleDenominator>3000.0</sld:MaxScaleDenominator>
+                    <sld:LineSymbolizer>
+                        <sld:Stroke>
+                            <sld:CssParameter name="stroke">#a80000</sld:CssParameter>
+                            <sld:CssParameter name="stroke-linejoin">round</sld:CssParameter>
+                            <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
+                        </sld:Stroke>
+                    </sld:LineSymbolizer>
+                </sld:Rule>
+                <sld:Rule>
+                    <sld:Name>禁停黃線</sld:Name>
+                    <sld:Title>禁停黃線</sld:Title>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:PropertyName>patype</ogc:PropertyName>
+                            <ogc:Literal>02</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <sld:MaxScaleDenominator>3000.0</sld:MaxScaleDenominator>
+                    <sld:LineSymbolizer>
+                        <sld:Stroke>
+                            <sld:CssParameter name="stroke">#e69800</sld:CssParameter>
+                            <sld:CssParameter name="stroke-linejoin">round</sld:CssParameter>
+                            <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
+                        </sld:Stroke>
+                    </sld:LineSymbolizer>
+                </sld:Rule>
+                <sld:Rule>
+                    <sld:Name>停車場出入口</sld:Name>
+                    <sld:Title>停車場出入口</sld:Title>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:PropertyName>patype</ogc:PropertyName>
+                            <ogc:Literal>06</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <sld:MaxScaleDenominator>3000.0</sld:MaxScaleDenominator>
+                    <sld:LineSymbolizer>
+                        <sld:Stroke>
+                            <sld:CssParameter name="stroke">#a80000</sld:CssParameter>
+                            <sld:CssParameter name="stroke-linejoin">round</sld:CssParameter>
+                            <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
+                            <sld:CssParameter name="stroke-dasharray">16.0 0.0</sld:CssParameter>
+                        </sld:Stroke>
+                    </sld:LineSymbolizer>
+                </sld:Rule>
+                <sld:Rule>
+                    <sld:Name>消防紅線</sld:Name>
+                    <sld:Title>消防紅線</sld:Title>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:PropertyName>patype</ogc:PropertyName>
+                            <ogc:Literal>11</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <sld:MaxScaleDenominator>3000.0</sld:MaxScaleDenominator>
+                    <sld:LineSymbolizer>
+                        <sld:Stroke>
+                            <sld:CssParameter name="stroke">#ff00c5</sld:CssParameter>
+                            <sld:CssParameter name="stroke-linejoin">round</sld:CssParameter>
+                            <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
+                        </sld:Stroke>
+                    </sld:LineSymbolizer>
+                </sld:Rule>
+                <sld:Rule>
+                    <sld:Name>消防黃線</sld:Name>
+                    <sld:Title>消防黃線</sld:Title>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:PropertyName>patype</ogc:PropertyName>
+                            <ogc:Literal>12</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <sld:MaxScaleDenominator>3000.0</sld:MaxScaleDenominator>
+                    <sld:LineSymbolizer>
+                        <sld:Stroke>
+                            <sld:CssParameter name="stroke">#e69800</sld:CssParameter>
+                            <sld:CssParameter name="stroke-linejoin">round</sld:CssParameter>
+                            <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
+                        </sld:Stroke>
+                    </sld:LineSymbolizer>
+                </sld:Rule>
+                <sld:Rule>
+                    <sld:Name>未分類</sld:Name>
+                    <sld:Title>未分類</sld:Title>
+                    <ogc:Filter>
+                        <ogc:PropertyIsEqualTo>
+                            <ogc:PropertyName>patype</ogc:PropertyName>
+                            <ogc:Literal>&lt;Null&gt;</ogc:Literal>
+                        </ogc:PropertyIsEqualTo>
+                    </ogc:Filter>
+                    <sld:MaxScaleDenominator>3000.0</sld:MaxScaleDenominator>
+                    <sld:LineSymbolizer>
+                        <sld:Stroke>
+                            <sld:CssParameter name="stroke-linecap">round</sld:CssParameter>
+                            <sld:CssParameter name="stroke-linejoin">round</sld:CssParameter>
+                        </sld:Stroke>
+                    </sld:LineSymbolizer>
+                </sld:Rule>
+            </sld:FeatureTypeStyle>
+        </sld:UserStyle>
+    </sld:NamedLayer>
+</sld:StyledLayerDescriptor>
+
