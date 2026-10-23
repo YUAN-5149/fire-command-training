@@ -80,6 +80,7 @@
    <button id="menuReset">回信義分隊</button>
    <button id="menuHq">前往消防局</button>
    <button id="menuEoc">前往災害應變中心</button>
+   <button id="menuZhuangjing">前往莊敬分隊・大隊待命</button>
    <button data-page="controls">操作說明</button>
    <button data-page="sources">資料來源</button>
    <a href="index.html">回消防演練首頁</a>
@@ -154,6 +155,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=cadence-20261023"></script>
+<script type="module" src="xinyi-street.js?v=zhuangjing-20261023"></script>
 </body>
 </html>
