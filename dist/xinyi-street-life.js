@@ -1,11 +1,11 @@
+import {roundedCarSpec,buildRoundedCar,createRoundedCarMaterial,buildScooterGeometry,createScooterMaterial,createWheelDepth} from './xinyi-traffic-models.js?v=traffic-detail-20261023';
 import {createVehicleGrid} from './xinyi-performance.js?v=runtime-20261023';
 // 信義街景漫遊・街道生活層（全部為示意，非實測、非實際店家／車流）：
 // 車道標線、一樓店面招牌、補植行道樹、NPC 車流與行人、時段光影。
 // 只加在本頁；不改動 GIS 頁的官方量體、道路寬度與既有樣板。
 import * as T from 'three';
-import {BODY_SPECS,buildCarGeometry} from './vendor/slop/actor-models.js';
 import {PersonRig} from './vendor/slop/pedestrians.js';
-import {createCarMaterialGL,PersonCrowdGL,carNight} from './slop-webgl.js?v=2';
+import {PersonCrowdGL,carNight} from './slop-webgl.js?v=2';
 import {project} from './xinyi-street-world.js?v=s25';
 
 const key=p=>p[0].toFixed(7)+','+p[1].toFixed(7);
@@ -138,14 +138,12 @@ function shopGlassTexture(){
 function geom(position,index,extra={}){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(position,3));for(const [k,[v,n]] of Object.entries(extra))g.setAttribute(k,new T.Float32BufferAttribute(v,n));g.setIndex(index);g.computeVertexNormals();g.computeBoundingSphere();return g;}
 
 // 車輛：轎車、休旅車、警車、計程車改用 mrdoob/slop-newyork 的放樣車身（MIT，vendor/slop/），材質見 slop-webgl.js；
-// 機車騎士仍為程序化方塊（臺灣街景特有）。
+// 本地曲面細修與踏板機車／騎士見 xinyi-traffic-models.js，全部沿用實例化繪製。
 const SLOP_KINDS={sedan:'sedan',suv:'suv',police:'sedan',taxi:'taxi'};
 function vehicleKit(kind){
- if(SLOP_KINDS[kind]){const spec=BODY_SPECS[SLOP_KINDS[kind]];return{slop:spec,length:spec.zFront-spec.zRear,radius:1.3};}
- const parts=(list)=>list.map(([w,h,d,x,y,z])=>new T.BoxGeometry(w,h,d).translate(x,y,z));
- const merge=gs=>{let pos=[],idx=[],off=0;for(const g of gs){const p=g.attributes.position.array,ix=g.index.array;pos.push(...p);for(const i of ix)idx.push(i+off);off+=p.length/3;}return geom(pos,idx);};
- if(kind==='scooter')return{paint:merge(parts([[.36,.45,1.5,0,.55,0],[.3,.5,.35,0,.9,-.55]])),trim:merge([...parts([[.12,.5,.5,0,.32,-.62],[.12,.5,.5,0,.32,.6],[.34,.5,.28,0,1.2,.05],[.3,.24,.3,0,1.62,.05]]),new T.SphereGeometry(.17,8,6).translate(0,1.66,.05)]),lights:merge(parts([[.16,.1,.05,0,.95,-.75],[.2,.08,.05,0,.75,.77]])),length:1.8,radius:.6};
- return{paint:merge(parts([[1.8,.7,4.4,0,.62,0],[1.6,.5,2.2,0,1.2,.25]])),trim:merge([...parts([[1.62,.42,2.0,0,1.22,.25]]),...[[-.82,-1.35],[.82,-1.35],[-.82,1.35],[.82,1.35]].map(([x,z])=>new T.CylinderGeometry(.33,.33,.24,10).rotateZ(Math.PI/2).translate(x,.33,z)),...(kind==='taxi'?parts([[.7,.22,.3,0,1.56,.35]]):[])]),lights:merge(parts([[.36,.14,.05,-.6,.72,-2.21],[.36,.14,.05,.6,.72,-2.21],[.4,.12,.05,-.6,.78,2.21],[.4,.12,.05,.6,.78,2.21]])),length:4.4,radius:1.3};
+ if(SLOP_KINDS[kind]){const spec=roundedCarSpec(SLOP_KINDS[kind]);return{slop:spec,length:spec.zFront-spec.zRear,radius:1.3};}
+ if(kind==='scooter')return {scooter:true,length:1.8,radius:.6};
+ throw Error('Unknown traffic vehicle: '+kind);
 }
 
 export function createStreetLife(scene,{features,buildings,ground,colliders,fixtures,exclude,spawn,markings=true}){
@@ -171,14 +169,14 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
  let seed=11;const rand=()=>(seed=(seed*16807)%2147483647)/2147483647,total=lanes.reduce((n,l)=>n+l.length,0);
  const pickLane=()=>{let r=rand()*total;for(const l of lanes){r-=l.length;if(r<=0)return l;}return lanes[0];};
  const carColors=['#d9dcdf','#22262a','#8b1d22','#2b4a7a','#9aa3a8','#f2f2ee','#3d5c3a','#5a5f66'];
- for(const [kind,n] of Object.entries(counts)){const kit=kits[kind];let meshes,paint=null;
-  if(kit.slop){const g=buildCarGeometry(kit.slop);g.setAttribute('paintColor',new T.InstancedBufferAttribute(new Float32Array(n*3),3));g.setAttribute('carState',new T.InstancedBufferAttribute(new Float32Array(n*4),4));
-   const body=new T.InstancedMesh(g,createCarMaterialGL(kit.slop),n);body.name='slop '+kind;meshes={body};}
-  else{paint=new T.InstancedMesh(kit.paint,new T.MeshStandardMaterial({roughness:.35,metalness:.4}),n);meshes={paint,trim:new T.InstancedMesh(kit.trim,new T.MeshStandardMaterial({color:'#15191c',roughness:.4,metalness:.2}),n),lights:new T.InstancedMesh(kit.lights,lightMat,n)};}
+ for(const [kind,n] of Object.entries(counts)){const kit=kits[kind];let meshes;
+  if(kit.slop||kit.scooter){const g=kit.slop?buildRoundedCar(kit.slop):buildScooterGeometry();g.setAttribute('wheelRoll',new T.InstancedBufferAttribute(new Float32Array(n),1));g.setAttribute('paintColor',new T.InstancedBufferAttribute(new Float32Array(n*3),3));g.setAttribute('carState',new T.InstancedBufferAttribute(new Float32Array(n*4),4));
+   const body=new T.InstancedMesh(g,kit.slop?createRoundedCarMaterial(kit.slop):createScooterMaterial(),n);body.name=(kit.slop?'rounded slop ':'detailed ')+kind;body.customDepthMaterial=createWheelDepth(kit.slop?{radius:kit.slop.wheelRadius,axle:kit.slop.wheelZ,car:true}:{radius:.26,axle:.61});meshes={body};}
+
   for(const m of Object.values(meshes)){m.castShadow=true;m.frustumCulled=false;traffic.add(m);}
   for(let i=0;i<n;i++){let lane=pickLane(),s=rand()*lane.length;for(let k=0;k<20&&Math.hypot(lanePose(lane,s).x-spawn.x,lanePose(lane,s).z-spawn.z)<30;k++){lane=pickLane();s=rand()*lane.length;}
    const col=new T.Color(kind==='taxi'?'#f2c21b':kind==='police'?'#f4f4f2':kind==='scooter'?['#c8ccd0','#1e2226','#b33a2c','#3a6fb0','#e8e4da'][i%5]:carColors[(i*3+(kind==='suv'?1:0))%carColors.length]);
-   if(kit.slop){const g=meshes.body.geometry;g.attributes.paintColor.setXYZ(i,col.r,col.g,col.b);g.attributes.carState.setXYZW(i,0,0,0,kind==='police'?1:0);}else paint.setColorAt(i,col);
+   if(kit.slop||kit.scooter){const g=meshes.body.geometry;g.attributes.paintColor.setXYZ(i,col.r,col.g,col.b);g.attributes.carState.setXYZW(i,0,0,0,kind==='police'?1:0);}
    vehicles.push({kind,i,n,active:true,kit,meshes,lane,s,v:0,max:(lane.speed+rand()*3)*(kind==='scooter'?1.1:1),side:kind==='scooter'?Math.min(lane.width/4-.6,1.4):0,x:0,z:0,heading:0});}}
  scene.add(traffic);life.groups.traffic=traffic;life.vehicles=vehicles;
  // 行人
@@ -212,7 +210,7 @@ export function createStreetLife(scene,{features,buildings,ground,colliders,fixt
    const side=veh.side+(veh.pull??0)*2.2;veh.x=p.x+rx*side;veh.z=p.z+rz*side;veh.heading+=Math.atan2(Math.sin(p.heading-veh.heading),Math.cos(p.heading-veh.heading))*Math.min(1,dt*8);
    vehicleGrid.update(veh);
    tmp.position.set(veh.x,ground.at(veh.x,veh.z),veh.z);tmp.rotation.set(0,veh.heading+(veh.kit.slop?Math.PI:0),0);tmp.updateMatrix();for(const m of Object.values(veh.meshes))m.setMatrixAt(veh.i,tmp.matrix);
-   if(veh.kit.slop){const a=veh.meshes.body.geometry.attributes.carState;if(a.getX(veh.i)!==veh.brake){a.setX(veh.i,veh.brake);a.needsUpdate=true;}}
+   if(veh.kit.slop||veh.kit.scooter){const attrs=veh.meshes.body.geometry.attributes;veh.wheelRoll=((veh.wheelRoll??0)+(veh.kit.scooter?-1:1)*veh.v*dt/(veh.kit.slop?.wheelRadius??.26))%(Math.PI*2);attrs.wheelRoll.setX(veh.i,veh.wheelRoll);attrs.wheelRoll.needsUpdate=true;const a=attrs.carState;if(a.getX(veh.i)!==veh.brake){a.setX(veh.i,veh.brake);a.needsUpdate=true;}}
   }
   for(const m of traffic.children)m.instanceMatrix.needsUpdate=true;}
   if(life.groups.people.visible){crowd.begin();peds.forEach((q,i)=>{if(i>=life.pedActive)return;q.s+=q.v*q.dir*dt;if(q.s>q.p.length||q.s<0){q.dir*=-1;q.s=Math.max(0,Math.min(q.p.length,q.s));}

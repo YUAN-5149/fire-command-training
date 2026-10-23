@@ -70,3 +70,7 @@ node --no-warnings --experimental-loader ./tests/three-loader.mjs tests/xinyi-st
 ### 動態移動流暢度
 
 減少小地圖重畫與全車配對比對，遠處角色骨架分級更新；主角及近處角色逐幀更新、原移動速度保留。自動畫質降低高DPI負擔，手動設定保留。測試與實機驗證限制見[調整紀錄](docs/xinyi-runtime-20261023.md)。
+
+### 汽機車外觀
+
+延續既有slop GitHub汽車，細修圓潤車體及輪圈；方塊機車改為踏板車與坐姿騎士，加入轉動輪胎及車燈。116輛車仍使用5組批次繪製。來源、測試與實機待驗證項目見[外觀細修紀錄](docs/xinyi-traffic-detail-20261023.md)。
