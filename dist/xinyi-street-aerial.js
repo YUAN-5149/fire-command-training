@@ -147,7 +147,7 @@ export function basketLoad({firefighters=1,firefighter,gear,equipment=0,victim=0
  const total=parts.reduce((a,[,v])=>a+v,0);return {parts,total,capacity,over:Number.isFinite(capacity)&&total>capacity};
 }
 
-export function createXinyiAerial({scene,source,createPerson,ground,obstacleIndex}){
+export function createXinyiAerial({scene,source,createPerson,ground,obstacleIndex,crewMembers=null,onCrewAssign=()=>{},onCrewReturn=()=>{}}){
  const frame=new T.Group();frame.name='Xinyi_aerial_frame';scene.add(frame);frame.visible=false;
  // 車型輪胎底面在模型原點高度；首頁路面為 -0.065，這裡直接貼框架地面。
  source.position.set(0,0,0);frame.add(source);frame.updateMatrixWorld(true);
@@ -188,10 +188,10 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
   return {body:{minX:body.min.x,maxX:body.max.x,minZ:body.min.z,maxZ:body.max.z},feet:feet.map(f=>[f.x,f.z]),footBottom:Math.min(...feet.map(f=>f.bottom)),length:body.max.x-body.min.x,width:body.max.z-body.min.z};})();
  // 支腿墊板：補足示意地形與支腿底面的高差，避免支腿懸空。
  const padMat=new T.MeshStandardMaterial({color:'#e2b33c',roughness:.8}),pads=layout.feet.map(()=>{const m=new T.Mesh(new T.BoxGeometry(AERIAL.padSize,1,AERIAL.padSize),padMat);m.castShadow=m.receiveShadow=true;m.visible=false;scene.add(m);return m;});
- const crewRoot=new T.Group();scene.add(crewRoot);const crew=[0,1].map(()=>createPerson(crewRoot,'隊員'));crewRoot.visible=false;
+ const crewRoot=new T.Group();scene.add(crewRoot);const crew=crewMembers??[0,1].map(()=>createPerson(crewRoot,'隊員'));crewRoot.visible=false;
  const feetOf=(p,pos)=>{p.body.position.copy(pos);p.body.updateWorldMatrix(true,true);p.body.position.y+=pos.y-Math.min(...p.boots.map(b=>new T.Box3().setFromObject(b).min.y));};
  const W=v=>frame.localToWorld(v.clone());
- const st={phase:'idle',t:0,frame:null,site:null,plan:null,legs:[],target:null,blocked:null,arrived:false,spraying:false,standoff:null,task:'fire',victim:null,actual:null};
+ const st={phase:'idle',stationed:false,t:0,frame:null,site:null,plan:null,legs:[],target:null,blocked:null,arrived:false,spraying:false,standoff:null,task:'fire',victim:null,actual:null};
  const envFor=(f,y,obstacles)=>createEnvelope(obstacles,{groundAt:(lx,lz)=>ground.at(...fromFrameXZ(f,lx,lz))-y});
 
  function setFrame(f,y){frame.position.set(f.x,y,f.z);frame.rotation.set(0,f.heading,0);frame.updateMatrixWorld(true);}
@@ -213,7 +213,7 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
  function check(site,x,z,opts={}){
   if(st.phase!=='idle'&&st.phase!=='parked')return {ok:false,issues:['雲梯作業中，請先收梯'],warnings:[]};
   const r=preview(site,x,z,opts);if(!r.ok)return r;
-  const restore=()=>{if(st.frame&&st.phase==='parked'){setFrame(st.frame,st.y);envelope=envFor(st.frame,st.y,st.result.obstacles);}else envelope=createEnvelope([]);};
+  const restore=()=>{if(st.stationed){setFrame(st.frame,st.y);envelope=createEnvelope([]);}else if(st.frame&&st.phase==='parked'){setFrame(st.frame,st.y);envelope=envFor(st.frame,st.y,st.result.obstacles);}else envelope=createEnvelope([]);};
   if(opts.load?.over)return {...r,ok:false,issues:[`籃內載重 ${Math.round(opts.load.total)} kg 超過容許籃載重 ${opts.load.capacity} kg（請減少籃內人員或器材，或確認原廠該工況資料）`]};
   setFrame(r.frame,r.y);envelope=envFor(r.frame,r.y,r.obstacles);setLitter(!!opts.stretcher);
   const win=opts.window??site,w=planWindow(site,r.frame,r.y,win);
@@ -232,7 +232,8 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
  function deploy(result,site,{task='fire',victim=null}={}){
   if(!result?.ok||!result.plan)return false;
   setFrame(result.frame,result.y);envelope=envFor(result.frame,result.y,result.obstacles);
-  Object.assign(st,{phase:'deploying',t:0,frame:result.frame,y:result.y,site,plan:result.plan,legs:[result.plan.waypoints],target:result.target,standoff:result.standoff,blocked:null,arrived:false,spraying:false,result,task:task==='rescue'&&victim?'rescue':'fire',victim:task==='rescue'?victim:null,lower:null,raise:null,landing:null,carry:null,strapped:false,stretcher:task==='rescue'&&!!result.stretcher});
+  onCrewAssign();if(crewMembers)crewRoot.add(...crew.map(p=>p.body));
+  Object.assign(st,{stationed:false,phase:'deploying',t:0,frame:result.frame,y:result.y,site,plan:result.plan,legs:[result.plan.waypoints],target:result.target,standoff:result.standoff,blocked:null,arrived:false,spraying:false,result,task:task==='rescue'&&victim?'rescue':'fire',victim:task==='rescue'?victim:null,lower:null,raise:null,landing:null,carry:null,strapped:false,stretcher:task==='rescue'&&!!result.stretcher});
   frame.visible=crewRoot.visible=true;setGate(0);setLitter(st.stretcher);groundLitter.visible=false;if(st.victim)st.victim.windowQ=st.victim.figure.root.quaternion.clone();
   layout.feet.forEach(([lx,lz],i)=>{const [x,z]=fromFrameXZ(result.frame,lx,lz),g=ground.at(x,z),top=result.y+layout.footBottom,h=Math.max(.05,top-g);pads[i].scale.y=h;pads[i].position.set(x,g+h/2,z);});
   return true;
@@ -256,10 +257,13 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
   const direct=motion.plan(motion.rest);if(direct)return legPath([...direct.waypoints,restPose]);
   const pts=[motion.pose];for(const leg of [...st.legs].reverse())for(const w of [...leg].reverse())pts.push(w);return legPath(pts.filter((p,i)=>!i||p.some((v,j)=>Math.abs(v-pts[i-1][j])>1e-6)));}
  function retract(){if(!canRetract())return false;st.back=backPath();st.phase='retracting';st.t=0;st.spraying=false;st.arrived=false;st.blocked=null;setGate(0);return true;}
- function dismiss(){if(st.phase!=='parked'&&st.phase!=='idle')return false;st.phase='idle';setLitter(false);groundLitter.visible=false;frame.visible=crewRoot.visible=false;pads.forEach(p=>p.visible=false);envelope=createEnvelope([]);return true;}
+ function dismiss(){if(st.phase!=='parked'&&st.phase!=='idle')return false;onCrewReturn();st.stationed=false;st.phase='idle';setLitter(false);groundLitter.visible=false;frame.visible=crewRoot.visible=false;pads.forEach(p=>p.visible=false);envelope=createEnvelope([]);return true;}
  // 立即收回並撤離（改派任務時使用）：依原路徑倒退，每步仍做避碰檢查。
  function stow(){if(st.phase==='idle')return;if(st.legs.length&&!['parked','idle'].includes(st.phase)){const back=backPath();for(let t=0;t<=back.total+.05;t+=.05)motion.move(legAt(back,t));}
   setGate(0);grounding.update(0,0);source.updateMatrixWorld(true);st.phase='parked';dismiss();}
+ // Display the same, unscaled working vehicle in a stowed station bay. No supports or crew on roof.
+ function park(p){if(!['idle','parked'].includes(st.phase))return false;stow();envelope=createEnvelope([]);motion.move(restPose);grounding.update(0,0);setLitter(false);setGate(0);
+  const f={x:p.x,z:p.z,heading:p.heading-Math.PI/2};setFrame(f,ground.at(p.x,p.z)+.02);Object.assign(st,{phase:'idle',stationed:true,frame:f,y:ground.at(p.x,p.z)+.02,legs:[],t:0,spraying:false});frame.visible=true;crewRoot.visible=false;pads.forEach(p=>p.visible=false);beacons.forEach(m=>m.emissiveIntensity=.15);return true;}
  // 預覽外框（世界座標）：車身與四個支腿墊板。
  function outline(f){const b=layout.body,p=AERIAL.padSize/2,rect=(x0,z0,x1,z1)=>[[x0,z0],[x1,z0],[x1,z1],[x0,z1]].map(([x,z])=>fromFrameXZ(f,x,z));return [rect(b.minX,b.minZ,b.maxX,b.maxZ),...layout.feet.map(([x,z])=>rect(x-p,z-p,x+p,z+p))];}
  const station=()=>slew.localToWorld(new T.Vector3(.3,.335,.8));
@@ -362,6 +366,6 @@ export function createXinyiAerial({scene,source,createPerson,ground,obstacleInde
  // 噴嘴口與方向（世界座標），供水霧粒子使用。
  function nozzle(){return {origin:monitor.muzzle.getWorldPosition(new T.Vector3()),dir:monitor.direction().normalize()};}
  // 步行／行車碰撞：車身三個圓；支腿展開後加上四個墊板。
- function circles(){if(st.phase==='idle')return [];const f=st.frame,out=[-3.2,0,3.2].map(o=>[...fromFrameXZ(f,o,0),1.4]);if(st.phase!=='deploying'||st.t>TIMELINE.spread[0])layout.feet.forEach(([lx,lz])=>out.push([...fromFrameXZ(f,lx,lz),.45]));return out;}
- return {litter,groundLitter,setLitter,frame,source,motion,monitor,grounding,layout,state:st,crew,preview,check,deploy,retract,canRetract,raiseToFire,dismiss,stow,outline,update,nozzle,circles,envelope:()=>envelope};
+ function circles(){if(st.phase==='idle'&&!st.stationed)return [];const f=st.frame,out=[-3.2,0,3.2].map(o=>[...fromFrameXZ(f,o,0),1.4]);if(st.phase!=='idle'&&st.phase!=='parked'&&(st.phase!=='deploying'||st.t>TIMELINE.spread[0]))layout.feet.forEach(([lx,lz])=>out.push([...fromFrameXZ(f,lx,lz),.45]));return out;}
+ return {litter,groundLitter,setLitter,frame,source,motion,monitor,grounding,layout,state:st,crew,preview,check,deploy,retract,canRetract,raiseToFire,dismiss,stow,park,outline,update,nozzle,circles,envelope:()=>envelope};
 }

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {SQUAD,squadCrew,stagingPoses,homePositions,offsetRight,along,polyLength,pickFloor,graphEdges} from '../dist/xinyi-street-squads.js';
+import {SQUAD,squadCrew,squadDeparturePath,stagingPoses,homePositions,offsetRight,along,polyLength,pickFloor,graphEdges} from '../dist/xinyi-street-squads.js';
 
 // 分隊人員：5 人含分隊長、小隊長；4 人無分隊長。
 assert.deepEqual(squadCrew(5),['分隊長','小隊長','隊員','隊員','隊員']);assert.deepEqual(squadCrew(4),['小隊長','隊員','隊員','隊員']);
@@ -29,3 +29,5 @@ const ctx={fireFloor:4,floors:[1,2,3,4,5],burning:{4:.8,5:.3,3:0},assigned:[]};
 assert.equal(pickFloor('attack',ctx),4);assert.equal(pickFloor('attack',{...ctx,assigned:[{task:'attack',floor:4}]}),5);assert.equal(pickFloor('attack',{...ctx,burning:{}}),null);
 assert.equal(pickFloor('search',ctx),5);assert.equal(pickFloor('search',{...ctx,assigned:[{task:'search',floor:5}]}),4);assert.equal(pickFloor('search',{...ctx,assigned:[5,4,3,2,1].map(f=>({task:'search',floor:f}))}),null);
 console.log('xinyi-street-squads: ok');
+
+for(const route of [null,[[56,-15],[56,0],[80,0]]]){const p=squadDeparturePath({x:56,z:-32,stationExit:{x:56,z:-15},pose:{x:80,z:0}},route);assert.deepEqual(p.slice(0,2),[[56,-32],[56,-15]]);assert.deepEqual(p.at(-1),[80,0]);assert(p.slice(2).every(q=>q[1]>=-15),'does not return through garage rear wall');}

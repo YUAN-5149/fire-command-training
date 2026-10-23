@@ -12,7 +12,7 @@
 <div id="loading"><b>信義街景載入中…</b><span id="loadStep">讀取官方建物量體</span></div>
 <div id="error" hidden>3D場景無法啟動，請使用支援 WebGL 的瀏覽器重新開啟。</div>
 <header class="hud top">
- <div class="brand"><span class="badge">119</span><div><strong>信義街景漫遊</strong><small id="street">—</small></div></div>
+ <div class="brand"><span class="badge">119</span><div><strong>信義街景漫遊</strong><small id="street">—</small><small id="stationCrewStatus">自動 NPC：隊員 3 名＋小隊長 1 名</small></div></div>
  <div class="actions">
   <button id="night" title="N">時段：下午</button>
   <button id="enter" title="E">上車</button>
@@ -154,6 +154,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s38e-ranks-20261022"></script>
+<script type="module" src="xinyi-street.js?v=garage-20261023"></script>
 </body>
 </html>
