@@ -9,6 +9,8 @@ import fs from 'node:fs';
 import {project,nearestStreet} from '../dist/xinyi-street-world.js';
 import {styleOf,facadeProps,overrideIndex,fillBuildings} from '../dist/xinyi-facades.js';
 import {furnitureParts} from '../dist/xinyi-furniture.js';
+import {kitPlacements} from '../dist/facade-kits.js';
+import {detailWalls} from '../dist/xinyi-shophouse.js';
 
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const district=read('district-xinyi.json'),styles=read('building-styles-xinyi.json').buildings,furniture=read('street-furniture-xinyi.json'),streets=read('streets-xinyi.json');
@@ -35,10 +37,18 @@ for(const b of district.buildings){
  const base=baseOf.get(b.id);
  for(const [k,list] of Object.entries(facadeProps([b],styles,{project,facesStreet,overrides})))(props[k]??=[]).push(...list.map(p=>({...p,y:p.y-base})));
 }
+// 立面構件（facade-kits.js）：與網頁相同的擺放；臺北街屋精細立面已處理的牆略過。
+// 每筆 [沿牆 x, 沿牆 y, 外法線 x, 外法線 y, 樓高縮放, x, y, z]（Blender 座標，z 減該棟牆腳高程）
+const nearRoad=(x,z)=>!!nearestStreet(streets.features,x,z,10),detailed=new Map();
+for(const b of district.buildings){if(!b.walls.length||!overrides[b.id])continue;const s=styleOf(styles,b,overrides);detailed.set(b.id,new Set(detailWalls(b,s.style,true,{project,facesStreet:nearRoad})));}
+const kits={};
+for(const b of district.buildings){if(!b.walls.length||!overrides[b.id])continue;
+ for(const [name,list] of Object.entries(kitPlacements([b],overrides,{project,facesStreet:nearRoad,skipWall:(bb,k)=>detailed.get(bb.id)?.has(k)??false})))
+  (kits[name]??=[]).push(...list.map(m=>[r2(m[0]*1000)/1000,r2(-m[2]*1000)/1000,r2(m[8]*1000)/1000,r2(-m[10]*1000)/1000,Math.round(m[5]*1000)/1000,r2(m[12]),r2(-m[14]),r2(m[13]-baseOf.get(b.id))]));}
 const parts=furnitureParts(furniture);
 const toBlender=list=>list.map(p=>[r2(p.x),r2(-p.z),r2(p.y),Math.round(p.ry*1000)/1000,r2(p.sx),r2(p.sy),r2(p.sz),p.c??null]);
-const out={buildings,props:Object.fromEntries(Object.entries(props).map(([k,v])=>[k,toBlender(v)])),
+const out={buildings,kits,props:Object.fromEntries(Object.entries(props).map(([k,v])=>[k,toBlender(v)])),
  furniture:Object.fromEntries(Object.entries(parts).map(([k,v])=>[k,toBlender(v)])),
  green:furniture.green.map(r=>r.map((v,i)=>i%2?r2(-v):v))};
 fs.writeFileSync(process.argv[2],JSON.stringify(out));
-console.log('buildings',buildings.length,'props',Object.fromEntries(Object.entries(out.props).map(([k,v])=>[k,v.length])),'bytes',fs.statSync(process.argv[2]).size);
+console.log('buildings',buildings.length,'kits',Object.values(kits).reduce((s,v)=>s+v.length,0),'props',Object.fromEntries(Object.entries(out.props).map(([k,v])=>[k,v.length])),'bytes',fs.statSync(process.argv[2]).size);
