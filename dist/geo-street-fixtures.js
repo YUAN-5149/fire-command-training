@@ -1,12 +1,12 @@
 import {buildLaneReview,drapeReviewRings,buildJunctionReview,buildWaitingReview} from './geo-lane-review.js?v=69';
 import {inFocus} from './geo-xinyi-detail.js';
 // Only explicit zebra-tagged crossing ways. Stripe spacing is an illustrative rendering.
-export function buildZebraCrossings(features){
+export function buildZebraCrossings(features,{all=false}={}){
  const result=[];for(const f of features){if(f.kind!=='crossing'||!(f.width>0)||f.tags?.['crossing:markings']!=='zebra'||f.tags?.bridge==='yes'||f.tags?.tunnel==='yes')continue;
   const rings=[];let distance=0;for(const path of f.paths)for(let i=1;i<path.length;i++){
    const a=path[i-1],b=path[i],sx=111320*Math.cos((a[1]+b[1])/2*Math.PI/180),sy=110574,dx=(b[0]-a[0])*sx,dy=(b[1]-a[1])*sy,len=Math.hypot(dx,dy);if(len<.2)continue;
    const nx=-dy/len,ny=dx/len,p=(u,v)=>[a[0]+(b[0]-a[0])*u/len+nx*v/sx,a[1]+(b[1]-a[1])*u/len+ny*v/sy];
-   for(let d=Math.max(.2,Math.ceil(distance/.9)*.9-distance);d+.45<=len-.2;d+=.9){const mid=p(d+.225,0);if(!inFocus(...mid))continue;const ring=[p(d,-f.width/2),p(d,f.width/2),p(d+.45,f.width/2),p(d+.45,-f.width/2)];ring.push([...ring[0]]);rings.push(ring);}distance+=len;
+   for(let d=Math.max(.2,Math.ceil(distance/.9)*.9-distance);d+.45<=len-.2;d+=.9){const mid=p(d+.225,0);if(!all&&!inFocus(...mid))continue;const ring=[p(d,-f.width/2),p(d,f.width/2),p(d+.45,f.width/2),p(d+.45,-f.width/2)];ring.push([...ring[0]]);rings.push(ring);}distance+=len;
   }if(rings.length)result.push({id:f.id,rings,width:f.width,widthSource:f.widthSource});
  }return result;
 }
