@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {project,nearestStreet} from '../dist/xinyi-street-world.js';
 import {styleOf,overrideIndex,fillBuildings,facadeProps,buildFacadeBatch} from '../dist/xinyi-facades.js';
-import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,cellH,cellV,SHOPS} from '../dist/xinyi-shophouse.js';
+import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,cellH,cellV,SHOPS,chunkGroup} from '../dist/xinyi-shophouse.js';
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const district=read('district-xinyi.json'),styles=read('building-styles-xinyi.json').buildings,streets=read('streets-xinyi.json'),od=read('building-overrides-xinyi.json'),ov=overrideIndex(od);
 district.buildings.push(...fillBuildings(od,district));
@@ -22,7 +22,8 @@ assert.equal(shedHeight(sheds[0].b,0),sheds[0].h,'shed height is deterministic')
 const F=buildStreetFacades(items,{project}),R=buildRoofSheds(sheds,{project});
 const count=g=>Object.values(g).reduce((s,a)=>s+a.position.length/3,0);
 const nF=count(F.groups),nR=count(R.groups);
-assert(nF>50000&&nF<700000,'facade detail within budget: '+nF);
+// 依 160 m 分塊做視錐剔除，畫面上同時只畫看得到的幾塊
+assert(nF>50000&&nF<1200000,'facade detail within budget: '+nF);
 assert(nR>20000&&nR<300000,'roof sheds within budget: '+nR);
 for(const k of ['tile','glass','frame','grille','ac','sign','textH','textV','shopglass','shutter'])assert(F.groups[k]?.index.length>0,'has '+k);
 for(const g of [...Object.values(F.groups),...Object.values(R.groups)]){
@@ -44,4 +45,9 @@ assert.equal(P.shed.length,0,'no box sheds when rooftop sheds are built');
 const plain=facadeProps(sheds.map(s=>s.b),styles,{project,overrides:ov});
 assert.equal(P.tank.length,plain.tank.length);
 for(let i=0;i<P.tank.length;i++)assert(P.tank[i].y>=plain.tank[i].y+2.39,'tank lifted onto shed');
+// 分塊：三角形數不變、每塊的索引都在範圍內、頂點只屬於自己的格子
+for(const g of [F.groups.tile,R.groups[Object.keys(R.groups)[0]]]){
+ const parts=chunkGroup(g);assert(parts.length>1);
+ assert.equal(parts.reduce((s,c)=>s+c.index.length,0),g.index.length,'triangles preserved');
+ for(const c of parts){const n=c.position.length/3;assert.equal(c.normal.length/3,n);assert.equal(c.uv.length/2,n);for(const i of c.index)assert(i>=0&&i<n);}}
 console.log('shophouse walls',F.walls,'verts',nF,'| sheds',R.sheds,'verts',nR);

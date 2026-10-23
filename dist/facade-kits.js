@@ -47,7 +47,7 @@ export function kitPlacements(buildings,overrides,{project,facesStreet=()=>true,
 
 // three.js：載入構件 GLB，依 kitPlacements 建 InstancedMesh（每個構件、每個材質一個）。
 // 牆面方向不一定是右手座標（牆的走向與外法線），構件材質雙面繪製。
-export async function createFacadeKits(T,GLTFLoader,placements,url='assets/facade-kits.glb?v=3'){
+export async function createFacadeKits(T,GLTFLoader,placements,url='assets/facade-kits.glb?v=4'){
  const gltf=await new GLTFLoader().loadAsync(url),group=new T.Group();group.name='facade kits';
  const byName=new Map();
  gltf.scene.traverse(o=>{if(o.userData?.kit)byName.set(o.userData.kit,o);});
@@ -55,12 +55,15 @@ export async function createFacadeKits(T,GLTFLoader,placements,url='assets/facad
  for(const [name,list] of Object.entries(placements)){
   const node=byName.get(name);if(!node)continue;
   const meshes=[];node.traverse(o=>{if(o.isMesh)meshes.push(o);});
+  // 依 160 m 格子分塊，每塊一個 InstancedMesh，讓視錐剔除生效
+  const cells=new Map();for(const e of list){const key=Math.floor(e[12]/160)+','+Math.floor(e[14]/160);(cells.get(key)??cells.set(key,[]).get(key)).push(e);}
   for(const src of meshes){
    const mat=src.material.clone();mat.side=T.DoubleSide;
-   const im=new T.InstancedMesh(src.geometry,mat,list.length);
-   list.forEach((e,i)=>{m4.fromArray(e);im.setMatrixAt(i,m4);});
-   im.instanceMatrix.needsUpdate=true;im.computeBoundingSphere();
-   im.castShadow=false;im.receiveShadow=true;im.name='kit '+name;group.add(im);
+   for(const [key,part] of cells){
+    const im=new T.InstancedMesh(src.geometry,mat,part.length);
+    part.forEach((e,i)=>{m4.fromArray(e);im.setMatrixAt(i,m4);});
+    im.instanceMatrix.needsUpdate=true;im.computeBoundingSphere();
+    im.castShadow=false;im.receiveShadow=true;im.name='kit '+name+' '+key;group.add(im);}
   }
   instances+=list.length;
  }
