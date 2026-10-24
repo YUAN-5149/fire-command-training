@@ -8,3 +8,7 @@ export const staging=[
 
 // Truck midpoint aligned with the entrance axis (x=0), cab facing -X.
 export const aerialStaging={x:0,z:10,workMinX:-6,workMaxX:6,workMinZ:7.2,workMaxZ:12.8};
+
+// Water tanker 信義61 (12 t): parked behind the second engine in the same lane, same direction.
+// 9.45 m long, so it spans x -44.2..-34.8 with ~4 m clear to the engine at x=-27. Illustrative, as above.
+export const tankerStaging={x:-39.5,z:8.8,heading:Math.PI/2};
