@@ -903,17 +903,58 @@ for s in (-1, 1):
                                             (AX_R + ARCH_R + .02, .45)], 'y', s, PLASTIC, .004, .03)
 conform('Rear skid plate', SHELL, [(-.66, .285), (.66, .285), (.62, .375), (-.62, .375)], 'x', 1, SATIN,
         .007, .03)
-# roof spoiler over the tailgate glass, with fins at its ends
-p, n = _R(0, 1.640, 0)
-SPX = p.x
-box('Roof spoiler', (SPX - .05, 0, 1.690), (.15, 1.26, .035), RED, .015, 3)
+def sweep(name, path, prof, material, up=(0, 0, 1), scale=None, smooth=True):
+    """Closed 2D profile swept along a polyline, capped at both ends.
+
+    prof is (across, up) in the plane normal to the path; scale(i) shrinks
+    the section at path point i (tapered ends).  Rails and the spoiler were
+    first built from round rods and a bevelled plank, which read as bars.
+    """
+    path = [Vector(p) for p in path]
+    v, f = [], []
+    n = len(prof)
+    for i, p in enumerate(path):
+        t = (path[min(i + 1, len(path) - 1)] - path[max(i - 1, 0)]).normalized()
+        sd = t.cross(Vector(up)).normalized()
+        u = sd.cross(t).normalized()
+        k = scale(i) if scale else 1.0
+        v += [tuple(p + sd * a * k + u * b * k) for a, b in prof]
+    for i in range(len(path) - 1):
+        for j in range(n):
+            j2 = (j + 1) % n
+            f.append((i * n + j, i * n + j2, (i + 1) * n + j2, (i + 1) * n + j))
+    for base, flip in ((0, True), ((len(path) - 1) * n, False)):
+        c = len(v)
+        v.append(tuple(sum(v[base + j][d] for j in range(n)) / n for d in range(3)))
+        for j in range(n):
+            j2 = (j + 1) % n
+            f.append((c, base + j2, base + j) if flip else (c, base + j, base + j2))
+    o = _mesh(name, v, f, material, bevel=0, seg=1, smooth=False)
+    for p_ in o.data.polygons:
+        p_.use_smooth = smooth
+    return o
+
+
+# Roof spoiler (photos): a wedge carrying the roofline back over the tailgate
+# glass - thick where it meets the roof, thin at the trailing edge, a
+# high-level stop lamp under the edge and small fins at the ends.
+SP_X0 = XR0 - .06                          # leading edge, on the roof
+SP_Z0 = gh_section(SP_X0)[3]
+SP_PROF = [(-.000, .008), (.090, .002), (.200, -.012), (.235, -.020), (.220, -.032),
+           (.120, -.040), (.020, -.034), (-.020, -.014)]       # (back, up) from the roof edge
+SPX = SP_X0 + .20
+_sp_y = [-.64 + 1.28 * i / 16 for i in range(17)]
+sweep('Roof spoiler', [(SP_X0, y, SP_Z0) for y in _sp_y],
+      [(-b, a) for a, b in SP_PROF][::-1], RED, up=(1, 0, 0),
+      scale=lambda i: 1.0 - .35 * max(0.0, abs(_sp_y[i]) - .52) / .12)
 for s in (-1, 1):
-    hexa_ = [(SPX - .10, s * .60, 1.690), (SPX + .09, s * .60, 1.690), (SPX + .09, s * .64, 1.690),
-             (SPX - .10, s * .64, 1.690)]
-    _mesh('Spoiler fin', hexa_ + [(SPX - .02, s * .60, 1.712), (SPX + .11, s * .60, 1.725),
-                                  (SPX + .11, s * .62, 1.725), (SPX - .02, s * .62, 1.712)],
-          CUBE_F, RED, .006)
-box('High-level stop lamp', (SPX + .085, 0, 1.672), (.012, .30, .018), TAILRED, .004)
+    # end fin standing on the spoiler's top surface, raked back
+    fin = [(SP_X0 + .04, s * .60, SP_Z0 + .006), (SP_X0 + .21, s * .60, SP_Z0 - .014),
+           (SP_X0 + .21, s * .62, SP_Z0 - .014), (SP_X0 + .04, s * .62, SP_Z0 + .006)]
+    _mesh('Spoiler fin', fin + [(SP_X0 + .12, s * .60, SP_Z0 + .030), (SP_X0 + .23, s * .60, SP_Z0 + .022),
+                                (SP_X0 + .23, s * .62, SP_Z0 + .022), (SP_X0 + .12, s * .62, SP_Z0 + .030)],
+          CUBE_F, RED, .004)
+box('High-level stop lamp', (SP_X0 + .17, 0, SP_Z0 - .038), (.07, .32, .010), TAILRED, .003)
 
 # ------------------------------------------------------------- side detail
 for side in (-1, 1):
@@ -990,12 +1031,18 @@ for side in (-1, 1):
     for i in range(13):
         x = -0.20 + (1.78 + 0.20) * i / 12
         loc, n = SHELL.hit('z', 1, x, side * ROOF_RAIL_Y)
-        pts.append(Vector((x, side * ROOF_RAIL_Y, loc.z + .045)))
-    for a, b in zip(pts, pts[1:]):
-        rod('Roof rail', tuple(a), tuple(b), .015, SATIN, 12)
-    for x in (-0.18, 0.80, 1.76):
+        pts.append(Vector((x, side * ROOF_RAIL_Y, loc.z + .040)))
+    # low silver rail with a flat, rounded-top aero section (photos), on a
+    # black base strip, tapering into black end feet
+    rail = [pt - Vector((0, 0, .022)) for pt in pts]
+    sweep('Roof rail', rail, [(-.020, 0), (.020, 0), (.022, .014), (.014, .028), (0, .031),
+                              (-.014, .028), (-.022, .014)], SATIN,
+          scale=lambda i: .75 if i in (0, 12) else 1.0)
+    sweep('Roof rail base', [pt - Vector((0, 0, .028)) for pt in pts],
+          [(-.016, 0), (.016, 0), (.016, .010), (-.016, .010)], PLASTIC, smooth=False)
+    for x in (-0.20, 1.78):
         loc, n = SHELL.hit('z', 1, x, side * ROOF_RAIL_Y)
-        box('Roof rail foot', (x, side * ROOF_RAIL_Y, loc.z + .022), (.09, .036, .046), PLASTIC, .012)
+        box('Roof rail foot', (x, side * ROOF_RAIL_Y, loc.z + .016), (.10, .040, .034), PLASTIC, .012)
 
 # Short red LED bar (about 0.9 m) with a silver centre unit, carried on a
 # cross bar and short posts over the B-pillar (front, side and rear photos).
@@ -1018,8 +1065,49 @@ box('Light bar speaker grille', (LB_X - .137, 0, LB_Z0 + .066), (.006, .13, .060
 box('Light bar centre lamp', (LB_X + .02, 0, LB_Z0 - .012), (.06, .06, .030), BEACON, .010)
 for s in (-1, 1):
     box('Light bar end cap', (LB_X, s * .455, LB_Z0 + .060), (.26, .016, .090), TRIM, .006)
-z = SHELL.hit('z', 1, 1.62, 0)[0].z
-box('Shark fin antenna', (1.62, 0, z + .030), (.16, .06, .06), RED, .025, 3)
+
+
+def shark_fin(x0, length=.20, height=.068, width=.070, n=18, m=14):
+    """Body-coloured shark-fin antenna on the rear roof.
+
+    The first cut was a bevelled box, which rendered as a short round rod
+    (user's marked screenshot).  The fin is lofted front to back: low at the
+    nose, rising to a crest near the back, then dropping steeply; each
+    section is a pointed arch, wide at the roof and narrow at the top.
+    """
+    verts, faces = [], []
+    for i in range(n + 1):
+        t = i / n
+        x = x0 + length * t
+        z = SHELL.hit('z', 1, x, 0)[0].z - .002
+        h = height * (t / .82) ** .75 if t <= .82 else height * (1 - (t - .82) / .18 * .80)
+        w = width * (.45 + .55 * min(1.0, t / .6)) * (1 - .35 * max(0.0, t - .82) / .18)
+        h, w = max(h, .004), max(w, .010)
+        for j in range(m + 1):
+            a = math.pi * j / m                      # 0 -> pi: right foot, top, left foot
+            yy = w / 2 * math.cos(a)
+            zz = h * math.sin(a) ** .45               # rounded crest
+            verts.append((x, yy, z + zz))
+    for i in range(n):
+        for j in range(m):
+            q = i * (m + 1) + j
+            faces.append((q, q + 1, q + m + 2, q + m + 1))
+    for base in (0, n * (m + 1)):                    # close the front and back
+        faces.append(tuple(base + j for j in range(m + 1)))
+    o = _mesh('Shark fin antenna', verts, faces, RED, bevel=0, seg=1, smooth=False)
+    for p_ in o.data.polygons:                       # fully smooth (by angle it went faceted)
+        p_.use_smooth = True
+    # black rubber gasket where it meets the roof
+    pts = []
+    for i in range(n + 1):
+        x = x0 + length * i / n
+        pts.append(Vector((x, 0, SHELL.hit('z', 1, x, 0)[0].z)))
+    sweep('Shark fin gasket', pts, [(-width * .48, -.002), (width * .48, -.002), (width * .46, .003),
+                                    (-width * .46, .003)], PLASTIC, smooth=False)
+    return o
+
+
+shark_fin(1.52)
 
 # ------------------------------------------------------------- lettering
 # Front door (photos): 臺北市政府消防局 / phoenix emblem / 消防警備車, centred
