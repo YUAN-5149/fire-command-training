@@ -62,17 +62,16 @@ def mat(name, color, metal=0.0, rough=.35, coat=0.0, emit=None, trans=0.0, alpha
     return m
 
 
-# Taipei fire red, a little brighter than the truck red so the small body
-# does not go maroon under AgX.
-RED     = mat('Fire engine red',        (.56, .018, .014), .0, .18, .85)
+# Taipei fire red: a deep red - the first, brighter red went salmon under AgX
+RED     = mat('Fire engine red',        (.46, .012, .010), .0, .20, .80)
 RUBBER  = mat('Tyre rubber',            (.013, .014, .015), .0, .80)
 PLASTIC = mat('Black cladding plastic', (.022, .023, .025), .0, .62)
 GLOSSBK = mat('Gloss black trim',       (.010, .011, .012), .0, .10, .8)
 TRIM    = mat('Graphite trim',          (.042, .046, .050), .25, .38)
 CHROME  = mat('Chrome',                 (.80, .82, .84), 1.0, .07)
 SATIN   = mat('Satin silver',           (.48, .50, .52), .85, .30)
-ALLOY   = mat('Wheel alloy',            (.56, .58, .60), .9, .22)
-ALLOY_D = mat('Wheel alloy, dark',      (.05, .055, .06), .7, .35)
+ALLOY   = mat('Wheel alloy',            (.62, .64, .66), .9, .18)
+ALLOY_D = mat('Wheel alloy, dark',      (.025, .027, .030), .6, .38)
 DISC    = mat('Brake disc',             (.30, .30, .31), .9, .45)
 GLASS   = mat('Windscreen glass',       (.86, .90, .90), .0, .008, .0, trans=1.0)
 GLASS_T = mat('Side window glass',      (.20, .23, .24), .0, .014, .0, trans=.80)
@@ -470,7 +469,6 @@ PLATE_NO = 'RFA-1190'              # fictitious plate
 SEATS = 5
 
 # ------------------------------------------------------------- lower body
-LB_N, LB_RING = 7.0, 80
 
 
 def lb_section(x):
@@ -479,12 +477,12 @@ def lb_section(x):
     z0 = 0.340 + 0.10 * max(0.0, (x - 1.70) / 0.65) ** 2 + 0.05 * max(0.0, (-1.85 - x) / 0.50) ** 2
     if x < XWS:
         t = (x - FRONT) / (XWS - FRONT)
-        z1 = 1.045 + 0.075 * (1 - (1 - t) ** 1.4)
+        z1 = 1.085 + 0.040 * (1 - (1 - t) ** 1.4)
     else:
         t = (x - XWS) / (REAR - XWS)
-        z1 = 1.120 + 0.065 * t ** 1.2
+        z1 = 1.125 + 0.060 * t ** 1.2
     # plan-view corners are big (the nose wraps), section corners small
-    for end, length, dy, dz0, dz1 in ((FRONT, .42, .26, .05, .045), (REAR, .26, .20, .09, .06)):
+    for end, length, dy, dz0, dz1 in ((FRONT, .34, .20, .05, .035), (REAR, .26, .18, .09, .06)):
         u = abs(x - end) / length
         if u < 1.0:
             k = 1.0 - math.sqrt(max(0.0, 1.0 - (1.0 - u) ** 2))
@@ -497,22 +495,67 @@ def lb_section(x):
     return a, z0, z1
 
 
-def lb_ring(x):
+def chaikin(pts, sharp, n=3):
+    """Corner-cutting smoothing of an open polyline; points flagged sharp
+    (and the two ends) are kept, so a crease stays a crease."""
+    for _ in range(n):
+        out, flags = [pts[0]], [True]
+        for i in range(len(pts) - 1):
+            a, b = pts[i], pts[i + 1]
+            q = (.75 * a[0] + .25 * b[0], .75 * a[1] + .25 * b[1])
+            r = (.25 * a[0] + .75 * b[0], .25 * a[1] + .75 * b[1])
+            if i > 0 and sharp[i]:
+                out.append(a)
+                flags.append(True)
+            elif i > 0:
+                out.append(q)
+                flags.append(False)
+            if i < len(pts) - 2:
+                out.append(r)
+                flags.append(False)
+        out.append(pts[-1])
+        flags.append(True)
+        pts, sharp = out, flags
+    return pts
+
+
+def lb_profile(x):
+    """Right half of the lower-body section, bottom centre to top centre.
+
+    The first cut was a superellipse ring - round, bulging flanks and no
+    shoulder, which read as a bar of soap.  The Outlander's flank is a flat,
+    near-vertical panel under a sharp horizontal character line at door
+    handle height; above the line the panel tucks in to the beltline and the
+    glass sits inboard on top of it.
+    """
     a, z0, z1 = lb_section(x)
-    zc, b = (z0 + z1) / 2, (z1 - z0) / 2
-    e = 2.0 / LB_N
-    ring = []
-    wf = max(0.0, 1.0 - (x - FRONT) / 0.50)     # nose leans back at the top
+    zs = min(0.985 + 0.025 * (x - FRONT) / (REAR - FRONT), z1 - .07)
+    zs = max(zs, z0 + .30)
+    ctrl = [((0.0, z0), True),
+            ((a - .20, z0), False),
+            ((a - .045, z0 + .035), False),
+            ((a - .012, z0 + .16), False),
+            ((a - .002, zs - .12), False),
+            ((a + .006, zs), True),                # the character line
+            ((a - .022, zs + .045), False),
+            ((a - .040, z1 - .035), False),
+            ((a - .085, z1 - .002), False),
+            ((a - .30, z1 + .006), False),
+            ((0.0, z1 + .010), True)]               # slight crown on the bonnet / roof shoulder
+    pts = chaikin([c for c, _ in ctrl], [f for _, f in ctrl], 3)
+    return pts, z0, z1
+
+
+def lb_ring(x):
+    half, z0, z1 = lb_profile(x)
+    wf = max(0.0, 1.0 - (x - FRONT) / 0.40)     # nose leans back at the top
     wr = max(0.0, 1.0 - (REAR - x) / 0.40)      # tailgate leans forward
-    for i in range(LB_RING):
-        t = TAU * i / LB_RING
-        cs, sn = math.cos(t), math.sin(t)
-        y = a * math.copysign(abs(cs) ** e, cs)
-        z = zc + b * math.copysign(abs(sn) ** e, sn)
+    def lean(z):
         tz = (z - z0) / (z1 - z0)
-        ring.append((x + 0.07 * wf * tz ** 2 - 0.05 * wr * tz ** 2 + 0.03 * wf * (1 - tz) ** 3,
-                     y, z))
-    return ring
+        return x + 0.035 * wf * tz ** 2 - 0.05 * wr * tz ** 2 + 0.025 * wf * (1 - tz) ** 3
+    right = [(lean(z), y, z) for y, z in half]
+    left = [(lean(z), -y, z) for y, z in reversed(half[1:-1])]
+    return right + left
 
 
 def loft(name, stations, ring_fn, material, closed=True, cap=True):
@@ -550,7 +593,7 @@ def stations(x0, x1, f0, f1, step=.08, n_end=9):
     return out
 
 
-body = loft('Body shell', stations(FRONT, REAR, .42, .26, .06, 12), lb_ring, RED)
+body = loft('Body shell', stations(FRONT, REAR, .34, .26, .06, 12), lb_ring, RED)
 
 # -------------------------------------------------------------- greenhouse
 XG0, XA, XR0, XG1 = XWS, -0.10, 1.96, 2.29
@@ -574,7 +617,7 @@ def gh_section(x):
     tr = min(1.0, (XG1 - x) / 0.45)
     # kept well inside the tail's plan taper: where the two shells ran nearly
     # coincident the render striped (z-fighting) at the D-pillar
-    wb = 0.875 - 0.06 * (1 - tf) ** 1.5 - 0.13 * (1 - tr) ** 1.5
+    wb = 0.875 - 0.06 * (1 - tf) ** 1.5 - 0.075 * (1 - tr) ** 1.5
     wt = wb - 0.165
     return wb, wt, zb, zt
 
@@ -623,7 +666,7 @@ for ax in (AX_F, AX_R):
         for p in liner.data.polygons:
             p.use_smooth = True
 bake(body)
-_smooth(body, 40)
+_smooth(body, 24)          # keeps the character line crisp
 _smooth(greenhouse, 40)
 SHELL = Shell([body, greenhouse])
 
@@ -670,6 +713,12 @@ for side in (-1, 1):
     conform('Window blackout', SHELL, dlo_outline(), 'y', side, GLOSSBK, .002, .03)
     for pane in inset_rect_panes():
         conform('Side window', SHELL, pane, 'y', side, GLASS_T, .006, .03)
+    # chrome surround: along the top of the windows and down the D-pillar to
+    # the beltline - the 4th-gen side's signature line
+    top = [(A_LINE(1.60) - .005, 1.60 + .012), (A_LINE(DLO_TOP_Z) + .06, DLO_TOP_Z + .014),
+           (0.10, DLO_TOP_Z + .016), (1.20, DLO_TOP_Z + .014), (1.72, 1.640 + .012),
+           (1.875, 1.590), (1.915, 1.42), (1.895, DLO_BOT(1.895) + .01)]
+    strip('Window surround', SHELL, top, .016, 'y', side, CHROME, .006, .025)
     # bright beltline strip along the bottom of the DLO
     belt = [(A_LINE(1.13) + .02, DLO_BOT(A_LINE(1.13)) - .012)]
     belt += [(x, DLO_BOT(x) - .012) for x in [A_LINE(1.13) + .02 + (1.86 - A_LINE(1.13)) * i / 16
@@ -717,8 +766,8 @@ bmesh.ops.delete(_bm, geom=[f for f in _bm.faces if f.normal.z > .3 and
 _bm.to_mesh(body.data)
 _bm.free()
 # tailgate glass, from behind
-rg = [(-0.58, 1.27), (0.58, 1.27), (0.52, 1.62), (-0.52, 1.62)]
-conform('Rear glass blackout', SHELL, [(-0.62, 1.24), (0.62, 1.24), (0.56, 1.65), (-0.56, 1.65)],
+rg = [(-0.50, 1.28), (0.50, 1.28), (0.45, 1.60), (-0.45, 1.60)]
+conform('Rear glass blackout', SHELL, [(-0.54, 1.25), (0.54, 1.25), (0.49, 1.635), (-0.49, 1.635)],
         'x', 1, GLOSSBK, .002, .03)
 conform('Rear window', SHELL, rg, 'x', 1, GLASS_T, .006, .03)
 
@@ -741,40 +790,45 @@ for pts in ([(-0.66, 0.90), (0.66, 0.90)], [(-0.66, 0.90), (-0.70, 1.20)], [(0.6
 
 # ---------------------------------------------------- the front (Dynamic Shield)
 _F = lambda y, z, p=0.0: stick(SHELL, 'x', -1, y, z, p)
+# Heights follow the tall, flat nose: bonnet edge ~1.05, grille 0.50-0.96.
 for side in (-1, 1):
     s = side
-    # slim LED daytime running lamp under the bonnet edge, wrapping the corner
-    strip('Daytime running lamp', SHELL, [(s * .48, .925), (s * .70, .935), (s * .86, .930)], .028,
+    # slim LED daytime running lamp right under the bonnet edge, wrapping the corner
+    strip('Daytime running lamp', SHELL, [(s * .50, .985), (s * .72, .992), (s * .85, .975)], .026,
           'x', -1, GLOW, .006, .015)
-    conform('Headlamp housing', SHELL, [(s * .60, .63), (s * .855, .63), (s * .87, .80), (s * .60, .80)][::s],
+    # main lamps sit low in the bumper corner, in a black housing
+    conform('Headlamp housing', SHELL, [(s * .60, .70), (s * .845, .70), (s * .855, .89), (s * .60, .89)][::s],
             'x', -1, GLOSSBK, .004, .025)
-    for yy in (.65, .72, .79):
-        p, n = _F(s * yy, .715, .012)
-        obox('Headlamp projector', p, n, (.050, .070, .018), LAMP, bevel=.008)
-        p, n = _F(s * yy, .715, .006)
-        obox('Headlamp element', p, n, (.034, .050, .014), GLOW, bevel=.006)
-    strip('Turn signal', SHELL, [(s * .61, .655), (s * .85, .655)], .016, 'x', -1, AMBER, .007, .015)
-    # chrome Dynamic Shield arcs framing the grille
-    strip('Dynamic Shield', SHELL, [(s * .54, .925), (s * .565, .80), (s * .56, .66),
-                                    (s * .52, .54), (s * .43, .45), (s * .30, .41)], .030,
-          'x', -1, CHROME, .008, .02)
-    conform('Lower intake', SHELL, [(s * .58, .40), (s * .82, .44), (s * .84, .58), (s * .60, .60)][::s],
+    for yy in (.655, .725, .795):
+        p, n = _F(s * yy, .800, .012)
+        obox('Headlamp projector', p, n, (.054, .062, .018), LAMP, bevel=.008)
+        p, n = _F(s * yy, .800, .006)
+        obox('Headlamp element', p, n, (.036, .044, .014), GLOW, bevel=.006)
+    strip('Turn signal', SHELL, [(s * .62, .730), (s * .835, .730)], .018, 'x', -1, AMBER, .007, .015)
+    # Dynamic Shield: a broad flat chrome bracket from the lamp line down and
+    # round under the grille (a thick tube read as a bull bar)
+    strip('Dynamic Shield', SHELL, [(s * .545, .975), (s * .570, .86), (s * .565, .70),
+                                    (s * .530, .575), (s * .450, .475), (s * .32, .435)], .048,
+          'x', -1, CHROME, .007, .02)
+    conform('Lower intake', SHELL, [(s * .60, .43), (s * .84, .46), (s * .855, .66), (s * .62, .66)][::s],
             'x', -1, PLASTIC, .004, .025)
     # red flashers hidden in the grille corners (warning lamps)
-    p, n = _F(s * .44, .835, .010)
-    obox('Grille flasher', p, n, (.110, .040, .020), BEACON, bevel=.008)
-conform('Grille', SHELL, [(-.50, .47), (.50, .47), (.53, .89), (-.53, .89)], 'x', -1, GLOSSBK, .005, .03)
-for i in range(6):
-    z = .52 + i * .065
-    strip('Grille bar', SHELL, [(-.47, z), (.47, z)], .016, 'x', -1, SATIN, .010, .03)
-conform('Skid plate', SHELL, [(-.40, .345), (.40, .345), (.36, .44), (-.36, .44)], 'x', -1, SATIN, .006, .03)
-p, n = _F(0, .80, .014)
-obox('Grille badge', p, n, (.130, .085, .014), CHROME, bevel=.010)
-p, n = _F(0, .600, .012)
+    p, n = _F(s * .43, .905, .010)
+    obox('Grille flasher', p, n, (.100, .036, .020), BEACON, bevel=.008)
+conform('Grille', SHELL, [(-.50, .50), (.50, .50), (.53, .955), (-.53, .955)], 'x', -1, GLOSSBK, .005, .03)
+# fine dark texture across the grille instead of slats
+for i in range(14):
+    z = .525 + i * .029
+    strip('Grille texture', SHELL, [(-.48, z), (.48, z)], .007, 'x', -1, TRIM, .008, .03)
+strip('Grille top bar', SHELL, [(-.50, .930), (.50, .930)], .030, 'x', -1, CHROME, .009, .03)
+conform('Skid plate', SHELL, [(-.40, .365), (.40, .365), (.36, .455), (-.36, .455)], 'x', -1, SATIN, .006, .03)
+p, n = _F(0, .930, .016)
+obox('Grille badge', p, n, (.120, .080, .012), CHROME, bevel=.010)
+p, n = _F(0, .640, .012)
 obox('Number plate', p, n, (.340, .110, .010), PLATE, bevel=.004)
 text('Plate lettering', PLATE_NO, p, n, .060, TRIM, off=.006)
 # recovery winch behind the bumper: fairlead and hook in the lower grille
-p, n = _F(0, .490, .014)
+p, n = _F(0, .515, .014)
 obox('Winch fairlead', p, n, (.250, .070, .020), SATIN, bevel=.006)
 obox('Fairlead slot', p + n * .011, n, (.170, .020, .004), TRIM, bevel=.002)
 rod('Winch hook', tuple(p + n * .02), tuple(p + n * .05 + Vector((0, 0, -.06))), .010, TRIM, 10)
@@ -784,8 +838,11 @@ _R = lambda y, z, p=0.0: stick(SHELL, 'x', 1, y, z, p)
 for side in (-1, 1):
     s = side
     # T-shaped tail lamps: a horizontal bar into the tailgate, a short drop at the corner
-    conform('Tail lamp', SHELL, [(s * .38, 1.025), (s * .91, 1.000), (s * .91, 1.095), (s * .38, 1.105)][::s],
+    conform('Tail lamp', SHELL, [(s * .30, 1.020), (s * .91, .995), (s * .91, 1.105), (s * .30, 1.110)][::s],
             'x', 1, TAILRED, .007, .02)
+    # the lamp wraps round the corner onto the flank, as on the 4th gen
+    conform('Tail lamp', SHELL, [(2.08, 1.005), (2.36, .995), (2.36, 1.100), (2.08, 1.095)],
+            'y', s, TAILRED, .007, .02)
     conform('Tail lamp', SHELL, [(s * .78, .86), (s * .91, .86), (s * .91, 1.00), (s * .78, 1.01)][::s],
             'x', 1, TAILRED, .007, .02)
     conform('Rear reflector', SHELL, [(s * .62, .45), (s * .80, .47), (s * .80, .50), (s * .62, .49)][::s],
@@ -796,10 +853,13 @@ conform('Rear diffuser', SHELL, [(-.45, .37), (.45, .37), (.42, .45), (-.42, .45
 p, n = _R(0, .735, .010)
 obox('Rear plate', p, n, (.340, .110, .010), PLATE, bevel=.004)
 text('Rear plate lettering', PLATE_NO, p, n, .060, TRIM, off=.006)
-p, n = _R(0, 1.015, .003)
-text('Tailgate lettering', '臺北市政府消防局', p, n, .060, WHITE)
-p, n = _R(0, .935, .003)
-text('Tailgate lettering', '災情勘查車', p, n, .074, WHITE)
+# spaced model name under the lamp line, as on the car
+p, n = _R(0, .985, .002)
+text('Tailgate badge', 'O U T L A N D E R', p, n, .040, CHROME, extrude=.002)
+p, n = _R(0, .905, .003)
+text('Tailgate lettering', '臺北市政府消防局', p, n, .046, WHITE)
+p, n = _R(0, .845, .003)
+text('Tailgate lettering', '災情勘查車', p, n, .056, WHITE)
 # roof spoiler over the tailgate glass, high-level brake lamp and red flashers
 p, n = _R(0, 1.680, 0)
 box('Roof spoiler', (p.x - .02, 0, 1.692), (.10, 1.18, .030), RED, .012, 3)
@@ -1036,6 +1096,21 @@ def tyre(cx, cy, w, seg=64):
     return _mesh('Tire', verts, faces, RUBBER, bevel=0, seg=1, smooth=True)
 
 
+def spoke(cx, yo, side, a, r0=.062, r1=.246, w0=.022, w1=.040, d0=.034, d1=.020, dish=.022):
+    """Flat spoke blade from hub to rim along angle a (in the X-Z wheel plane)."""
+    c, sn = math.cos(a), math.sin(a)
+    tc, ts = -sn, c                                 # across the spoke
+    verts = []
+    for r, w, d, back in ((r0, w0, d0, 0.0), (r1, w1, d1, dish)):
+        for sw in (-1, 1):
+            for sd in (0, 1):
+                face = yo - side * back - side * d * sd
+                verts.append((cx + r * c + sw * w / 2 * tc, face, AXLE_Z + r * sn + sw * w / 2 * ts))
+    # verts: inner (-w,front) (-w,back) (+w,front) (+w,back), then outer the same
+    faces = [(0, 2, 6, 4), (1, 5, 7, 3), (0, 4, 5, 1), (2, 3, 7, 6), (0, 1, 3, 2), (4, 6, 7, 5)]
+    return _mesh('Wheel spoke', verts, faces, ALLOY, bevel=.003, seg=1, smooth=False)
+
+
 def wheel(cx, cy, side):
     """One 20-inch wheel: tyre, two-tone ten-spoke alloy, disc and caliper.
     Returns (spinning parts, fixed parts)."""
@@ -1055,14 +1130,12 @@ def wheel(cx, cy, side):
     spin.append(lip)
     spin.append(cyl('Hub face', (cx, yo - side * .010, AXLE_Z), .070, .040, ALLOY_D, verts=28))
     spin.append(cyl('Centre cap', (cx, yo + side * .004, AXLE_Z), .036, .012, CHROME, verts=24))
-    for j in range(10):
-        a = j * TAU / 10
-        c, sn = math.cos(a), math.sin(a)
-        r0, r1 = .060, RIM - .008
-        sp = rod('Wheel spoke', (cx + r0 * c, yo - side * .004, AXLE_Z + r0 * sn),
-                 (cx + r1 * c, yo - side * .022, AXLE_Z + r1 * sn), .014, ALLOY, 8)
-        sp.scale = (1, 1, 1)
-        spin.append(sp)
+    # five twin spokes: machined faces over a dark wheel (the 4th-gen 20 in
+    # two-tone design); each spoke is a flat blade widening to the rim
+    for j in range(5):
+        for k in (-1, 1):
+            a = j * TAU / 5 + k * math.radians(9.5)
+            spin.append(spoke(cx, yo, side, a))
     for j in range(5):
         a = j * TAU / 5 + .3
         spin.append(cyl('Wheel nut', (cx + .042 * math.cos(a), yo + side * .002, AXLE_Z + .042 * math.sin(a)),
