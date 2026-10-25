@@ -5,3 +5,7 @@ node_modules/
 .env.*
 *.log
 __pycache__/
+blender/survey-car/*.blend
+blender/survey-car/*.blend1
+blender/survey-car/*.glb
+blender/survey-car/survey_*.png
