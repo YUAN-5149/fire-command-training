@@ -86,3 +86,7 @@ node --no-warnings --experimental-loader ./tests/three-loader.mjs tests/xinyi-st
 ### 水庫車「信義61」
 
 新增12噸三軸水庫車（Blender自製GLB，車頭依實車照片）。消防演練首頁停在第二車組後方同車道順向；信義街景派遣火警後自信義分隊出勤、到場後於80 m內自動補水給中隊長水箱車（示意每秒30 L）。分隊指揮面板可看狀態。詳見[水庫車接入紀錄](docs/water-tanker-20261024.md)。
+
+### 災情勘查車（Outlander）
+
+新增臺北市消防局災情勘查車3D模型（Blender自製GLB，三菱Outlander第四代車體；4.75 × 2.19 × 1.98 m）：紅色車身、車頂紅色警示燈、災情監視攝影機桅桿、絞盤、前門「臺北市政府消防局」、後門「災情勘查車」。模型檔在`dist/assets/survey-car.glb`，**尚未接入網頁場景**。詳見[勘查車模型紀錄](docs/survey-car-20261025.md)與`blender/survey-car/README.md`。
