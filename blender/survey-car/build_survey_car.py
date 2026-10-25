@@ -647,7 +647,8 @@ def gh_ring(x):
     return ring
 
 
-greenhouse = loft('Greenhouse', stations(XG0, XG1, .30, .20, .05, 8), gh_ring, RED,
+# denser at the tail, where the section changes fastest (the D-pillar)
+greenhouse = loft('Greenhouse', stations(XG0, XG1, .30, .45, .04, 16), gh_ring, RED,
                   closed=False, cap=True)
 
 # ----------------------------------------------------------- wheel arches
@@ -678,7 +679,12 @@ for ax in (AX_F, AX_R):
             p.use_smooth = True
 bake(body)
 _smooth(body, 26)          # keeps the character line
-_smooth(greenhouse, 40)
+# fully smooth: the greenhouse has no intended hard edge, and smoothing by
+# angle split the fast-changing D-pillar into flat facets that read as a grid
+for p_ in greenhouse.data.polygons:
+    p_.use_smooth = True
+for e_ in greenhouse.data.edges:
+    e_.use_edge_sharp = False
 SHELL = Shell([body, greenhouse])
 
 # ------------------------------------------------- glass and window blackout
@@ -864,14 +870,17 @@ text('Bonnet badge', 'O U T L A N D E R', p, n, .040, CHROME, up=(1, 0, 0), extr
 _R = lambda y, z, p=0.0: stick(SHELL, 'x', 1, y, z, p)
 for side in (-1, 1):
     s = side
-    conform('Tail lamp', SHELL, [(s * .45, 1.000), (s * .895, .975), (s * .895, 1.135), (s * .45, 1.115)][::s],
+    # from behind only as far as the corner: past it the rays skim along the
+    # flank and smeared the lamp forward in streaks; the quarter panel and the
+    # corner get their own piece, projected from the side
+    conform('Tail lamp', SHELL, [(s * .45, 1.000), (s * .85, .977), (s * .85, 1.134), (s * .45, 1.115)][::s],
             'x', 1, TAILRED, .007, .02)
-    conform('Reversing lamp', SHELL, [(s * .72, .950), (s * .895, .945), (s * .895, .985), (s * .72, .990)][::s],
+    conform('Reversing lamp', SHELL, [(s * .68, .950), (s * .85, .946), (s * .85, .977), (s * .68, .985)][::s],
             'x', 1, LAMP, .007, .02)
     for z in (1.045, 1.090):
-        strip('Tail lamp LED', SHELL, [(s * .50, z), (s * .87, z - .012)], .010, 'x', 1, GLOW_R, .010, .02)
+        strip('Tail lamp LED', SHELL, [(s * .50, z), (s * .80, z - .010)], .010, 'x', 1, GLOW_R, .010, .02)
     # the lamp wraps on to the quarter panel, ending in a point
-    conform('Tail lamp', SHELL, [(1.96, 1.060), (2.06, .985), (2.37, .975), (2.37, 1.135), (2.06, 1.125)],
+    conform('Tail lamp', SHELL, [(1.96, 1.060), (2.06, .985), (2.31, .975), (2.31, 1.135), (2.06, 1.125)],
             'y', s, TAILRED, .007, .02)
     conform('Rear reflector', SHELL, ngon(s * .790, .395, .045), 'x', 1, TAILRED, .007, .02)
 conform('Tailgate chrome bar', SHELL, [(-.47, 1.050), (-.40, 1.088), (.40, 1.088), (.47, 1.050),
