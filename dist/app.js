@@ -1,5 +1,5 @@
 import {loadAmbulance,createImportedAmbulance} from './imported-ambulance.js';
-import {aerialStaging} from './staging.js?v=tanker-20261024';
+import {aerialStaging} from './staging.js?v=survey-20261025';
 import {loadAerialModel,applyAerialModel} from './imported-aerial.js';
 import {addFlashoverControls} from './flashover.js';
 import {addRearBalcony} from './rear-balconies.js';
@@ -7,13 +7,14 @@ import {createPatients} from './patients.js';
 import {createFireControls} from './fire-controls.js';
 import {loadFireEngine,createImportedEngine} from './imported-engine.js';
 import {loadWaterTanker,createImportedTanker} from './imported-tanker.js?v=tanker-20261024';
+import {loadSurveyCar,createImportedSurveyCar} from './imported-survey-car.js?v=survey-20261025';
 import {addWalkableSlab,addInteriorStairs,addInteriorPartitions} from './interior-access.js';
 import {createCommanderControl} from './commander-control.js';
 import {addAerialCalculations} from './aerial-calculations.js';
 import {createAerialRescue} from './aerial-rescue.js';
 import {addRooftop} from './rooftops.js';
 import {createFujinStreet} from './fujin-street.js';
-import {staging,tankerStaging} from './staging.js?v=tanker-20261024';
+import {staging,tankerStaging,surveyCarStaging} from './staging.js?v=survey-20261025';
 import {createVehicle} from './vehicles.js';
 import {createFireState,stepFire,effectiveWater} from './fire-model.js';
 import {createFireEffects} from './fire-effects.js';
@@ -57,9 +58,12 @@ label('富錦街風貌 · 模擬火災戶',0,19,0);const pickables=[];Object.ent
 let engineTemplate=null;try{engineTemplate=await loadFireEngine()}catch(error){console.error('水箱消防車模型載入失敗',error);$('feedback').textContent='新消防車模型載入失敗，暫時顯示原車輛；請重新整理。'}
 let ambulanceTemplate=null;try{ambulanceTemplate=await loadAmbulance()}catch(error){console.error('救護車模型載入失敗',error);$('feedback').textContent='救護車模型載入失敗，暫時顯示原車輛；請重新整理。'}
 let tankerTemplate=null;try{tankerTemplate=await loadWaterTanker()}catch(error){console.error('水庫車模型載入失敗',error)}
+let surveyCarTemplate=null;try{surveyCarTemplate=await loadSurveyCar()}catch(error){console.error('勤務車模型載入失敗',error)}
 const vehicleModels=staging.map((p,i)=>{const v=i===3&&ambulanceTemplate?createImportedAmbulance(scene,ambulanceTemplate,p.x,p.z):i!==3&&engineTemplate?createImportedEngine(scene,engineTemplate,p.x,p.z):createVehicle(scene,p.x,p.z,i===3);v.root.rotation.y=p.heading;return v});
 // 水庫車「信義61」：供水支援車，停在第二車組後方同一車道、順向；不屬於四個車組的任務指派。
 if(tankerTemplate){const v=createImportedTanker(scene,tankerTemplate,tankerStaging.x,tankerStaging.z);v.root.rotation.y=tankerStaging.heading;vehicleModels.push(v)}
+// 消防局勤務車（Outlander）：指揮勤務車，停在第四車組前方同一車道、順向；同樣不屬於四個車組。
+if(surveyCarTemplate){const v=createImportedSurveyCar(scene,surveyCarTemplate,surveyCarStaging.x,surveyCarStaging.z);v.root.rotation.y=surveyCarStaging.heading;vehicleModels.push(v)}
 const beacons=vehicleModels.flatMap(v=>v.lights);const actionScene=createActionScene(scene);
 const aerialPanel=document.createElement('div');aerialPanel.innerHTML='<div class="divider"></div><div class="eyebrow">正面雲梯救援</div><p>Rosenbauer L32A-XS 3.2 風貌 · 專責隊員 2 人</p><button id="aerialStart" class="primary wide">雲梯車救援</button><button id="aerialAccept" class="wide" disabled>接應確認・接人下降</button><p id="aerialState" role="status">待命：二樓有待救者</p><p class="note">模型動畫；到位後按接應確認，才開始接人下降。已參考原廠公開規格；動作為簡化示意，尚不能判定實車可作業。</p>';document.querySelector('.command').append(aerialPanel);
 const aerial=createAerialRescue(scene,actionScene.createPerson,(text,stage)=>{$('aerialState').textContent=text;log('雲梯',text);if(stage===6){$('aerialStart').textContent='雲梯籃架已到位';$('aerialAccept').disabled=false;}if(stage===12)$('aerialAccept').textContent='已完成接人下降';});try{applyAerialModel(aerial,await loadAerialModel())}catch(e){console.error('雲梯模型載入失敗',e);log('模型','雲梯模型載入失敗，暫用原模型。')}beacons.push(...aerial.truck.lights);const updateAerialCalculations=addAerialCalculations(aerialPanel,aerial);const modelNote=document.createElement('p');modelNote.className='note';modelNote.textContent='上傳雲梯車為外觀模型；支腿與梯架動作為訓練模擬。下方原參考車型數據不代表此模型實車的額定性能。';aerialPanel.append(modelNote);

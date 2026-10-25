@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import * as T from 'three';
+import {SURVEY_CAR,createSurveyCar} from '../dist/xinyi-street-survey-car.js';
+import {staging,aerialStaging,tankerStaging,surveyCarStaging} from '../dist/staging.js';
 
 // 臺北市消防局 Outlander 勤務車（第三代小改款，依實車照片）GLB：骨架節點、警示燈材質與外廓尺寸。
 const buf=readFileSync(new URL('../dist/assets/survey-car.glb',import.meta.url));
@@ -47,4 +49,31 @@ const fl=steer('Steer F L'),rl=wheel('Wheel spin R L'),rr=wheel('Wheel spin R R'
 assert(Math.abs((rl.x-fl.x)-2.670)<.005,'軸距 '+(rl.x-fl.x).toFixed(3));
 assert(Math.abs(Math.abs(rr.z-rl.z)-1.54)<.005,'輪距 '+Math.abs(rr.z-rl.z).toFixed(3));
 assert(Math.abs(fl.y-.352)<.005,'輪心高＝輪胎半徑 0.352 m');
+
+// 消防演練首頁：勤務車停放位置不與四個車組、水庫車、雲梯作業區重疊，在道路範圍內、順向。
+const half=size.x/2;
+for(const p of staging){if(Math.abs(p.z-surveyCarStaging.z)>2.6)continue;assert(Math.abs(p.x-surveyCarStaging.x)-half-3.72>=2,'與車組車輛保持間隔 '+p.x);}
+assert(Math.abs(tankerStaging.x-surveyCarStaging.x)>half+9.45/2+2,'與水庫車不重疊');
+assert(surveyCarStaging.x-half>aerialStaging.workMaxX,'不占雲梯作業區');
+assert(surveyCarStaging.x+half<=45,'在道路範圍內');assert.equal(surveyCarStaging.heading,staging[3].heading,'順向');
+
+// 信義街景：與水庫車共用出勤邏輯（方格路網，同水庫車測試），不載水、不補水。
+const nodes=[],adj=[],idx=(i,j)=>i*7+j;for(let i=0;i<7;i++)for(let j=0;j<7;j++){nodes.push({x:(j-3)*40,z:(i-3)*40});adj.push([]);}
+for(let i=0;i<7;i++)for(let j=0;j<7;j++){if(j<6){adj[idx(i,j)].push([idx(i,j+1),40]);adj[idx(i,j+1)].push([idx(i,j),40]);}if(i<6){adj[idx(i,j)].push([idx(i+1,j),40]);adj[idx(i+1,j)].push([idx(i,j),40]);}}
+const graph={nodes,adj},site={x:0,z:-10,nx:0,nz:1};
+const blockB=(x,z)=>x>-15&&x<15&&z>-30&&z<-10;
+const colliders={resolve:(x,z,r)=>({x,z,hit:blockB(x,z)||blockB(x+r,z)||blockB(x-r,z)||blockB(x,z+r)||blockB(x,z-r)})};
+const tpl=new T.Group();for(const n of ['F L','F R','R L','R R']){const w=new T.Object3D();w.name='Wheel spin '+n;tpl.add(w);}
+tpl.add(new T.Mesh(new T.BoxGeometry(1,1,1),new T.MeshStandardMaterial({name:'Red beacon lens'})));
+const kit=createSurveyCar({scene:new T.Scene(),template:tpl,ground:{at:()=>0},colliders,graph});
+kit.setRouter((x0,z0,x1,z1)=>({points:[[x0,z0],[x1,z0],[x1,z1]]}));
+const pose=kit.dispatch(site,{home:{x:120,z:120,heading:0,exit:{x:120,z:100}},existing:[{x:0,z:15}]});
+assert(pose,'找得到停車點');const dd=Math.hypot(pose.x-site.x,pose.z-site.z);assert(dd>=SURVEY_CAR.stagingMin&&dd<=SURVEY_CAR.stagingMax,'停車距離 '+dd);
+assert.equal(kit.vehicle.log[0].text,SURVEY_CAR.dispatchText);assert.equal(kit.water,0,'不載水');
+let t=0;for(let i=0;i<20*600&&kit.state!=='parked';i++){t+=.05;kit.update(.05,{t,now:t,blockers:()=>[]});}
+assert.equal(kit.state,'parked','抵達停車點');assert(t>=SURVEY_CAR.turnout,'先經出勤準備');
+const spun=kit.vehicle.wheels[0].rotation.z;assert(Math.abs(spun*SURVEY_CAR.tyreRadius-kit.vehicle.len)<.5,'車輪轉動距離與路線長度一致');
+assert.equal(kit.vehicle.log.at(-1).text,SURVEY_CAR.arriveText);
+assert.equal(kit.update(.5,{t,now:t,truck:{x:pose.x+5,z:pose.z,water:0,capacity:2000}}),0,'不補水');
+assert.equal(kit.circles().length,2);kit.hide();assert.equal(kit.circles().length,0);
 console.log('survey-car OK',size.toArray().map(v=>v.toFixed(3)).join(' x '));
