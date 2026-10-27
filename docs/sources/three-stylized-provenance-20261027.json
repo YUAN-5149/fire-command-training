@@ -1,0 +1,61 @@
+{
+  "repository": "https://github.com/Steve245270533/three-stylized",
+  "commit": "8eb0dde5a8e7eae985d69f923b627b0cf253bed5",
+  "license": "MIT, Copyright (c) 2026 Steve245270533",
+  "upstreamAttribution": "Upstream acknowledges inspiration/adaptation from https://github.com/cortiz2894/stylized-components",
+  "scope": "GrassLayer and required coverage/surfaceSampler/shaders/utils modules only; no terrain regeneration or wildflowers",
+  "sources": [
+    {
+      "path": "GrassLayer.ts",
+      "sha256": "16509acf399cfc57b674ec53027c9030e80f1ffb9257ce0a9305f017a9fbd917"
+    },
+    {
+      "path": "coverage.ts",
+      "sha256": "e51228e5441d7d5bbc99b62f4d79c9dff4c253e8ec704ca612b257ff3d5e16f1"
+    },
+    {
+      "path": "surfaceSampler.ts",
+      "sha256": "05aa075051938af2cfda57123951203b0c56002f47cc6067200e2c848e74dab8"
+    },
+    {
+      "path": "shaders.ts",
+      "sha256": "05edd253a1b78433f4f3130d474a1e0320b53dec57c18826481082659d69c502"
+    },
+    {
+      "path": "utils.ts",
+      "sha256": "e18a0e01b81b1ec1a5ae2d3717d49adcfd4c25826636b7a9e51ae91cd7acac77"
+    },
+    {
+      "path": "types.ts",
+      "sha256": "c85125aff69385396ff7b7b130dfb9bcdc01d9c619946f41d0ca8a7646592ce4"
+    }
+  ],
+  "runtime": [
+    {
+      "path": "GrassLayer.js",
+      "sha256": "9f7dbec01485522bd7481f136b3b56307c46d5ca405a8f9d3ae54fed71b8c6a7"
+    },
+    {
+      "path": "coverage.js",
+      "sha256": "801c734cdffff98b1d6b1fcc27d1bc802a82c6a7609763df1abd6d40b4b733d0"
+    },
+    {
+      "path": "surfaceSampler.js",
+      "sha256": "dbcfcbb7233ecaae637a6c76304ee5fd73f1844c18b8475dbaf62f723fa38001"
+    },
+    {
+      "path": "shaders.js",
+      "sha256": "05edd253a1b78433f4f3130d474a1e0320b53dec57c18826481082659d69c502"
+    },
+    {
+      "path": "utils.js",
+      "sha256": "fc8b11d85ca348ed9eb87f58f78032d0279380557ac6590ed676886247c17f63"
+    }
+  ],
+  "applicationChanges": [
+    "Strip TS types and add .js relative import extensions",
+    "Application explicitly disables grass shadow branches for scene-version compatibility and lower cost; vendor shader source retained",
+    "Use actual EOC north circular lawn top, 6–12cm heights, path clearance and road footprint exclusion",
+    "No terrain, walk surface, hedge or station relocation"
+  ]
+}
