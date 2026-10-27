@@ -85,7 +85,7 @@ const zhuangjingIds=new Set(zhuangjingData?.buildingIds??[]);
 const landmarks=await loadLandmarks().catch(()=>[]);for(const a of landmarks)if(a.collider)district.buildings.push(footprintBuilding(a));
 // 逐街精修（building-overrides-xinyi.json）：官方 LOD1 缺漏的量體依 OSM 外框補建（含碰撞與地面高程）。
 const legacyFacades=new URLSearchParams(location.search).get('facades')==='legacy';
-const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=16').then(r=>r.ok?r.json():null).catch(()=>null);
+const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=17').then(r=>r.ok?r.json():null).catch(()=>null);
 const overrides=overrideIndex(overrideData);if(overrideData)district.buildings.push(...fillBuildings(overrideData,district));
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox);
@@ -933,7 +933,7 @@ function frame(now){
  zhuangjing?.update(state);
  const crewStatus=zhuangjing&&Math.hypot(state.x-zhuangjing.layout.x,state.z-zhuangjing.layout.z)<28?zhuangjing.status:stationTeam.status();if($('stationCrewStatus').textContent!==crewStatus)$('stationCrewStatus').textContent=crewStatus;
  state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);
- eocDetail?.update(t,camera.position);youBike?.update(camera.position);shophouse?.update(camera.position);
+ eocDetail?.update(t,camera.position);youBike?.update(camera.position);shophouse?.update(camera.position,QUALITY[quality.level].detail);
  life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{eye:camera.position,siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
  updateAerial(dt);
  updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt,{eye:camera.position});if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);
@@ -970,7 +970,7 @@ $('miniZoomOut').onclick=()=>changeMinimapZoom(stepMiniZoom(minimapZoom,-1));$('
 for(const id of ['miniZoomOut','miniZoomIn','miniZoomReset'])$(id).addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')e.stopPropagation();});
 $('minimapPanel').addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();if(e.deltaY)changeMinimapZoom(stepMiniZoom(minimapZoom,e.deltaY<0?1:-1));},{passive:false});
 // 畫質：解析度倍率、陰影、NPC 密度、可視距離。自動模式依裝置起始，實測平均幀率過低時逐級降低。
-const QUALITY={low:{label:'低',pr:.75,shadow:0,density:.35,far:.7},medium:{label:'中',pr:1.25,shadow:1024,density:.7,far:.85},high:{label:'高',pr:2,shadow:2048,density:1,far:1}};
+const QUALITY={low:{label:'低',detail:160,pr:.75,shadow:0,density:.35,far:.7},medium:{label:'中',detail:300,pr:1.25,shadow:1024,density:.7,far:.85},high:{label:'高',detail:450,pr:2,shadow:2048,density:1,far:1}};
 const quality={level:'medium',auto:matchMedia('(pointer:coarse)').matches||Math.min(screen.width,screen.height)<700?'low':'medium',meter:createFrameWindow(),
  resolved(){return settings.quality==='auto'?this.auto:settings.quality;},
  pixelRatio(){return Math.min(devicePixelRatio,QUALITY[this.resolved()].pr,settings.quality==='auto'?1:Infinity);},
