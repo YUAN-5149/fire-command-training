@@ -18,6 +18,10 @@
       "sha256": "bca2ee4b7d2ea04545b22a5717c6fd60d46de1a6f78937ffbfc30596e381f6b6"
     },
     {
+      "path": "dist/assets/streets-xinyi.json",
+      "sha256": "b41cdda89d2a901ecd7ba84adaa12ad08e1473f77b20877875b6ba212afeff2c"
+    },
+    {
       "path": "dist/assets/lanes-xinyi.json",
       "sha256": "a5110187271e849555eae6de1fb1de8ff8ec761becdad0036ac91383189aa665"
     },
@@ -27,7 +31,7 @@
     },
     {
       "path": "dist/xinyi-youbike.js",
-      "sha256": "1097008ed25ea834fbd1eae8c2a426bdd208c767f924df7f4f972e204c84e143"
+      "sha256": "bff8db433966d93bd909dccd16fd2847de63a96aeb16b338ff279dbf04b9d0b1"
     },
     {
       "path": "dist/xinyi-youbike-placement.js",

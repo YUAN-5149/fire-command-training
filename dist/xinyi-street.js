@@ -144,7 +144,7 @@ const zebraCrossings=addZebraCrossings({T,scene,features:navigationFeatures,grou
 const yellowBoxData=await fetch('assets/xinyi-yellow-boxes.json?v=yellowbox-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
 const yellowBoxes=yellowBoxData?addYellowBoxes({T,scene,data:yellowBoxData,ground}):null;
 const youBikeData=await fetch('assets/xinyi-youbike.json?v=youbike-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
-if(youBikeData){youBike=addYouBikeStations({scene,data:youBikeData,features:navigationFeatures,ground:walkSurface,laneData,eocAnchor:landmarks.find(a=>a.key==='eoc')});if(eocRoot)youBike.replaceLegacyEoc(eocRoot);}
+if(youBikeData){youBike=addYouBikeStations({scene,data:youBikeData,features:navigationFeatures,ground:walkSurface,laneData,roadFeatures:[...navigationFeatures,...streets.features],eocAnchor:landmarks.find(a=>a.key==='eoc')});if(eocRoot)youBike.replaceLegacyEoc(eocRoot);}
 
 // 外圍沿完整行政界線裁切的 OSM 道路；不由道路等級猜測紅黃線。
 if(roadNetwork)for(const g of buildStreetBase(roadNetwork.outerFeatures.map(f=>f.kind==='sidewalk'?{...f,kind:'walk'}:f),ground,()=>false)){

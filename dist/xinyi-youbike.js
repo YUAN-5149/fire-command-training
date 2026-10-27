@@ -4,12 +4,12 @@ import {frontageSlots,EOC_PHOTO_REVIEW} from './xinyi-eoc-frontage.js?v=photo-20
 import {project} from './xinyi-street-world.js';
 
 // Official point anchors and dock totals; row arrangement and parked bicycle occupancy are illustrative, NOT surveyed.
-export function stationPlacements(data,features=[],{eocAnchor=null,laneData=null}={}){
+export function stationPlacements(data,features=[],{eocAnchor=null,laneData=null,roadFeatures=features}={}){
  const segments=[];
  for(const f of features){if(f.kind!=='road')continue;for(const path of f.paths??[])for(let i=1;i<path.length;i++){
   const [ax,az]=project(...path[i-1]),[bx,bz]=project(...path[i]);const dx=bx-ax,dz=bz-az,l2=dx*dx+dz*dz;if(l2>1)segments.push({ax,az,dx,dz,l2});
  }}
- const guard=createRoadGuard(features,laneData);return data.stations.map(s=>{const [x,z]=project(s.longitude,s.latitude);let distance=45,heading=0;
+ const guard=createRoadGuard(roadFeatures,laneData);return data.stations.map(s=>{const [x,z]=project(s.longitude,s.latitude);let distance=45,heading=0;
   for(const q of segments){const t=Math.max(0,Math.min(1,((x-q.ax)*q.dx+(z-q.az)*q.dz)/q.l2)),d=Math.hypot(x-q.ax-t*q.dx,z-q.az-t*q.dz);if(d<distance){distance=d;heading=-Math.atan2(q.dz,q.dx);}}
   const reviewed=s.id===EOC_PHOTO_REVIEW.stationId&&eocAnchor?{slots:frontageSlots(s.capacity),visualX:project(eocAnchor.lon,eocAnchor.lat)[0],visualZ:project(eocAnchor.lon,eocAnchor.lat)[1],heading:eocAnchor.heading*Math.PI/180,headingStatus:'photo-direction-model-frame',layoutStatus:EOC_PHOTO_REVIEW.status}:null;
   const result={...s,x,z,heading,headingStatus:'estimated-road-tangent',dockCount:s.capacity,bikeCount:Math.round(s.capacity*.65),columns:s.capacity<=20?s.capacity:Math.min(32,Math.ceil(s.capacity/2)),...reviewed};if(reviewed)result.bikeCount=result.slots.filter(p=>p.occupied).length;result.layoutAudit=auditStationLayout(result,guard);result.renderable=!!reviewed&&result.slots.length>0&&s.enabled!==false&&guard.count>0&&result.layoutAudit.clear;result.visualStatus=!reviewed?'pending-layout-review':!guard.count?'road-data-unavailable':!result.layoutAudit.clear?'road-overlap-blocked':s.enabled===false?'station-disabled':'photo-layout-road-clear';return result;
@@ -50,8 +50,8 @@ export function stationGeometry(){
  for(const z of [-.048,.048]){beacon.bar([-.15,2.20,z],[-.15,1.94,z],.025,dark);beacon.bar([.15,2.20,z],[.15,1.94,z],.025,dark);beacon.bar([-.15,1.94,z],[0,1.87,z],.025,dark);beacon.bar([0,1.87,z],[.15,1.94,z],.025,dark);}
  return {dock:dock.finish(),bike:bike.finish(),beacon:beacon.finish()};
 }
-export function addYouBikeStations({scene,data,features,ground,eocAnchor=null,laneData=null}){
- const records=stationPlacements(data,features,{eocAnchor,laneData}),geometries=stationGeometry(),group=new T.Group();group.name='YouBike — reviewed layouts only';scene.add(group);
+export function addYouBikeStations({scene,data,features,ground,eocAnchor=null,laneData=null,roadFeatures=features}){
+ const records=stationPlacements(data,features,{eocAnchor,laneData,roadFeatures}),geometries=stationGeometry(),group=new T.Group();group.name='YouBike — reviewed layouts only';scene.add(group);
  const material=new T.MeshStandardMaterial({vertexColors:true,roughness:.8});
  const make=(geometry,n,name)=>{const mesh=new T.InstancedMesh(geometry,material,Math.max(1,n));mesh.count=0;mesh.name=name;mesh.receiveShadow=true;mesh.castShadow=false;group.add(mesh);return mesh;};
  const beacons=make(geometries.beacon,records.length,'YouBike station markers'),docks=make(geometries.dock,records.reduce((n,s)=>n+s.dockCount,0),'Nearby full-capacity docks'),bikes=make(geometries.bike,records.reduce((n,s)=>n+s.bikeCount,0),'Nearby illustrative bicycles');
