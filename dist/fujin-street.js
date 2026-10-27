@@ -1,6 +1,6 @@
 import {addRooftop} from './rooftops.js';
 import * as T from 'three';
-import {weatherApartment} from './weathered-apartment.js?v=weathered-20261027';
+import {weatherApartment} from './weathered-apartment.js?v=weather-all-20261027';
 // Visual reconstruction from the supplied Fujin Street reference; dimensions are illustrative.
 export function createFujinStreet(world,facade,options={}){
 const scene=new T.Group();world.add(scene);
@@ -20,9 +20,10 @@ const luminous=new T.MeshStandardMaterial({color:'#fff3d6',emissive:'#ffe6ba',em
 }
 entrance(facade,0,4.08,true);
 function apartment(x,z,opposite,index){const g=new T.Group();g.position.set(x,0,z);if(opposite)g.rotation.y=Math.PI;scene.add(g);const h=12.8+(index%2)*3.2;box(11.7,h-3,7.5,0,3+(h-3)/2,0,tileMat,g);box(4.7,3,7.5,-3.5,1.5,0,tileMat,g);box(4.7,3,7.5,3.5,1.5,0,tileMat,g);box(2.3,3,.2,0,1.5,-3.7,tileMat,g);box(11.9,.2,7.8,0,h+.08,0,'#a8aa9d',g);for(let f=0;f<h/3.2;f++){for(let k=0;k<4;k++){if(f===0&&(k===1||k===2))continue;const wx=-4+k*2.65;box(2.1,1.8,.06,wx,f*3.2+1.85,3.79,'#536362',g);box(.055,1.82,.06,wx,f*3.2+1.85,3.84,'#c1c5b7',g);box(2.1,.055,.06,wx,f*3.2+1.85,3.84,'#b9bcae',g);if(f>0){box(2.35,.16,.85,wx,f*3.2+.82,4.06,'#abad9d',g);if((k+f)%2===0)box(.65,.4,.4,wx+.5,f*3.2+2.56,4.05,'#c1c5bd',g)}}if(f>0)box(11.7,.35,.08,0,f*3.2+.65,3.82,index%2?'#946c5c':'#8e8070',g)}details(0,0,3.86,1,g,h/3.2);box(11.6,.48,.18,0,2.9,3.9,'#b8b9a5',g);for(let k=0;k<2;k++){box(3.3,2.4,.08,-3.7+k*7.4,1.25,3.92,'#53635e',g);for(let n=0;n<12;n++)box(3.2,.025,.04,-3.7+k*7.4,.3+n*.16,3.98,'#7d877e',g)}entrance(g,0,3.99);addRooftop(g,h+.18,Math.round(Math.abs(x)/12.6)+(opposite?2:0));g.userData.height=h;return g}
-// 外觀升級示範：火災戶右側鄰棟（x=12.6）。網址加 ?look=classic 可看原版。
-const classicLook=(options.look??new URLSearchParams(location.search).get('look'))==='classic';
-for(const x of [-38,-25.3,-12.6,12.6,25.3,38]){const g=apartment(x,0,false,Math.abs(Math.round(x))%3);if(x===12.6&&!classicLook){try{weatherApartment(g,{height:g.userData.height,tileMat})}catch(e){console.warn('weathered apartment skipped',e)}}}for(const x of [-38,-25.3,-12.6,0,12.6,25.3,38])apartment(x,25,true,Math.abs(Math.round(x))%3);
+// 外觀升級：火災戶以外的 13 棟公寓都換成風化材質與附屬設備。網址加 ?look=classic 可看原版。
+const classicLook=(options.look??new URLSearchParams(location.search).get('look'))==='classic';let weatherSeed=0;
+function weather(g){const seed=weatherSeed++;if(classicLook)return;try{weatherApartment(g,{height:g.userData.height,tileMat,seed})}catch(e){console.warn('weathered apartment skipped',e)}}
+for(const x of [-38,-25.3,-12.6,12.6,25.3,38])weather(apartment(x,0,false,Math.abs(Math.round(x))%3));for(const x of [-38,-25.3,-12.6,0,12.6,25.3,38])weather(apartment(x,25,true,Math.abs(Math.round(x))%3));
 box(90,.25,6,0,.05,20.5,'#8b8f83');box(90,.18,.22,0,.06,6,'#b3b6aa');box(90,.18,.22,0,.06,17.5,'#b3b6aa');
 // Paired yellow center lines and parking bay outlines.
 
