@@ -245,24 +245,24 @@ def street_wall(buf, F, H, fh, style, shop, colour, rng, M, texts):
 
     # ---- 一樓
     if shop:
-        AD = 3.0
+        AD, FT = 3.0, .012   # 騎樓地坪與人行道同高，僅留薄面防閃爍（不推測墊高）
         for k in range(nb + 1):            # 騎樓柱
             x = min(max(k * bw, .3), W - .3)
             buf.box(F, M['tile'], x - .3, x + .3, -.6, 0, 0, fh, tile)
         buf.box(F, M['tile'], 0, W, -.6, 0, fh - .65, fh, tile)               # 前樑
         buf.box(F, M['ceiling'], 0, W, -AD, -.6, fh - .55, fh - .45)          # 騎樓天花
         buf.box(F, M['tile'], 0, W, -AD - .2, -AD, fh - 1.0, fh - .45, tile)  # 店面上方牆
-        buf.box(F, M['floor'], 0, W, -AD, 0, 0, .12)                          # 騎樓地坪
+        buf.box(F, M['floor'], 0, W, -AD, 0, 0, FT)                          # 騎樓地坪
         for k in range(nb):
             x0, x1 = k * bw + .3, (k + 1) * bw - .3
             if rng.random() < .35:         # 鐵捲門（拉下）
                 g = rng.choice(["#9aa0a3", "#b8bcbe", "#7d8488"])
-                buf.box(F, M['shutter'], x0, x1, -AD - .05, -AD, .12, fh - 1.0, srgb(g))
+                buf.box(F, M['shutter'], x0, x1, -AD - .05, -AD, FT, fh - 1.0, srgb(g))
             else:                          # 玻璃店面
-                buf.box(F, M['dark'], x0, x1, -AD - .3, -AD - .25, .12, fh - 1.0)
-                buf.box(F, M['shopglass'], x0 + .08, x1 - .08, -AD - .06, -AD - .04, .2, fh - 1.08)
+                buf.box(F, M['dark'], x0, x1, -AD - .3, -AD - .25, FT, fh - 1.0)
+                buf.box(F, M['shopglass'], x0 + .08, x1 - .08, -AD - .06, -AD - .04, FT + .08, fh - 1.08)
                 for xx in (x0, x1 - .06, (x0 + x1) / 2 - .03):
-                    buf.box(F, M['frame'], xx, xx + .06, -AD - .06, -AD, .12, fh - 1.0)
+                    buf.box(F, M['frame'], xx, xx + .06, -AD - .06, -AD, FT, fh - 1.0)
                 buf.box(F, M['frame'], x0, x1, -AD - .06, -AD, fh - 1.06, fh - 1.0)
             # 店招：掛在前樑外側
             sc = rng.choice(SIGN_COLOURS)

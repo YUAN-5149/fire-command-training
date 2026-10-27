@@ -26,7 +26,9 @@ const lot=root.getObjectByName('EOC_parking_lot'),car=root.getObjectByName('Park
 drapeSite(root,ground);root.updateMatrixWorld(true);
 const p=new T.Vector3(),g=[];lot.traverse(m=>{if(!m.isMesh)return;const a=m.geometry.attributes.position;
  for(let i=0;i<a.count;i+=7){p.fromBufferAttribute(a,i).applyMatrix4(m.matrixWorld);g.push(p.y-ground.at(p.x,p.z));}});
-assert(g.length&&g.every(d=>d>0&&d<.15),'lot follows the ground (+lift): '+Math.min(...g).toFixed(3)+'…'+Math.max(...g).toFixed(3));
+// 停車場面只保留模型本身 2 cm 的地坪高，不另加防閃爍抬升（防閃爍改用 polygonOffset），可步行高度不會是假的高差
+assert(g.length&&g.every(d=>d>=0&&d<.03),'lot follows the ground, no visual lift: '+Math.min(...g).toFixed(3)+'…'+Math.max(...g).toFixed(3));
+lot.traverse(m=>{if(m.isMesh)for(const mt of [].concat(m.material))assert(mt.polygonOffset,'draped paving uses polygonOffset');});
 car.getWorldPosition(p);const box=new T.Box3().setFromObject(car);
 assert(Math.abs(box.min.y-ground.at(p.x,p.z))<.4,'car stands on the ground');
 

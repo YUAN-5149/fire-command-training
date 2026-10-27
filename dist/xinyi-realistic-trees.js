@@ -43,5 +43,9 @@ export function createRealisticTrees({scene,assets,ground,street=[],supplemental
  function setAppearance(value='auto'){if(value!=='auto'&&!assets.models.some(m=>m.kind===value&&m.category==='tree'))return false;appearance=value;for(const r of records){if(r.source==='shrub')continue;r.baseKind??=r.kind;r.baseScale??=r.scale;if(value==='auto'){r.kind=r.baseKind;r.scale=r.baseScale;continue;}const original=assets.models.find(m=>m.kind===r.baseKind),target=assets.models.find(m=>m.kind===value);const bounds=m=>{const b=new T.Box3();for(const p of m.levels[0].parts)b.union(p.geometry.boundingBox);return b.getSize(new T.Vector3());},a=bounds(original),b=bounds(target);r.kind=value;r.scale=r.baseScale*Math.min(a.x/b.x,a.y/b.y,a.z/b.z);}rebuild();return true;}
  function setQuality(value){if(quality!==value){quality=value;force=true;}}
  function setVisible(on){group.visible=!!on;force=true;}
- return {group,records,batches,stats,update,replaceEoc,setQuality,setVisible,setAppearance};
+ // 逐街精修所見綠籬（assets/street-hedges-xinyi.json）：照片確認的臨街面，沿用三種共用灌木；高度取可步行面（不推測台階）。
+ function addHedges(data){let n=0;for(const [hi,h] of (data?.hedges??[]).entries())h.points.forEach(([x,z,ry],j)=>{const model=shrubModels[(hi+j)%shrubModels.length];if(!model)return;
+   records.push({id:'hedge-'+hi+'-'+j,x,z,ry,scale:h.scale??1,kind:model.kind,source:'shrub',level:-1,tint:.86+((hi*5+j)%5)*.035,hedge:h.name});n++;});
+  if(n){rebuild();if(appearance!=='auto')setAppearance(appearance);}return n;}
+ return {group,records,batches,stats,update,replaceEoc,addHedges,setQuality,setVisible,setAppearance};
 }
