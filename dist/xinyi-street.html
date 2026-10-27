@@ -119,18 +119,19 @@
     <label><input type="checkbox" id="officialPaint" checked> 官方紅黃線與明確標記中線</label>
     <div class="toggles"><label><input type="checkbox" id="zebraMapped" checked> 黑白斑馬線（OSM 已標記）</label><label><input type="checkbox" id="zebraReview" checked> 其餘穿越道示意（條紋待核對）</label></div>
     <h2>YouBike 公共自行車站</h2>
-    <label><input type="checkbox" id="youBike" checked> 顯示 YouBike 站點與示意自行車</label>
+    <label><input type="checkbox" id="youBike" checked> 顯示 YouBike 地圖站點與已核對配置</label>
     <p id="youBikeStatus" class="note" role="status">載入官方 YouBike 站點…</p>
     <label for="youBikeStation">信義區站點</label>
     <select id="youBikeStation" aria-describedby="youBikeStationDetail" style="max-width:100%"></select>
     <button id="youBikeLocate">在地圖標示此站</button>
     <p id="youBikeStationDetail" class="note"></p>
-    <p class="note"><a href="https://data.taipei/dataset/detail?id=c6bc8aed-557d-41d5-bfb1-8da24f78f2fb" target="_blank" rel="noopener">臺北市官方 YouBike 資料</a>。黃色 U 為站點標記；依官方容量呈現柱位總數；排列不是實測範圍，自行車暫不提供騎乘。</p>
+    <p class="note"><a href="https://data.taipei/dataset/detail?id=c6bc8aed-557d-41d5-bfb1-8da24f78f2fb" target="_blank" rel="noopener">臺北市官方 YouBike 資料</a>。地圖黃色標記為官方站點代表座標，不是整排車柱中心。未核對排列僅保留地圖標記與容量資料；照片配置通過模型車道檢查才顯示實體，尺寸仍待量測。</p>
     <label><input type="checkbox" id="yellowBoxes" checked> 網狀黃線（2025 影像判讀）</label>
     <p id="yellowBoxStatus" class="note" role="status">載入網狀黃線…</p>
     <p class="note"><a href="https://www.historygis.udd.gov.taipei/urban/?id=B5775BBE" target="_blank" rel="noopener">影像來源：臺北市政府都市發展局</a>。已核對可辨識的影像外框，非現地量測；遮蔽、褪色及模糊位置仍可能漏辨。</p>
     <p id="zebraStatus" class="note" role="status">載入人行穿越道…</p>
-    <p id="treeAssetStatus" class="note" role="status">載入分枝與葉片樹木…</p>
+    <label>樹木外觀<select id="treeAppearance" disabled><option value="auto">原樹位混合樣式（含六種茂密樹形）</option><option value="dense-dome">茂密圓頂（示意預覽）</option><option value="dense-umbrella">茂密傘冠（示意預覽）</option><option value="dense-column">茂密直立（示意預覽）</option><option value="dense-low">茂密低冠（示意預覽）</option><option value="dense-broad">茂密展冠（示意預覽）</option><option value="dense-rounded">茂密團簇（示意預覽）</option><option value="cherry">櫻花樹（花期示意預覽）</option><option value="terminalia">小葉欖仁（示意預覽）</option><option value="banyan-species">榕樹（示意預覽）</option><option value="taiwan-goldenrain">台灣欒樹（花果示意預覽）</option></select></label>
+    <p id="treeAssetStatus" class="note" role="status">載入十六種樹木外觀與三種灌木…</p>
     <p class="note">樹木模型來源：<a href="https://github.com/dgreenheck/ez-tree" target="_blank" rel="noopener">EZ-Tree（MIT）</a>；樹皮貼圖來自 ambientCG（CC0）。樹位依現有資料，樹形為示意，非現地樹種調查。</p>
     <p id="busStatus" class="note" role="status">載入示意公車…</p>
     <p id="roadDataStatus" class="note" role="status">正在載入全區道路與官方紅黃線…</p>
@@ -180,6 +181,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s56-trees-20261027"></script>
+<script type="module" src="xinyi-street.js?v=s57-dense-species-20261027"></script>
 </body>
 </html>

@@ -24,6 +24,8 @@ npm run dev
 
 ## 接手與狀態
 
+持續決策與跨工具記憶見 [PROJECT-MEMORY.md](PROJECT-MEMORY.md)。後續街道精修一併依其中植栽規則建置；EOC 前方長條已確認為灌木叢，整段新版替換仍列待辦。
+
 請先讀 `MASTER-SPEC.md`、`START-HERE.md` 與 `HANDOFF-XINYI-BATCH15.md`。START-HERE是原移交快照；後續批次紀錄及現有原始碼是目前實作。
 
 保留既有車型、红色警示燈、車組及官方建物位置；不自動透視，也不為配置車輛任意拓寬道路。

@@ -1,9 +1,9 @@
-import {loadTreeAssets,createRealisticTrees} from './xinyi-realistic-trees.js?v=trees-20261027';
+import {loadTreeAssets,createRealisticTrees} from './xinyi-realistic-trees.js?v=dense-species-20261027';
 import {treeInstances} from './xinyi-trees.js?v=5';
 import {applyEocFrontage,reviewEocGreen} from './xinyi-eoc-frontage.js?v=photo-20261027';
 import {createWalkSurface,placeCharacterFeet} from './xinyi-walk-surface.js?v=ground-20261023';
 import {MINI_ZOOM_LEVELS,miniZoom,stepMiniZoom,miniMapMetrics} from './xinyi-minimap.js?v=minimap-20261023';
-import {addYouBikeStations} from './xinyi-youbike.js?v=photo-20261027';
+import {addYouBikeStations} from './xinyi-youbike.js?v=road-audit-20261027';
 import {createFrameBudget,createFrameWindow} from './xinyi-performance.js?v=runtime-20261023';
 import {addYellowBoxes} from './xinyi-yellow-boxes.js?v=yellowbox-20261023';
 import {addZebraCrossings} from './xinyi-zebra-crossings.js?v=zebra-20261023';
@@ -144,7 +144,7 @@ const zebraCrossings=addZebraCrossings({T,scene,features:navigationFeatures,grou
 const yellowBoxData=await fetch('assets/xinyi-yellow-boxes.json?v=yellowbox-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
 const yellowBoxes=yellowBoxData?addYellowBoxes({T,scene,data:yellowBoxData,ground}):null;
 const youBikeData=await fetch('assets/xinyi-youbike.json?v=youbike-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
-if(youBikeData){youBike=addYouBikeStations({scene,data:youBikeData,features:navigationFeatures,ground:walkSurface,eocAnchor:landmarks.find(a=>a.key==='eoc')});if(eocRoot)youBike.replaceLegacyEoc(eocRoot);}
+if(youBikeData){youBike=addYouBikeStations({scene,data:youBikeData,features:navigationFeatures,ground:walkSurface,laneData,roadFeatures:[...navigationFeatures,...streets.features],eocAnchor:landmarks.find(a=>a.key==='eoc')});if(eocRoot)youBike.replaceLegacyEoc(eocRoot);}
 
 // 外圍沿完整行政界線裁切的 OSM 道路；不由道路等級猜測紅黃線。
 if(roadNetwork)for(const g of buildStreetBase(roadNetwork.outerFeatures.map(f=>f.kind==='sidewalk'?{...f,kind:'walk'}:f),ground,()=>false)){
@@ -204,7 +204,10 @@ step('建立車流、行人與店面');
 const exclude=new Set([357399,265936,266115,266138,...zhuangjingIds]);(function collect(o){if(Array.isArray(o))o.forEach(collect);else if(o&&typeof o==='object')for(const [k,v] of Object.entries(o)){if(k==='officialVolumeCandidates'&&Array.isArray(v))v.forEach(id=>exclude.add(+id));else collect(v);}})(firstBatch);
 const life=createStreetLife(scene,{features:streets.features,buildings:district.buildings,ground,colliders,fixtures,exclude,spawn,markings:!laneData,busFeatures:navigationFeatures});
 // Only hide old crowns after both geometry and textures loaded successfully.
-loadTreeAssets().then(assets=>{treeForest=createRealisticTrees({scene,assets,ground:walkSurface,street:treeInstances(furniture?.trees??[]),supplemental:life.groups.trees.children.find(m=>m.isInstancedMesh)});if(eocRoot)treeForest.replaceEoc(eocRoot);scene.traverse(o=>{if(o.name==='street trees')o.visible=false;});life.groups.trees.visible=false;treeForest.setVisible(forestVisible);treeForest.setQuality(forestQuality);$('treeAssetStatus').textContent='已載入 GitHub EZ-Tree：分枝樹幹、透明葉片及三層遠近細節；樹位沿用既有資料，樹種與季節外觀為示意。';}).catch(e=>{console.warn('Tree assets unavailable; original trees retained',e);$('treeAssetStatus').textContent='新樹木素材未載入，暫時保留原樹木；請重新整理。';});
+const treeChoice=$('treeAppearance'),requestedTree=new URLSearchParams(location.search).get('trees');if([...treeChoice.options].some(o=>o.value===requestedTree))treeChoice.value=requestedTree;
+function describeTreeStyle(){const label=treeChoice.selectedOptions[0]?.textContent;$('treeAssetStatus').textContent=treeChoice.value==='auto'?'已載入十二種一般樹形（含六種新增茂密樹形）、四種樹種外觀與三種灌木。樹位沿用既有資料；樹種與現場尺寸待核對。':'目前為 '+label+'；沿用原樹位並限制原有樹冠範圍，屬外觀與季節示意，不代表現場樹種。';}
+treeChoice.onchange=()=>{if(treeForest?.setAppearance(treeChoice.value))describeTreeStyle();};
+loadTreeAssets().then(assets=>{treeForest=createRealisticTrees({scene,assets,ground:walkSurface,street:treeInstances(furniture?.trees??[]),supplemental:life.groups.trees.children.find(m=>m.isInstancedMesh)});if(eocRoot)treeForest.replaceEoc(eocRoot);scene.traverse(o=>{if(o.name==='street trees')o.visible=false;});life.groups.trees.visible=false;treeForest.setVisible(forestVisible);treeForest.setQuality(forestQuality);treeForest.setAppearance(treeChoice.value);treeChoice.disabled=false;describeTreeStyle();}).catch(e=>{console.warn('Tree assets unavailable; original trees retained',e);$('treeAssetStatus').textContent='新樹木素材未載入，暫時保留原樹木；請重新整理。';});
 $('busStatus').textContent=life.busStats.count?'已接入最多 '+life.busStats.count+' 輛示意公車，沿較寬幹道路段行駛；非實際營運路線或時刻。':'目前資料沒有適合的寬幹道路段，暫不生成公車。';
 const sky=createSky();scene.add(sky);
 const audio=createAudio();
@@ -1018,10 +1021,10 @@ $('youBike').onchange=()=>{settings.youBike=$('youBike').checked;youBike?.setVis
 const stationSelect=$('youBikeStation');
 for(const s of youBike?.records??[]){const o=document.createElement('option');o.value=s.id;o.textContent=s.name;stationSelect.append(o);}
 stationSelect.value='500112017';
-function describeYouBike(){const s=youBike?.records.find(s=>s.id===stationSelect.value);$('youBikeStationDetail').textContent=s?s.address+'｜官方柱位總數 '+s.capacity+(s.slots?'（單排避開樹穴；依 2025/01 街景調整，尺寸待量測）':'（柱數完整；排列與車數為示意）'):'';}
+function describeYouBike(){const s=youBike?.records.find(s=>s.id===stationSelect.value);$('youBikeStationDetail').textContent=s?s.address+'｜官方柱位總數 '+s.capacity+(s.renderable?'（照片配置已通過模型車道檢查；尺寸待量測）':'（僅保留站點資料；實體排列待核對，暫不顯示車柱與自行車）'):'';}
 stationSelect.onchange=describeYouBike;describeYouBike();
 $('youBikeLocate').disabled=!youBike;$('youBikeLocate').onclick=()=>{const s=youBike.records.find(s=>s.id===stationSelect.value);if(s){setWaypoint(s.x,s.z,'YouBike・'+s.name);setPaused(false);openMap();}};
-$('youBikeStatus').textContent=youBike?'已匯入信義區 '+youBike.records.length+' 站（官方資料 '+youBikeData.stations[0].sourceUpdated+'）。站點座標依官方資料；車柱方向、間距及高程待現勘。依官方容量顯示完整柱數；應變中心站已依使用者提供的 2025/01 街景改為沿路緣單排、避開樹穴，柱距與定位待量測；自行車停放非即時可借數。附近 125 m 顯示細節。':'YouBike 資料未載入；原有場景保留，請重新整理。';
+$('youBikeStatus').textContent=youBike?'已保留信義區 '+youBike.records.length+' 站官方座標與容量；'+youBike.stats.reviewed+' 站照片配置通過模型車道重疊檢查，'+youBike.stats.pending+' 站排列待核對，僅顯示地圖站點。官方代表座標不當作整排車柱中心；不依容量自動鋪車。現場尺寸、路緣及可借數仍待確認。':'YouBike 資料未載入；請重新整理。';
 $('yellowBoxes').checked=settings.yellowBoxes!==false;if(yellowBoxes)yellowBoxes.group.visible=$('yellowBoxes').checked;
 $('yellowBoxes').onchange=()=>{settings.yellowBoxes=$('yellowBoxes').checked;if(yellowBoxes)yellowBoxes.group.visible=settings.yellowBoxes;saveSettings();};
 $('yellowBoxStatus').textContent=yellowBoxData?'網狀黃線：已掃描 '+yellowBoxData.coverage.tilesScanned+' 個影像分區，匯入 '+yellowBoxes.count+' 處，另 '+yellowBoxData.counts.deferredBoundary+' 筆候選外框待核對。來源為2025影像；線寬、間距及目前現況待核對，遮蔽處可能漏辨。':'網狀黃線資料未載入，請重新整理後核對。';
