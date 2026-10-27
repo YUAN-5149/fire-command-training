@@ -115,7 +115,7 @@
     <div class="load-grid"><label>消防員體重<input type="number" id="load-firefighter" min="0" step="1"> kg</label><label>消防衣與 SCBA<input type="number" id="load-gear" min="0" step="1"> kg</label><label>籃內器材<input type="number" id="load-equipment" min="0" step="1"> kg</label><label>擔架<input type="number" id="load-stretcher" min="0" step="1"> kg</label><label>容許籃載重<input type="number" id="load-capacity" min="0" step="1"> kg</label><button id="loadReset">回復示意預設</button></div>
     <p class="note">籃內 1 名消防員（轉台操作員不計入籃載重）＋待救者估計體重＋擔架（昏迷、重傷時）。預設值為示意；容許籃載重預設為 Rosenbauer L32A-XS 原廠最高額定 500 kg（5 人），<b>不等於該作業半徑與仰角的可用值</b>，請依原廠作業曲線輸入。超過時不能配置救援或升梯。</p>
     <h2>街道生活層（示意）</h2>
-    <div class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 汽車、機車與公車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 推估車道線（含雙黃線）</label><label><input type="checkbox" id="lifeTrees" checked> 補植行道樹</label></div>
+    <div class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 汽車、機車與公車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 推估車道線（含雙黃線）</label><label><input type="checkbox" id="lifeTrees" checked> 樹木（行道樹與應變中心）</label></div>
     <label><input type="checkbox" id="officialPaint" checked> 官方紅黃線與明確標記中線</label>
     <div class="toggles"><label><input type="checkbox" id="zebraMapped" checked> 黑白斑馬線（OSM 已標記）</label><label><input type="checkbox" id="zebraReview" checked> 其餘穿越道示意（條紋待核對）</label></div>
     <h2>YouBike 公共自行車站</h2>
@@ -130,6 +130,8 @@
     <p id="yellowBoxStatus" class="note" role="status">載入網狀黃線…</p>
     <p class="note"><a href="https://www.historygis.udd.gov.taipei/urban/?id=B5775BBE" target="_blank" rel="noopener">影像來源：臺北市政府都市發展局</a>。已核對可辨識的影像外框，非現地量測；遮蔽、褪色及模糊位置仍可能漏辨。</p>
     <p id="zebraStatus" class="note" role="status">載入人行穿越道…</p>
+    <p id="treeAssetStatus" class="note" role="status">載入分枝與葉片樹木…</p>
+    <p class="note">樹木模型來源：<a href="https://github.com/dgreenheck/ez-tree" target="_blank" rel="noopener">EZ-Tree（MIT）</a>；樹皮貼圖來自 ambientCG（CC0）。樹位依現有資料，樹形為示意，非現地樹種調查。</p>
     <p id="busStatus" class="note" role="status">載入示意公車…</p>
     <p id="roadDataStatus" class="note" role="status">正在載入全區道路與官方紅黃線…</p>
     <p class="note">紅黃線依市府向量位置；線寬為顯示值。斑馬線採白色條紋與深色路面相間；其餘穿越道樣式可獨立關閉，條紋與尺寸待核對。推估車道線可單獨關閉；黃虛線尚無完整定位資料。外圍地形、路幅及建物細節尚未現勘。</p>
@@ -178,6 +180,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s55-lazy-20261027"></script>
+<script type="module" src="xinyi-street.js?v=s55-trees-20261027"></script>
 </body>
 </html>

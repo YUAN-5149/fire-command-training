@@ -1,0 +1,35 @@
+{
+  "repository": "https://github.com/dgreenheck/ez-tree",
+  "commit": "dcf309bd86bd521083d9c70f01f2de45fdc7c457",
+  "codeLicense": "MIT, Copyright 2024 Daniel Greenheck",
+  "leafTextureLicense": "MIT (per upstream textures/LICENSE.md)",
+  "leafOriginalSha256": "24451223cf396d22910a4932b8bb996a7274e63d81e24128c96a430ab67822b1",
+  "barkTextureLicense": "CC0 ambientCG Bark001",
+  "barkSource": "https://ambientcg.com/view?id=Bark001",
+  "barkOriginalSha256": "2a7e8c742aa0110057d7a3ff0e8ec193c26ef23b77bc778fb9258c0e41b29474",
+  "changes": [
+    "Added .js to relative imports for native ESM",
+    "Inlined three upstream presets as JS instead of JSON imports",
+    "Reduced branch child counts and capped leaf card count for game use",
+    "Generated three reusable mesh LODs per tree shape, normalized to 7–8.2m",
+    "Resized original leaf and bark color textures to max512px"
+  ],
+  "files": {
+    "geometry.bin": {
+      "bytes": 1513184,
+      "sha256": "cf7c57977963c5b6e6aaa5d3bb66bb697639bc040ea0edee914940d056e84fd4"
+    },
+    "catalog.json": {
+      "bytes": 22346,
+      "sha256": "fb18ce5d318741a6bd6f44abefdee76b851a7ec039ceaf84131897c7477238e8"
+    },
+    "leaves.png": {
+      "bytes": 68964,
+      "sha256": "904d644b4d55f5eda5e9fb3525f94e012ca3218c46371d796503deb57f6309fe"
+    },
+    "bark.jpg": {
+      "bytes": 52261,
+      "sha256": "31721c5adc23b05a69d39e281ae45f0757bbacaa2b07512effc0c0159340c225"
+    }
+  }
+}
