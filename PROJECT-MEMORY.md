@@ -52,3 +52,9 @@
 - 建置前必讀 [街道高差與步行規則](docs/street-elevation-walkability-rules.md)，每處複製 [建置與提醒範本](docs/templates/street-elevation-review.md) 留存來源、尺寸、配置及驗收紀錄。
 - 目前有鋪面取樣與人物腳底修正，尚未完成全面逐階跨步、可行坡度限制及多層支撐辨識；本次只新增規則／範本，不代表已有全區階梯實作。後續逐段建模與程式接入列待辦。
 - 2026-10-27 依本規則修正：逐街精修騎樓移除推測墊高 12 cm、EOC 場地鋪面移除 5 cm 防閃爍抬升（改用 polygonOffset）。紀錄見 [docs/elevation-reviews/arcade-floor-eoc-paving-20261027.md](docs/elevation-reviews/arcade-floor-eoc-paving-20261027.md)；騎樓實際高差待量測。
+
+## 短草試作（2026-10-27）
+
+- 使用者選定 three-stylized 作草坪，草不要太長；試作草葉6–12公分，為模型外觀參數，不是現場量測。
+- 僅套在 EOC 北側既有圓形草坪，排除園路、道路及邊界餘裕；前方長條維持灌木綠籬。保留原地坪、高差、YouBike 與人物通行資料。
+- 其他位置須先核對草坪／灌木／鋪面分類與邊界，不可把綠色區域全部撒草。完整來源、效能限制及待驗證事項見 [短草紀錄](docs/eoc-short-grass-20261027.md)。

@@ -1,3 +1,4 @@
+import {createShortGrass} from './xinyi-short-grass.js?v=short-grass-20261027';
 import {loadTreeAssets,createRealisticTrees} from './xinyi-realistic-trees.js?v=hedges2-20261027';
 import {treeInstances} from './xinyi-trees.js?v=5';
 import {applyEocFrontage,reviewEocGreen} from './xinyi-eoc-frontage.js?v=photo-20261027';
@@ -126,9 +127,10 @@ let detailMats,farMat,facadeSigns=null,shophouse=null;
  const detail=buildXinyiDetail(refined,{arcade:false,attStudy:false});detailMats=createDetailMaterials(GisMaterial);litWindows(detailMats.glass);scene.add(mesh(toLocal(detail.position,ground),{color:detail.color,uv:detail.uv,groups:detail.groups,materials:detailMats}));
 }
 // 應變中心：場地（停車場、廣場、樹與車）貼合地形，補上原模型檢視頁的表面質感與夜間亮窗、停機坪邊燈。
-let eocDetail=null,eocRoot=null,youBike=null,treeForest=null,forestVisible=true,forestQuality='medium';
+let shortGrass=null,shortGrassReady=false;let eocDetail=null,eocRoot=null,youBike=null,treeForest=null,forestVisible=true,forestQuality='medium';
+function setupShortGrass(){if(shortGrass||!eocRoot)return;try{shortGrass=createShortGrass({scene,root:eocRoot,laneData,features:[...navigationFeatures,...streets.features],quality:forestQuality,sun});shortGrass?.setVisible($('shortGrass').checked);$('shortGrassStatus').textContent=shortGrass?'EOC 北側既有圓形草坪：短草約6–12公分，草高與範圍為模型試作，現況待核對。':'未找到既有草坪，未新增草地。';}catch(err){console.warn('Short grass unavailable',err);$('shortGrassStatus').textContent='短草未載入；保留原草坪。';}}
 addLandmarksToThree({T,scene,GLTFLoader,ground,project}).then(list=>{const e=list.find(l=>l.anchor.key==='eoc');if(!e)return;
- applyEocFrontage(e.root);drapeSite(e.root,ground);walkSurface.addDraped(e.root);eocRoot=e.root;treeForest?.replaceEoc(e.root);youBike?.replaceLegacyEoc(e.root);eocDetail=enhanceEoc(e.root);try{eocDetail.setNight(TIME_PRESETS[state.time].lights);}catch{}}).catch(e=>console.error(e));
+ applyEocFrontage(e.root);drapeSite(e.root,ground);walkSurface.addDraped(e.root);eocRoot=e.root;if(shortGrassReady)setupShortGrass();treeForest?.replaceEoc(e.root);youBike?.replaceLegacyEoc(e.root);eocDetail=enhanceEoc(e.root);try{eocDetail.setNight(TIME_PRESETS[state.time].lights);}catch{}}).catch(e=>console.error(e));
 // 街道：預設為逐車道路面（osm2streets：車道、人行道、路口、中線、車道線、箭頭、停止線）；
 // ?roads=legacy 改回原本依 OSM 寬度展開的示意路面＋精修鋪面。兩者都保留 OSM zebra 斑馬線。
 const legacyRoads=new URLSearchParams(location.search).get('roads')==='legacy';
@@ -204,6 +206,7 @@ step('建立車流、行人與店面');
 const exclude=new Set([357399,265936,266115,266138,...zhuangjingIds]);(function collect(o){if(Array.isArray(o))o.forEach(collect);else if(o&&typeof o==='object')for(const [k,v] of Object.entries(o)){if(k==='officialVolumeCandidates'&&Array.isArray(v))v.forEach(id=>exclude.add(+id));else collect(v);}})(firstBatch);
 const life=createStreetLife(scene,{features:streets.features,buildings:district.buildings,ground,colliders,fixtures,exclude,spawn,markings:!laneData,busFeatures:navigationFeatures});
 // Only hide old crowns after both geometry and textures loaded successfully.
+shortGrassReady=true;if(eocRoot)setupShortGrass();
 const treeChoice=$('treeAppearance'),requestedTree=new URLSearchParams(location.search).get('trees');if([...treeChoice.options].some(o=>o.value===requestedTree))treeChoice.value=requestedTree;
 function describeTreeStyle(){const label=treeChoice.selectedOptions[0]?.textContent;$('treeAssetStatus').textContent=treeChoice.value==='auto'?'已載入十二種一般樹形（含六種新增茂密樹形）、四種樹種外觀與三種灌木。樹位沿用既有資料；樹種與現場尺寸待核對。':'目前為 '+label+'；沿用原樹位並限制原有樹冠範圍，屬外觀與季節示意，不代表現場樹種。';}
 treeChoice.onchange=()=>{if(treeForest?.setAppearance(treeChoice.value))describeTreeStyle();};
@@ -946,7 +949,7 @@ function frame(now){
  zhuangjing?.update(state);
  const crewStatus=zhuangjing&&Math.hypot(state.x-zhuangjing.layout.x,state.z-zhuangjing.layout.z)<28?zhuangjing.status:stationTeam.status();if($('stationCrewStatus').textContent!==crewStatus)$('stationCrewStatus').textContent=crewStatus;
  state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);
- eocDetail?.update(t,camera.position);treeForest?.update(camera.position);youBike?.update(camera.position);shophouse?.update(camera.position,QUALITY[quality.level].detail);
+ eocDetail?.update(t,camera.position);treeForest?.update(camera.position);shortGrass?.update(t,camera.position);youBike?.update(camera.position);shophouse?.update(camera.position,QUALITY[quality.level].detail);
  life.update(dt,t,[...(state.mode!=='walk'?truckCircles():[[state.x,state.z,.5],...truckCircles()]),...(aerial?.circles()??[]),...(gis?.circles()??[]),...sceneCircles(true)],{eye:camera.position,siren:[truck.siren?{x:truck.x,z:truck.z}:null,...squadKit.squads.flatMap(sq=>sq.vehicles.filter(v=>v.state==='driving').map(v=>({x:v.x,z:v.z})))]});
  updateAerial(dt);
  updateMission(dt,t);updateAir(dt);actionKit.updateCharacters(dt,{eye:camera.position});if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);
@@ -987,7 +990,7 @@ const QUALITY={low:{label:'低',detail:160,pr:.75,shadow:0,density:.35,far:.7},m
 const quality={level:'medium',auto:matchMedia('(pointer:coarse)').matches||Math.min(screen.width,screen.height)<700?'low':'medium',meter:createFrameWindow(),
  resolved(){return settings.quality==='auto'?this.auto:settings.quality;},
  pixelRatio(){return Math.min(devicePixelRatio,QUALITY[this.resolved()].pr,settings.quality==='auto'?1:Infinity);},
- apply(){const q=QUALITY[this.level=this.resolved()];forestQuality=this.level;treeForest?.setQuality(forestQuality);renderer.setPixelRatio(this.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);
+ apply(){const q=QUALITY[this.level=this.resolved()];forestQuality=this.level;treeForest?.setQuality(forestQuality);shortGrass?.setQuality(forestQuality);renderer.setPixelRatio(this.pixelRatio());renderer.setSize(innerWidth,innerHeight,false);
   sun.castShadow=q.shadow>0;if(q.shadow&&sun.shadow.mapSize.x!==q.shadow){sun.shadow.mapSize.set(q.shadow,q.shadow);sun.shadow.map?.dispose();sun.shadow.map=null;}
   life.setDensity(q.density);camera.far=2500*q.far;camera.updateProjectionMatrix();scene.fog.far=TIME_PRESETS[state.time].fogFar*q.far;
   $('qualityDetail').textContent=`目前：${q.label}（解析度 ${Math.round(this.pixelRatio()*100)}%、陰影${q.shadow?q.shadow+' px':'關閉'}、車流行人 ${Math.round(q.density*100)}%）`+(settings.quality==='auto'?'，自動模式':'');},
@@ -1015,6 +1018,7 @@ $('sens').value=settings.sens;$('sensValue').textContent=(+settings.sens).toFixe
 $('invertY').checked=settings.invertY;$('invertY').onchange=()=>{settings.invertY=$('invertY').checked;saveSettings();};
 function setLifeVisible(group,visible){life.groups[group].visible=group==='trees'&&treeForest?false:visible;if(group==='trees'){forestVisible=visible;treeForest?.setVisible(visible);}if(group==='markings'&&laneMesh)for(const m of laneMesh.children)if(m.userData.inferredPaint)m.visible=visible;}
 for(const [id,group] of [['lifeTraffic','traffic'],['lifePeople','people'],['lifeShops','shops'],['lifeMarkings','markings'],['lifeTrees','trees']]){const box=$(id);box.checked=settings.life[group];setLifeVisible(group,box.checked);box.onchange=()=>{setLifeVisible(group,box.checked);settings.life[group]=box.checked;saveSettings();};}
+$('shortGrass').onchange=()=>shortGrass?.setVisible($('shortGrass').checked);$('shortGrassLocate').onclick=()=>{if(shortGrass){setWaypoint(shortGrass.center.x,shortGrass.center.z,'EOC 北側短草試作');setPaused(false);openMap();}};
 $('youBike').checked=settings.youBike!==false;youBike?.setVisible($('youBike').checked);
 $('youBike').disabled=!youBike;
 $('youBike').onchange=()=>{settings.youBike=$('youBike').checked;youBike?.setVisible(settings.youBike);saveSettings();};
@@ -1048,5 +1052,5 @@ renderLoad();
 $('loading').hidden=true;
 {const at=new URLSearchParams(location.search).get('at');if(at)goToLandmark(at);}
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={get treeForest(){return treeForest;},get tankerKit(){return tankerKit;},get surveyKit(){return surveyKit;},walkSurface,youBike,zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);}}};
+window.__xinyiStreet={get shortGrass(){return shortGrass;},get treeForest(){return treeForest;},get tankerKit(){return tankerKit;},get surveyKit(){return surveyKit;},walkSurface,youBike,zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);}}};
 requestAnimationFrame(frame);

@@ -1,0 +1,2 @@
+import fs from 'node:fs';import {stripTypeScriptTypes} from 'node:module';
+const files=['GrassLayer','coverage','surfaceSampler','shaders','utils'];for(const file of files){const source=fs.readFileSync(new URL('./vendor/three-stylized/'+file+'.ts',import.meta.url),'utf8');let js=stripTypeScriptTypes(source,{mode:'strip'}).replace(/from '(\.\/[^']+)'/g,(_,p)=>"from '"+p+".js'");fs.writeFileSync(new URL('../dist/vendor/three-stylized/'+file+'.js',import.meta.url),js);}
