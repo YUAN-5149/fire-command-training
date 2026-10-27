@@ -71,14 +71,16 @@ function streetWall(G,F,H,fh,style,shop,colour,r){
  box(G,'tile',F,0,W,-.2,.02,top,top+1,tile);box(G,'trim',F,-.02,W+.02,-.25,.08,top+1,top+1.08);
  if(top<H-.3)box(G,'tile',F,0,W,-.25,0,top,H,tile);
  // 一樓
- if(shop){const AD=3;
+ // 騎樓地坪與人行道同高（不推測墊高；高差待現地量測，見 docs/street-elevation-walkability-rules.md），
+ // 僅留 FT 厚的薄面避免與地面閃爍，不納入可步行面
+ if(shop){const AD=3,FT=.012;
   for(let k=0;k<=nb;k++){const x=Math.min(Math.max(k*bw,.3),W-.3);box(G,'tile',F,x-.3,x+.3,-.6,0,0,fh,tile);}
   box(G,'tile',F,0,W,-.6,0,fh-.65,fh,tile);box(G,'ceiling',F,0,W,-AD,-.6,fh-.55,fh-.45);
-  box(G,'tile',F,0,W,-AD-.2,-AD,fh-1,fh-.45,tile);box(G,'floor',F,0,W,-AD,0,0,.12);
+  box(G,'tile',F,0,W,-AD-.2,-AD,fh-1,fh-.45,tile);box(G,'floor',F,0,W,-AD,0,0,FT);
   for(let k=0;k<nb;k++){const x0=k*bw+.3,x1=(k+1)*bw-.3;
-   if(r()<.35)box(G,'shutter',F,x0,x1,-AD-.05,-AD,.12,fh-1,linHex(pick(r,['#9aa0a3','#b8bcbe','#7d8488'])));
-   else{box(G,'dark',F,x0,x1,-AD-.3,-AD-.25,.12,fh-1);box(G,'shopglass',F,x0+.08,x1-.08,-AD-.06,-AD-.04,.2,fh-1.08);
-    for(const xx of [x0,x1-.06,(x0+x1)/2-.03])box(G,'frame',F,xx,xx+.06,-AD-.06,-AD,.12,fh-1);box(G,'frame',F,x0,x1,-AD-.06,-AD,fh-1.06,fh-1);}
+   if(r()<.35)box(G,'shutter',F,x0,x1,-AD-.05,-AD,FT,fh-1,linHex(pick(r,['#9aa0a3','#b8bcbe','#7d8488'])));
+   else{box(G,'dark',F,x0,x1,-AD-.3,-AD-.25,FT,fh-1);box(G,'shopglass',F,x0+.08,x1-.08,-AD-.06,-AD-.04,FT+.08,fh-1.08);
+    for(const xx of [x0,x1-.06,(x0+x1)/2-.03])box(G,'frame',F,xx,xx+.06,-AD-.06,-AD,FT,fh-1);box(G,'frame',F,x0,x1,-AD-.06,-AD,fh-1.06,fh-1);}
    const sc=pick(r,SIGN),i=Math.floor(r()*SHOPS.length);box(G,'sign',F,x0-.2,x1+.2,0,.22,fh-1.25,fh-.05,linHex(sc));
    const tw=Math.min(x1-x0+.2,SHOPS[i].length*.62+.4),cx=(x0+x1)/2;label(G,F,'textH',cellH(i),cx-tw/2,cx+tw/2,.23,fh-1.1,fh-.2);}
  }else for(let k=0;k<nb;k++){const x=k*bw;

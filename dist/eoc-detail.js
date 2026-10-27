@@ -43,8 +43,10 @@ export const MATERIAL_DETAIL={
 // 夜間亮窗：依世界座標格子雜湊，約三成亮燈
 export const GLASS={'EOC window glass green':1,'EOC window glass light':1,'EOC curtain glass light green':.7,'EOC curtain glass green':.6};
 
-// 場地物件貼合地形。root 已放好位置；ground.at(x,z) 為街景地面高程。鋪面略抬高，避免和街景路面重疊閃爍。
-export function drapeSite(root,ground,{lift=.05}={}){
+// 場地物件貼合地形。root 已放好位置；ground.at(x,z) 為街景地面高程。
+// 鋪面高度只用模型本身的地坪高差，不另外抬高：與街景路面的重疊閃爍改用繪製偏移（polygonOffset）處理，
+// 避免視覺防閃爍偏移被可步行面當成真實高差（docs/street-elevation-walkability-rules.md 第 3 條）。
+export function drapeSite(root,ground,{lift=0}={}){
  root.updateMatrixWorld(true);
  const baseY=root.position.y,v=new T.Vector3(),stats={surface:0,object:0};
  root.traverse(o=>{
@@ -59,7 +61,9 @@ export function drapeSite(root,ground,{lift=.05}={}){
     w.fromBufferAttribute(p,i).applyMatrix4(m.matrixWorld);
     w.y+=ground.at(w.x,w.z)-baseY+lift;
     v.copy(w).applyMatrix4(inv);p.setXYZ(i,v.x,v.y,v.z);}
-   p.needsUpdate=true;m.geometry.computeBoundingSphere();m.geometry.computeBoundingBox();m.receiveShadow=true;m.castShadow=false;stats.surface++;}
+   p.needsUpdate=true;m.geometry.computeBoundingSphere();m.geometry.computeBoundingBox();m.receiveShadow=true;m.castShadow=false;
+   m.material=[].concat(m.material).map(mt=>{const c=mt.clone();c.polygonOffset=true;c.polygonOffsetFactor=-1;c.polygonOffsetUnits=-2;return c;});if(m.material.length===1)m.material=m.material[0];
+   stats.surface++;}
  });
  return stats;
 }

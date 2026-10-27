@@ -97,3 +97,9 @@
 - Blender：`export-scene-props.mjs` 輸出同一份擺放（`kits`），`build_xinyi_district.py` 的 `build_kits` 把每個構件合併成一個網格。
 - 精修資料改了（新增建物、窗距、窗比例）要重跑 `build_facade_kits.py`，並調高 `facade-kits.js` 裡 GLB 的版本號。
 - 測試：`tests/facade-kits.mjs`。
+
+## 植栽與高差規則（2026-10-27 起）
+
+逐街精修須同時遵守 `PROJECT-MEMORY.md` 的街道植栽規則與 `docs/street-elevation-walkability-rules.md`：
+- 照片確認的綠籬寫進 `scripts/build-hedges.mjs` 的 `SEEN` 清單，重跑產生 `dist/assets/street-hedges-xinyi.json`；不滿街撒點。
+- 騎樓地坪與人行道同高（只留 1.2 cm 防閃爍薄面，不納入可步行面）；騎樓實際高差待量測，量測後才建階梯或斜坡。

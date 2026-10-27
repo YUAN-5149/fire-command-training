@@ -1,4 +1,4 @@
-import {loadTreeAssets,createRealisticTrees} from './xinyi-realistic-trees.js?v=dense-species-20261027';
+import {loadTreeAssets,createRealisticTrees} from './xinyi-realistic-trees.js?v=hedges2-20261027';
 import {treeInstances} from './xinyi-trees.js?v=5';
 import {applyEocFrontage,reviewEocGreen} from './xinyi-eoc-frontage.js?v=photo-20261027';
 import {createWalkSurface,placeCharacterFeet} from './xinyi-walk-surface.js?v=ground-20261023';
@@ -40,10 +40,10 @@ import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=roads-20261023';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
 import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings,styleOf} from './xinyi-facades.js?v=6';
-import {detailWalls,shedHeight,facadeCells,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=8';
+import {detailWalls,shedHeight,facadeCells,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=9';
 import {kitPlacements,createFacadeKits} from './facade-kits.js?v=2';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';
-import {drapeSite,enhanceEoc} from './eoc-detail.js?v=parking-20261023';
+import {drapeSite,enhanceEoc} from './eoc-detail.js?v=rules-20261027';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
 import {buildStreetDetail,createStreetMaterials} from './geo-street-detail.js';
 import {project,buildHeightField,toLocal,linearColors,buildColliders,buildStreetBase,nearestStreet,spawnPoint} from './xinyi-street-world.js?v=garage-20261023';
@@ -207,7 +207,7 @@ const life=createStreetLife(scene,{features:streets.features,buildings:district.
 const treeChoice=$('treeAppearance'),requestedTree=new URLSearchParams(location.search).get('trees');if([...treeChoice.options].some(o=>o.value===requestedTree))treeChoice.value=requestedTree;
 function describeTreeStyle(){const label=treeChoice.selectedOptions[0]?.textContent;$('treeAssetStatus').textContent=treeChoice.value==='auto'?'已載入十二種一般樹形（含六種新增茂密樹形）、四種樹種外觀與三種灌木。樹位沿用既有資料；樹種與現場尺寸待核對。':'目前為 '+label+'；沿用原樹位並限制原有樹冠範圍，屬外觀與季節示意，不代表現場樹種。';}
 treeChoice.onchange=()=>{if(treeForest?.setAppearance(treeChoice.value))describeTreeStyle();};
-loadTreeAssets().then(assets=>{treeForest=createRealisticTrees({scene,assets,ground:walkSurface,street:treeInstances(furniture?.trees??[]),supplemental:life.groups.trees.children.find(m=>m.isInstancedMesh)});if(eocRoot)treeForest.replaceEoc(eocRoot);scene.traverse(o=>{if(o.name==='street trees')o.visible=false;});life.groups.trees.visible=false;treeForest.setVisible(forestVisible);treeForest.setQuality(forestQuality);treeForest.setAppearance(treeChoice.value);treeChoice.disabled=false;describeTreeStyle();}).catch(e=>{console.warn('Tree assets unavailable; original trees retained',e);$('treeAssetStatus').textContent='新樹木素材未載入，暫時保留原樹木；請重新整理。';});
+loadTreeAssets().then(assets=>{treeForest=createRealisticTrees({scene,assets,ground:walkSurface,street:treeInstances(furniture?.trees??[]),supplemental:life.groups.trees.children.find(m=>m.isInstancedMesh)});if(eocRoot)treeForest.replaceEoc(eocRoot);fetch('assets/street-hedges-xinyi.json?v=2').then(r=>r.ok?r.json():null).then(h=>treeForest.addHedges(h)).catch(()=>{});scene.traverse(o=>{if(o.name==='street trees')o.visible=false;});life.groups.trees.visible=false;treeForest.setVisible(forestVisible);treeForest.setQuality(forestQuality);treeForest.setAppearance(treeChoice.value);treeChoice.disabled=false;describeTreeStyle();}).catch(e=>{console.warn('Tree assets unavailable; original trees retained',e);$('treeAssetStatus').textContent='新樹木素材未載入，暫時保留原樹木；請重新整理。';});
 $('busStatus').textContent=life.busStats.count?'已接入最多 '+life.busStats.count+' 輛示意公車，沿較寬幹道路段行駛；非實際營運路線或時刻。':'目前資料沒有適合的寬幹道路段，暫不生成公車。';
 const sky=createSky();scene.add(sky);
 const audio=createAudio();
