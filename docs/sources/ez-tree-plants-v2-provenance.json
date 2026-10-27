@@ -1,0 +1,39 @@
+{
+  "repository": "https://github.com/dgreenheck/ez-tree",
+  "commit": "dcf309bd86bd521083d9c70f01f2de45fdc7c457",
+  "codeLicense": "MIT, Copyright 2024 Daniel Greenheck",
+  "leafTextureLicense": "MIT (per upstream textures/LICENSE.md)",
+  "leafOriginalSha256": "24451223cf396d22910a4932b8bb996a7274e63d81e24128c96a430ab67822b1",
+  "barkTextureLicense": "CC0 ambientCG Bark001",
+  "barkSource": "https://ambientcg.com/view?id=Bark001",
+  "barkOriginalSha256": "2a7e8c742aa0110057d7a3ff0e8ec193c26ef23b77bc778fb9258c0e41b29474",
+  "changes": [
+    "Added .js to relative imports for native ESM",
+    "Inlined three upstream presets as JS instead of JSON imports",
+    "Reduced branch child counts and capped leaf card count for game use",
+    "Generated three reusable mesh LODs per tree shape, normalized to 7–8.2m",
+    "Resized original leaf and bark color textures to max512px",
+    "Expanded to six seeded tree silhouettes and three compact shrubs with lower branches; all share the same licensed textures",
+    "Placed 45 illustrative shrub clumps only within nine existing photo-reviewed planting islands; preserves street/EOC tree anchors",
+    "Shrubs use lower branch/leaf budgets and 45/80/120m visibility ranges by quality"
+  ],
+  "files": {
+    "geometry.bin": {
+      "bytes": 3791344,
+      "sha256": "41c0d4c089500ce969c8e19599679d770cff03c6b3d308daefac9277ea86da41"
+    },
+    "catalog.json": {
+      "bytes": 67228,
+      "sha256": "463b550a16bcf4b470b7170f942b61e49f68e83fbc8e25158ba7f39a299920a0"
+    },
+    "leaves.png": {
+      "bytes": 68964,
+      "sha256": "904d644b4d55f5eda5e9fb3525f94e012ca3218c46371d796503deb57f6309fe"
+    },
+    "bark.jpg": {
+      "bytes": 52261,
+      "sha256": "31721c5adc23b05a69d39e281ae45f0757bbacaa2b07512effc0c0159340c225"
+    }
+  },
+  "assetDirectory": "dist/assets/plants-ez-v2/"
+}

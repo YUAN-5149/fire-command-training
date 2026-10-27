@@ -130,7 +130,7 @@
     <p id="yellowBoxStatus" class="note" role="status">載入網狀黃線…</p>
     <p class="note"><a href="https://www.historygis.udd.gov.taipei/urban/?id=B5775BBE" target="_blank" rel="noopener">影像來源：臺北市政府都市發展局</a>。已核對可辨識的影像外框，非現地量測；遮蔽、褪色及模糊位置仍可能漏辨。</p>
     <p id="zebraStatus" class="note" role="status">載入人行穿越道…</p>
-    <p id="treeAssetStatus" class="note" role="status">載入分枝與葉片樹木…</p>
+    <p id="treeAssetStatus" class="note" role="status">載入六種樹形與三種灌木…</p>
     <p class="note">樹木模型來源：<a href="https://github.com/dgreenheck/ez-tree" target="_blank" rel="noopener">EZ-Tree（MIT）</a>；樹皮貼圖來自 ambientCG（CC0）。樹位依現有資料，樹形為示意，非現地樹種調查。</p>
     <p id="busStatus" class="note" role="status">載入示意公車…</p>
     <p id="roadDataStatus" class="note" role="status">正在載入全區道路與官方紅黃線…</p>
@@ -180,6 +180,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s55-trees-20261027"></script>
+<script type="module" src="xinyi-street.js?v=plants-20261027"></script>
 </body>
 </html>
