@@ -47,7 +47,7 @@ export function kitPlacements(buildings,overrides,{project,facesStreet=()=>true,
 
 // three.js：載入構件 GLB，依 kitPlacements 建 InstancedMesh（每個構件、每個材質一個）。
 // 牆面方向不一定是右手座標（牆的走向與外法線），構件材質雙面繪製。
-export async function createFacadeKits(T,GLTFLoader,placements,url='assets/facade-kits.glb?v=11'){
+export async function createFacadeKits(T,GLTFLoader,placements,url='assets/facade-kits.glb?v=12'){
  const gltf=await new GLTFLoader().loadAsync(url),group=new T.Group();group.name='facade kits';
  const byName=new Map();
  gltf.scene.traverse(o=>{if(o.userData?.kit)byName.set(o.userData.kit,o);});
