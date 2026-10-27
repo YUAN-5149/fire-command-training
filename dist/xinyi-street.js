@@ -1,6 +1,7 @@
+import {applyEocFrontage,reviewEocGreen} from './xinyi-eoc-frontage.js?v=photo-20261027';
 import {createWalkSurface,placeCharacterFeet} from './xinyi-walk-surface.js?v=ground-20261023';
 import {MINI_ZOOM_LEVELS,miniZoom,stepMiniZoom,miniMapMetrics} from './xinyi-minimap.js?v=minimap-20261023';
-import {addYouBikeStations} from './xinyi-youbike.js?v=capacity-20261023';
+import {addYouBikeStations} from './xinyi-youbike.js?v=photo-20261027';
 import {createFrameBudget,createFrameWindow} from './xinyi-performance.js?v=runtime-20261023';
 import {addYellowBoxes} from './xinyi-yellow-boxes.js?v=yellowbox-20261023';
 import {addZebraCrossings} from './xinyi-zebra-crossings.js?v=zebra-20261023';
@@ -120,7 +121,7 @@ let detailMats,farMat,facadeSigns=null,shophouse=null;
 // 應變中心：場地（停車場、廣場、樹與車）貼合地形，補上原模型檢視頁的表面質感與夜間亮窗、停機坪邊燈。
 let eocDetail=null,eocRoot=null,youBike=null;
 addLandmarksToThree({T,scene,GLTFLoader,ground,project}).then(list=>{const e=list.find(l=>l.anchor.key==='eoc');if(!e)return;
- drapeSite(e.root,ground);walkSurface.addDraped(e.root);eocRoot=e.root;youBike?.replaceLegacyEoc(e.root);eocDetail=enhanceEoc(e.root);try{eocDetail.setNight(TIME_PRESETS[state.time].lights);}catch{}}).catch(e=>console.error(e));
+ applyEocFrontage(e.root);drapeSite(e.root,ground);walkSurface.addDraped(e.root);eocRoot=e.root;youBike?.replaceLegacyEoc(e.root);eocDetail=enhanceEoc(e.root);try{eocDetail.setNight(TIME_PRESETS[state.time].lights);}catch{}}).catch(e=>console.error(e));
 // 街道：預設為逐車道路面（osm2streets：車道、人行道、路口、中線、車道線、箭頭、停止線）；
 // ?roads=legacy 改回原本依 OSM 寬度展開的示意路面＋精修鋪面。兩者都保留 OSM zebra 斑馬線。
 const legacyRoads=new URLSearchParams(location.search).get('roads')==='legacy';
@@ -136,7 +137,7 @@ const zebraCrossings=addZebraCrossings({T,scene,features:navigationFeatures,grou
 const yellowBoxData=await fetch('assets/xinyi-yellow-boxes.json?v=yellowbox-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
 const yellowBoxes=yellowBoxData?addYellowBoxes({T,scene,data:yellowBoxData,ground}):null;
 const youBikeData=await fetch('assets/xinyi-youbike.json?v=youbike-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
-if(youBikeData){youBike=addYouBikeStations({scene,data:youBikeData,features:navigationFeatures,ground:walkSurface});if(eocRoot)youBike.replaceLegacyEoc(eocRoot);}
+if(youBikeData){youBike=addYouBikeStations({scene,data:youBikeData,features:navigationFeatures,ground:walkSurface,eocAnchor:landmarks.find(a=>a.key==='eoc')});if(eocRoot)youBike.replaceLegacyEoc(eocRoot);}
 
 // 外圍沿完整行政界線裁切的 OSM 道路；不由道路等級猜測紅黃線。
 if(roadNetwork)for(const g of buildStreetBase(roadNetwork.outerFeatures.map(f=>f.kind==='sidewalk'?{...f,kind:'walk'}:f),ground,()=>false)){
@@ -161,7 +162,7 @@ if(paintStatus)paintStatus.textContent=roadNetwork&&curbData?'全區路網 '+roa
 const lampGlow=[],lampHeads=[];
 // 全區街道設施（xinyi-furniture.js）：市府路燈、OSM 路樹、號誌、消防栓、公車亭、草地；載入失敗時用下方原本的中心 250 m 設施。
 const furniture=await fetch('assets/street-furniture-xinyi.json?v=2').then(r=>r.ok?r.json():null).catch(()=>null);
-if(furniture){const f=addFurnitureToScene({T,scene,data:furniture,ground});lampHeads.push(f.headMat);lampGlow.push(...f.glow);}
+if(furniture){const f=addFurnitureToScene({T,scene,data:reviewEocGreen(furniture,landmarks.find(a=>a.key==='eoc')),ground});lampHeads.push(f.headMat);lampGlow.push(...f.glow);}
 else{
  const dummy=new T.Object3D(),place=(inst,i,x,y,z,sx,sy,sz)=>{dummy.position.set(x,y,z);dummy.scale.set(sx,sy,sz);dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);};
  const cyl=new T.CylinderGeometry(.5,.5,1,10).translate(0,.5,0),box=new T.BoxGeometry(1,1,1).translate(0,.5,0),ball=new T.SphereGeometry(.5,14,10).translate(0,.5,0);
@@ -1008,10 +1009,10 @@ $('youBike').onchange=()=>{settings.youBike=$('youBike').checked;youBike?.setVis
 const stationSelect=$('youBikeStation');
 for(const s of youBike?.records??[]){const o=document.createElement('option');o.value=s.id;o.textContent=s.name;stationSelect.append(o);}
 stationSelect.value='500112017';
-function describeYouBike(){const s=youBike?.records.find(s=>s.id===stationSelect.value);$('youBikeStationDetail').textContent=s?s.address+'｜官方柱位總數 '+s.capacity+'（柱數完整；排列與車數為示意）':'';}
+function describeYouBike(){const s=youBike?.records.find(s=>s.id===stationSelect.value);$('youBikeStationDetail').textContent=s?s.address+'｜官方柱位總數 '+s.capacity+(s.slots?'（單排避開樹穴；依 2025/01 街景調整，尺寸待量測）':'（柱數完整；排列與車數為示意）'):'';}
 stationSelect.onchange=describeYouBike;describeYouBike();
 $('youBikeLocate').disabled=!youBike;$('youBikeLocate').onclick=()=>{const s=youBike.records.find(s=>s.id===stationSelect.value);if(s){setWaypoint(s.x,s.z,'YouBike・'+s.name);setPaused(false);openMap();}};
-$('youBikeStatus').textContent=youBike?'已匯入信義區 '+youBike.records.length+' 站（官方資料 '+youBikeData.stations[0].sourceUpdated+'）。站點座標依官方資料；車柱方向、間距及高程待現勘。依官方容量顯示完整柱數；排列與自行車停放為示意，非即時可借數。附近 125 m 顯示細節。':'YouBike 資料未載入；原有場景保留，請重新整理。';
+$('youBikeStatus').textContent=youBike?'已匯入信義區 '+youBike.records.length+' 站（官方資料 '+youBikeData.stations[0].sourceUpdated+'）。站點座標依官方資料；車柱方向、間距及高程待現勘。依官方容量顯示完整柱數；應變中心站已依使用者提供的 2025/01 街景改為沿路緣單排、避開樹穴，柱距與定位待量測；自行車停放非即時可借數。附近 125 m 顯示細節。':'YouBike 資料未載入；原有場景保留，請重新整理。';
 $('yellowBoxes').checked=settings.yellowBoxes!==false;if(yellowBoxes)yellowBoxes.group.visible=$('yellowBoxes').checked;
 $('yellowBoxes').onchange=()=>{settings.yellowBoxes=$('yellowBoxes').checked;if(yellowBoxes)yellowBoxes.group.visible=settings.yellowBoxes;saveSettings();};
 $('yellowBoxStatus').textContent=yellowBoxData?'網狀黃線：已掃描 '+yellowBoxData.coverage.tilesScanned+' 個影像分區，匯入 '+yellowBoxes.count+' 處，另 '+yellowBoxData.counts.deferredBoundary+' 筆候選外框待核對。來源為2025影像；線寬、間距及目前現況待核對，遮蔽處可能漏辨。':'網狀黃線資料未載入，請重新整理後核對。';
