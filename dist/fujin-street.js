@@ -1,6 +1,6 @@
 import {addRooftop} from './rooftops.js';
 import * as T from 'three';
-import {weatherApartment} from './weathered-apartment.js';
+import {weatherApartment} from './weathered-apartment.js?v=weathered-20261027';
 // Visual reconstruction from the supplied Fujin Street reference; dimensions are illustrative.
 export function createFujinStreet(world,facade,options={}){
 const scene=new T.Group();world.add(scene);
