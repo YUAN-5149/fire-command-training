@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {project,nearestStreet} from '../dist/xinyi-street-world.js';
 import {styleOf,overrideIndex,fillBuildings,facadeProps,buildFacadeBatch} from '../dist/xinyi-facades.js';
-import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,cellH,cellV,SHOPS,chunkGroup} from '../dist/xinyi-shophouse.js';
+import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,cellH,cellV,SHOPS,chunkGroup,facadeCells} from '../dist/xinyi-shophouse.js';
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const district=read('district-xinyi.json'),styles=read('building-styles-xinyi.json').buildings,streets=read('streets-xinyi.json'),od=read('building-overrides-xinyi.json'),ov=overrideIndex(od);
 district.buildings.push(...fillBuildings(od,district));
@@ -23,8 +23,12 @@ const F=buildStreetFacades(items,{project}),R=buildRoofSheds(sheds,{project});
 const count=g=>Object.values(g).reduce((s,a)=>s+a.position.length/3,0);
 const nF=count(F.groups),nR=count(R.groups);
 // 依 160 m 分塊做視錐剔除，畫面上同時只畫看得到的幾塊
-// 依畫質做距離剔除（低 160 m、中 300 m、高 450 m），畫面上只畫附近幾塊
-assert(nF>50000&&nF<2200000,'facade detail within budget: '+nF);
+// 網頁逐格（100 m）延後建構，只建玩家附近的格子；全區總量只是資料量上限，單格要小
+assert(nF>50000&&nF<4000000,'facade detail total: '+nF);
+const cells=facadeCells(items,{project});
+assert.equal(cells.reduce((s,c)=>s+c.items.length,0),items.length,'every detailed building in one cell');
+let maxCell=0;for(const c of cells){const g=buildStreetFacades(c.items,{project}).groups;maxCell=Math.max(maxCell,count(g));assert(c.r>0&&Number.isFinite(c.cx+c.cz));}
+assert(maxCell<350000,'largest cell within budget: '+maxCell);
 assert(nR>20000&&nR<300000,'roof sheds within budget: '+nR);
 for(const k of ['tile','glass','frame','grille','ac','sign','textH','textV','shopglass','shutter'])assert(F.groups[k]?.index.length>0,'has '+k);
 for(const g of [...Object.values(F.groups),...Object.values(R.groups)]){
