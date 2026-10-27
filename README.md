@@ -24,6 +24,8 @@ npm run dev
 
 ## 接手與狀態
 
+街道高差建置須遵守 [階梯、斜坡與步行規則](docs/street-elevation-walkability-rules.md)，並使用 [檢核與提醒範本](docs/templates/street-elevation-review.md)。已核實高差不可任意壓平；走路自動跨階與斜坡通行須另完成實作驗收，現有貼地不等於已支援所有階梯。
+
 持續決策與跨工具記憶見 [PROJECT-MEMORY.md](PROJECT-MEMORY.md)。後續街道精修一併依其中植栽規則建置；EOC 前方長條已確認為灌木叢，整段新版替換仍列待辦。
 
 請先讀 `MASTER-SPEC.md`、`START-HERE.md` 與 `HANDOFF-XINYI-BATCH15.md`。START-HERE是原移交快照；後續批次紀錄及現有原始碼是目前實作。
