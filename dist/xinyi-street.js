@@ -26,6 +26,8 @@ import {WATER,NOZZLE,AIR,SUPPLY,LOWER,stepWater,stepAir,inHazard,sprayTarget,ste
 import {makeVitals,startTriage,aidReference,compareAid,needsCollar,deteriorate,FIRST_AID,TAGS,MECHANISMS} from './xinyi-street-triage.js?v=s25';
 import {generateCasualties,loadAmbulance,transportReference,mciComplete,priority,HOSPITALS,AMBULANCE} from './xinyi-street-mci.js?v=s25';
 import {createSquads,SQUAD,pickFloor} from './xinyi-street-squads.js?v=garage-20261023';
+import {createTanker,TANKER} from './xinyi-street-tanker.js?v=survey-20261025';
+import {createSurveyCar,SURVEY_CAR} from './xinyi-street-survey-car.js?v=survey-20261025';
 import {createInterior} from './xinyi-street-interior.js?v=s25';
 import {INTERIOR,EXPOSURE,EQUIPMENT,CARRY_LIMIT,hoseRemaining,layerHeight,buildingFloors} from './xinyi-street-interior-rules.js?v=s25';
 import {createGisLayer,writeBack} from './xinyi-street-gis.js?v=s25';
@@ -345,7 +347,7 @@ $('triageBtn').onclick=()=>openTriage(mission?.mci?undefined:mission?.victim);$(
 function sceneCircles(traffic){
  const out=[],add=p=>{if(!p?.figure?.root.visible||p.state==='transported'||p.state==='loading')return;const pos=p.figure.root.position;if(p.state==='boarding'||p.state==='basket')return;out.push([pos.x,pos.z,p.figure.pose==='lying'?.9:.4]);};
  for(const p of mission?.mci?.patients??[])add(p);if(mission?.victim&&mission.victim.state==='rescued')add(mission.victim);
- out.push(...(zhuangjing?.circles()??[]),...stationTeam.circles(),...squadKit.circles());if(!traffic)out.push(...squadKit.people());
+ out.push(...(zhuangjing?.circles()??[]),...stationTeam.circles(),...squadKit.circles(),...(tankerKit?.circles()??[]),...(surveyKit?.circles()??[]));if(!traffic)out.push(...squadKit.people());
  if(traffic&&mission?.mci){for(const pos of Object.values(mission.mci.tarps))out.push([pos.x,pos.z,2.8]);if(mission.mci.amb.visible)out.push([mission.mci.staging.x,mission.mci.staging.z,3.2]);}
  return out;
 }
@@ -475,11 +477,13 @@ function startMission(){
  mission={site,phase:0,elapsed:0,times:{},intensity:.55,hose:false,spraying:false,parking:null,victim:makeVictim(site),water:WATER.tank,supply:null,upper:null};fireFx.setSite(site);upperFx.setSite(null);lowerFx.setSite(null);state.air=AIR.full;
  mission.fireMain={site,get intensity(){return mission?.intensity??0},set intensity(v){if(mission)mission.intensity=v;}};mission.hydrants=placeHydrants(site);mission.entry=placeEntry(site);mission.indoor=setupIndoor(site);if(mission.indoor.closed)mission.intensity=.3;
  if(settings.missionType==='mci')mission.mci=setupMci(site);renderVictim();renderMci();renderIndoorLine();
- squadKit.setSize(settings.squadSize??5);squadKit.build(SQUAD.count);squadKit.dispatch(site,{playerTruck:truck,now:0});mission.squadLog=[];renderSquads();
+ squadKit.setSize(settings.squadSize??5);squadKit.build(SQUAD.count);const squadPoses=squadKit.dispatch(site,{playerTruck:truck,now:0});mission.squadLog=[];
+ const surveyPose=surveyKit?.dispatch(site,{home:spawn.support,existing:[{x:truck.x,z:truck.z},...squadPoses],now:0});
+ tankerKit?.dispatch(site,{home:spawn.support,existing:[{x:truck.x,z:truck.z},...squadPoses,...(surveyPose?[surveyPose]:[])],now:0});renderSquads();
  $('missionTitle').textContent=mission.mci?'建物火警・大量傷患':'建物火警';$('missionWhere').textContent=`${site.street||'信義區'} 一帶・${site.floor} 樓${mission.indoor.closed?'窗戶冒濃煙（窗戶未破）':'冒煙'}（示意）`+(site.fromGis?'・GIS 指定搶救建物'+(gisDep?.entrance?'，起火面取第一正面':''):'');$('mission').hidden=false;$('missionReport').hidden=true;
  setWaypoint(site.x+site.nx*16,site.z+site.nz*16,'火警現場');renderMission();flashHint(state.mode==='drive'?'按 Q 開警示燈，依地圖黃線前往':'先走到消防車按 E 上車');
 }
-function endMission(){squadKit.hide();closeSquads();for(const id of ['tAerial','tSupply','tNozzle','tEquip','tTriage','tSquad'])$(id).hidden=true;if(state.mode==='interior')exitBuilding();closeEquip();indoor.clear();entryMark.visible=false;for(const p of mission?.indoor?.rescued??[])if(!mission.mci)scene.remove(p.figure.root);$('indoorLine').hidden=true;closeTriage();clearMci();clearOps();aerial?.stow();aerial?.park(spawn.aerial);if(mission?.victim)scene.remove(mission.victim.figure.root);gis?.hide('aerial',!!aerial?.state.stationed);setAerialMode(null);mission=null;renderMci();fireFx.setSite(null);$('mission').hidden=true;clearWaypoint();person.nozzle.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
+function endMission(){squadKit.hide();tankerKit?.hide();surveyKit?.hide();closeSquads();for(const id of ['tAerial','tSupply','tNozzle','tEquip','tTriage','tSquad'])$(id).hidden=true;if(state.mode==='interior')exitBuilding();closeEquip();indoor.clear();entryMark.visible=false;for(const p of mission?.indoor?.rescued??[])if(!mission.mci)scene.remove(p.figure.root);$('indoorLine').hidden=true;closeTriage();clearMci();clearOps();aerial?.stow();aerial?.park(spawn.aerial);if(mission?.victim)scene.remove(mission.victim.figure.root);gis?.hide('aerial',!!aerial?.state.stationed);setAerialMode(null);mission=null;renderMci();fireFx.setSite(null);$('mission').hidden=true;clearWaypoint();person.nozzle.visible=false;$('tSpray').hidden=$('tHose').hidden=true;}
 // 各步驟以實際紀錄時間判定完成；以雲梯出水等方式越過的步驟標示為略過，不顯示為已完成。
 const STEP_TIMES=['depart','arrive','parked','hose','water','done'];
 function renderMission(){if(!mission)return;$('missionSteps').innerHTML=STEPS.map((s,i)=>{const done=mission.times[STEP_TIMES[i]]!==undefined,skip=!done&&i<mission.phase;return `<li class="${done?'done':skip?'skip':i===mission.phase?'now':''}">${s}${skip?'（略過）':''}</li>`;}).join('');$('fireLevel').style.width=Math.round(Math.max(0,...fireList().map(f=>f.intensity))*100)+'%';}
@@ -525,7 +529,7 @@ function updateAir(dt){if(!mission||state.mode==='drive'||mission.phase>=6&&!mis
  if(prev>AIR.warn&&r.air<=AIR.warn){flashHint(`⚠ 空氣量 ${AIR.warn} bar 以下（警報），請撤離並更換氣瓶`);showNotice('空氣呼吸器低壓警報',3000);}
  if(r.swapped){mission.airSwaps=(mission.airSwaps??0)+1;flashHint('已更換氣瓶（300 bar）');}}
 function renderOps(){const m=mission;$('opsLine').hidden=!m;if(!m)return;const air=Math.round(state.air),water=Math.round(m.water);
- $('opsLine').innerHTML=`<span>水箱 <b>${water.toLocaleString()}</b> L${m.supply?.connected?'（消防栓供水中）':m.relaySquad?`（${m.relaySquad}中繼供水）`:m.supply?.carrying?'（拉水帶中）':''}</span><span>瞄子 <b>${NOZZLE[state.nozzle].label}</b>（V）</span><span class="${air<=AIR.warn?'warn':''}">空氣 <b>${air}</b> bar${state.inHazard?'・危害區':''}${state.airSwap>0?'・換瓶中':''}</span>`;}
+ $('opsLine').innerHTML=`<span>水箱 <b>${water.toLocaleString()}</b> L${m.supply?.connected?'（消防栓供水中）':m.relaySquad?`（${m.relaySquad}中繼供水）`:tankerKit?.vehicle.supplying?`（${TANKER.label}供水）`:m.supply?.carrying?'（拉水帶中）':''}</span><span>瞄子 <b>${NOZZLE[state.nozzle].label}</b>（V）</span><span class="${air<=AIR.warn?'warn':''}">空氣 <b>${air}</b> bar${state.inHazard?'・危害區':''}${state.airSwap>0?'・換瓶中':''}</span>`;}
 function clearOps(){upperFx.setSite(null);lowerFx.setSite(null);supplyLine.visible=false;for(const h of mission?.hydrants??[])scene.remove(h.mesh);}
 function toggleNozzle(){state.nozzle=state.nozzle==='stream'?'fog':'stream';const N=NOZZLE[state.nozzle];flashHint(`瞄子：${N.label}（射程 ${N.reach} m，錐角較${state.nozzle==='fog'?'寬、近距離壓制較快':'窄、射程較遠'}）`);renderOps();}
 // ---------- 建物內部作業（訓練示意）：進入起火樓層、破壞進入、煙層、熱顯像、隊員指令、通風排煙、閃燃與回燃徵兆 ----------
@@ -605,11 +609,15 @@ function updateInterior(dt){const m=mission;if(!m){exitBuilding();return;}const 
 // ---------- 分隊（訓練示意）：3 個分隊、每分隊 2 部水箱車、4–5 人；自動出勤、到場待命，由中隊長下達任務 ----------
 const squadKit=createSquads({scene,template:truck.template,createPerson:actionKit.createPerson,ground,colliders,graph:routeGraphs.drive,life,playerHome:spawn.support});
 squadKit.setRouter((x0,z0,x1,z1)=>findRoute(routeGraphs.drive,x0,z0,x1,z1));squadKit.build(SQUAD.count);
+// 水庫車「信義61」：背景載入，載入失敗不影響其他功能（派遣時略過）。
+// 消防局勤務車（Outlander）：背景載入，失敗不影響其他功能。
+let surveyKit=null;new GLTFLoader().loadAsync('assets/survey-car.glb?v=survey-20261025').then(g=>{surveyKit=createSurveyCar({scene,template:g.scene,ground,colliders,graph:routeGraphs.drive,label:squadKit.label});surveyKit.setRouter((x0,z0,x1,z1)=>findRoute(routeGraphs.drive,x0,z0,x1,z1));}).catch(e=>console.warn('勤務車模型載入失敗',e));
+let tankerKit=null;new GLTFLoader().loadAsync('assets/water-tanker.glb?v=tanker-20261024').then(g=>{tankerKit=createTanker({scene,template:g.scene,ground,colliders,graph:routeGraphs.drive,label:squadKit.label});tankerKit.setRouter((x0,z0,x1,z1)=>findRoute(routeGraphs.drive,x0,z0,x1,z1));}).catch(e=>console.warn('水庫車模型載入失敗',e));
 function squadNote(sq,text){flashHint(text);showNotice(text,3500);if(mission)(mission.squadLog??=[]).push({time:mission.elapsed,squad:sq?.name??'',text});}
 function squadCtx(dt){const m=mission,site=m.site,F=site.floor;
  return {t:clock.getElapsed?.()??m.elapsed,now:m.elapsed,site,entry:m.entry,hydrants:(m.hydrants??[]).map(h=>({x:h.pos.x,z:h.pos.z})),playerDeparted:m.phase>=1,
   note:squadNote,onArrive:sq=>{squadNote(sq,`${sq.name}抵達現場、人員下車待命（按 B 分隊指揮）`);renderSquads();},
-  blockers:v=>[...truckCircles(),...life.circles(),...squadKit.circles().filter(c=>Math.hypot(c[0]-v.x,c[1]-v.z)>2.6),[state.x,state.z,.5]],
+  blockers:v=>[...truckCircles(),...life.circles(),...squadKit.circles().filter(c=>Math.hypot(c[0]-v.x,c[1]-v.z)>2.6),...(tankerKit?.circles()??[]),...(surveyKit?.circles()??[]),[state.x,state.z,.5]],
   target:(x,z)=>{let best=null;for(const f of fireList()){if(!(f.intensity>0))continue;const fx=f.site.x-f.site.nx*.5,fz=f.site.z-f.site.nz*.5,d=Math.hypot(fx-x,fz-z,f.site.y-1.2);if(!best||d<best.dist)best={fire:f,x:fx,y:f.site.y,z:fz,dist:d};}return best;},
   knock:(f,amount,sq)=>{if(m.phase>=6)return;const win=indoor.fireWindow();if(f===m.fireMain&&win?.state==='closed'){m.indoor.windowHit+=amount/SQUAD.knock;if(m.indoor.windowHit>1.5)indoor.breakWindow(win.id);return;}
    f.intensity=Math.max(0,f.intensity-amount);if(m.times.water===undefined)m.times.water=m.elapsed;if(m.phase>=3&&m.phase<5)m.phase=5;m.squadWater=(m.squadWater??0)+amount;},
@@ -617,14 +625,27 @@ function squadCtx(dt){const m=mission,site=m.site,F=site.floor;
   pickFloor:(task)=>pickFloor(task,{fireFloor:F,floors:m.indoor.floors,burning:{[F]:m.intensity,[F+1]:m.upper?.intensity??0,[F-1]:m.lower?.intensity??0},assigned:squadKit.squads.filter(s=>s.floor!=null).map(s=>({task:s.task,floor:s.floor}))}),
   enterIndoor:(sq,task,floor)=>{const ranks=squadKit.attackers(sq).map(p=>p.rank);indoor.addTeam({id:sq.i,name:sq.name,task,floor,ranks,onDone:()=>{squadKit.returnFromIndoor(sq,m.entry);squadNote(sq,`${sq.name}已撤出建物、回車旁待命`);renderSquads();}});renderSquads();},
   recallIndoor:sq=>indoor.recallTeam(sq.i)};}
-function updateSquads(dt){if(!mission)return;squadKit.update(dt,squadCtx(dt));if(!$('squadPanel').hidden&&Math.floor(mission.elapsed*2)!==Math.floor((mission.elapsed-dt)*2))renderSquads();}
+function updateSquads(dt){if(!mission)return;squadKit.update(dt,squadCtx(dt));updateTanker(dt);updateSurveyCar(dt);if(!$('squadPanel').hidden&&Math.floor(mission.elapsed*2)!==Math.floor((mission.elapsed-dt)*2))renderSquads();}
+function updateTanker(dt){const m=mission;if(!tankerKit||!m)return;
+ const moved=tankerKit.update(dt,{t:clock.getElapsed?.()??m.elapsed,now:m.elapsed,truck:{x:truck.x,z:truck.z,water:m.water,capacity:WATER.tank},
+  blockers:()=>[...truckCircles(),...life.circles(),...squadKit.circles(),...(surveyKit?.circles()??[]),[state.x,state.z,.5]],
+  onArrive:()=>{squadNote(null,`${TANKER.label}抵達現場，待命供水（距中隊長水箱車 ${TANKER.range} m 內自動鋪設水帶）`);renderSquads();},note:t=>squadNote(null,t)});
+ if(moved>0){m.water=Math.min(WATER.tank,m.water+moved);m.times.supply??=m.elapsed;}}
+function updateSurveyCar(dt){const m=mission;if(!surveyKit||!m)return;
+ surveyKit.update(dt,{t:clock.getElapsed?.()??m.elapsed,now:m.elapsed,
+  blockers:()=>[...truckCircles(),...life.circles(),...squadKit.circles(),...(tankerKit?.circles()??[]),[state.x,state.z,.5]],
+  onArrive:()=>{squadNote(null,`${SURVEY_CAR.label}抵達現場，設立指揮據點`);renderSquads();},note:t=>squadNote(null,t)});}
 const SQUAD_TASK={home:'未出勤',enroute:'出勤中',standby:'待命',ext:'外部射水',supply:'消防栓供水',attack:'室內進攻',search:'室內搜索',withdraw:'撤離至車旁'};
 function renderSquads(){if(!mission){$('squadRows').innerHTML='<p class="note">按 T 派遣火警後分隊才會出勤。</p>';return;}
  $('squadRows').innerHTML=squadKit.squads.map(sq=>{const v=sq.vehicles,eta=sq.arrived==null?(v.some(x=>x.state==='driving')?`行駛中（剩約 ${Math.round(Math.max(...v.filter(x=>x.state==='driving').map(x=>(x.len-x.s)/SQUAD.speed)))} 秒）`:v.some(x=>x.state==='wait')?(sq.i===0?'等中隊長出發':`出勤準備（${Math.max(0,Math.round(Math.max(...v.map(x=>x.delay??0))))} 秒）`):''):`到場 ${fmt(sq.arrived)}`;
   const water=v.filter(x=>x.state!=='player').map(x=>Math.round(x.water)).join('／');
   return `<div class="squad-row" style="--c:${sq.color}"><div><b>${sq.name}</b>（${sq.people.length} 人・2 部水箱車）<small>${SQUAD_TASK[sq.task]??sq.task}${sq.floor?`・${sq.floor} 樓`:''}・${eta}・水箱 ${water} L</small></div>
-   <div class="squad-actions">${[['standby','待命'],['ext','外部射水'],['supply','供水'],['attack','室內進攻'],['search','室內搜索'],['withdraw','撤離']].map(([k,l])=>`<button data-sq="${sq.i}" data-task="${k}"${sq.arrived==null?' disabled':''}${sq.task===k?' class="on"':''}>${l}</button>`).join('')}</div></div>`;}).join('');
+   <div class="squad-actions">${[['standby','待命'],['ext','外部射水'],['supply','供水'],['attack','室內進攻'],['search','室內搜索'],['withdraw','撤離']].map(([k,l])=>`<button data-sq="${sq.i}" data-task="${k}"${sq.arrived==null?' disabled':''}${sq.task===k?' class="on"':''}>${l}</button>`).join('')}</div></div>`;}).join('')+surveyRow()+tankerRow();
  for(const b of $('squadRows').querySelectorAll('button'))b.onclick=()=>{const sq=squadKit.squads[+b.dataset.sq];if(squadKit.order(sq,b.dataset.task,squadCtx(0))){squadNote(sq,`${sq.name}：${SQUAD_TASK[b.dataset.task]}${sq.floor?`（${sq.floor} 樓）`:''}`);}renderSquads();};}
+function surveyRow(){const k=surveyKit;if(!k)return '';const v=k.vehicle,st={home:'未出勤',wait:`出勤準備（${Math.max(0,Math.round(v.delay))} 秒）`,driving:`行駛中（剩約 ${Math.round(Math.max(0,v.len-v.s)/SURVEY_CAR.speed)} 秒）`,parked:'現場指揮據點'}[v.state]??v.state;
+ return `<div class="squad-row" style="--c:#ffd27a"><div><b>${SURVEY_CAR.label}</b>（Outlander 勤務車）<small>${st}${v.arrived!=null?`・到場 ${fmt(v.arrived)}`:''}</small></div></div>`;}
+function tankerRow(){const k=tankerKit;if(!k)return '';const v=k.vehicle,st={home:'未出勤',wait:`出勤準備（${Math.max(0,Math.round(v.delay))} 秒）`,driving:`行駛中（剩約 ${Math.round(Math.max(0,v.len-v.s)/TANKER.speed)} 秒）`,parked:v.supplying?'供水中':'待命供水'}[v.state]??v.state;
+ return `<div class="squad-row" style="--c:#ff7b72"><div><b>${TANKER.label}</b>（12 噸水庫車）<small>${st}${v.arrived!=null?`・到場 ${fmt(v.arrived)}`:''}・水箱 ${Math.round(v.water).toLocaleString()} L</small></div></div>`;}
 function openSquads(){for(const x of document.querySelectorAll('[data-squad-size]'))x.classList.toggle('on',+x.dataset.squadSize===(settings.squadSize??5));renderSquads();$('squadPanel').hidden=false;state.keys.clear();}
 function closeSquads(){$('squadPanel').hidden=true;}
 $('squadClose').onclick=()=>closeSquads();$('squadBtn').onclick=()=>openSquads();$('tSquad').onclick=()=>openSquads();
@@ -708,6 +729,8 @@ function missionRecord(){const m=mission;if(!m)return null;const V=v=>v&&{id:v.i
    forcedDoors:m.indoor.forced??0,ventOpenings:m.indoor.vents??0,forcedExit:m.indoor.forcedExit??0,maxHeatExposure:Math.round(indoor.me.maxExposure),events:(m.indoor.events??[]).filter(e=>!['enter','exit'].includes(e.kind)).map(e=>({atSeconds:Math.round(e.time),kind:e.kind,text:e.text})),
    floorsModeled:m.indoor.floors,floorsVisited:[...indoor.me.visited],reachedFireFloorAt:m.times.fireFloor!==undefined?Math.round(m.times.fireFloor):null,standpipeConnections:m.indoor.standpipe??0,crewSpraySeconds:Math.round(m.indoor.crewSpray??0),
    victims:indoor.victims().map(v=>({id:v.id,floor:v.floor,condition:v.condition,room:indoor.levels.get(v.floor).plan.spaces.find(s=>s.id===v.space).name,state:v.state})),rescued:m.indoor.rescued.map(V)}:null,
+  surveyCar:surveyKit?{name:SURVEY_CAR.label,arrivedAt:surveyKit.vehicle.arrived!=null?Math.round(surveyKit.vehicle.arrived):null,log:surveyKit.vehicle.log.map(l=>({atSeconds:Math.round(l.t),text:l.text}))}:null,
+  tanker:tankerKit?{name:TANKER.label,capacityL:TANKER.capacity,waterLeftL:Math.round(tankerKit.water),arrivedAt:tankerKit.vehicle.arrived!=null?Math.round(tankerKit.vehicle.arrived):null,log:tankerKit.vehicle.log.map(l=>({atSeconds:Math.round(l.t),text:l.text}))}:null,
   squads:squadKit.squads.map(sq=>({name:sq.name,people:sq.people.map(p=>p.rank),arrivedAt:sq.arrived!=null?Math.round(sq.arrived):null,task:sq.task,floor:sq.floor,log:sq.log.map(l=>({atSeconds:Math.round(l.t),text:l.text}))})),parkingIssues:m.parkIssues??[],
   victim:V(m.victim),massCasualty:mci||null};}
 function downloadRecord(){const r=missionRecord();if(!r)return;const url=URL.createObjectURL(new Blob([JSON.stringify(r,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`信義街景任務紀錄-${new Date().toISOString().slice(0,16).replace(/[:T]/g,'')}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
@@ -1012,5 +1035,5 @@ renderLoad();
 $('loading').hidden=true;
 {const at=new URLSearchParams(location.search).get('at');if(at)goToLandmark(at);}
 // 測試用：以固定時間步推進模擬（不渲染）。
-window.__xinyiStreet={walkSurface,youBike,zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);}}};
+window.__xinyiStreet={get tankerKit(){return tankerKit;},get surveyKit(){return surveyKit;},walkSurface,youBike,zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);}}};
 requestAnimationFrame(frame);
