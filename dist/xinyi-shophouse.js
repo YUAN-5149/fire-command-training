@@ -191,21 +191,41 @@ export function chunkGroup(a,cell=160){
  return [...buckets.entries()].map(([key,{map,...g}])=>({key,...g}));
 }
 
-export function addShophouses({T,scene,facades,roofs}){
+// 純函式：精細立面依建物中心分到格子（預設 100 m），網頁逐格延後建構。回傳 [{key,cx,cz,r,items}]（本地公尺）。
+export function facadeCells(items,{project,cell=100}){
+ const map=new Map();
+ for(const it of items){let x=0,z=0;for(const w of it.b.walls){const [px,pz]=project(w.a[0],w.a[1]);x+=px;z+=pz;}x/=it.b.walls.length;z/=it.b.walls.length;
+  const key=Math.floor(x/cell)+','+Math.floor(z/cell);let c=map.get(key);if(!c)map.set(key,c={key,items:[],xs:[],zs:[]});c.items.push(it);c.xs.push(x);c.zs.push(z);}
+ return [...map.values()].map(({key,items,xs,zs})=>{const cx=xs.reduce((a,b)=>a+b)/xs.length,cz=zs.reduce((a,b)=>a+b)/zs.length;
+  return {key,cx,cz,r:Math.max(...xs.map((x,i)=>Math.hypot(x-cx,zs[i]-cz)))+40,items};});
+}
+
+// 精細立面逐格延後建構：玩家接近（距離依畫質）才建該格網格，遠離後釋放；未建好時顯示該格的簡易立面（proxy），
+// 避免臨街牆在遠處變成空洞。cells 來自 facadeCells，各格可帶 proxy（three.js Mesh，簡易著色器立面）。
+export function addShophouses({T,scene,cells,roofs,project}){
  const group=new T.Group(),M=createShophouseMaterials(T),atl=signAtlases(T);group.name='shophouse detail';
  M.textH=new T.MeshBasicMaterial({map:atl.H,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
  M.textV=new T.MeshBasicMaterial({map:atl.V,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,side:T.DoubleSide});
- let verts=0;
- for(const [name,src] of [['street facades',facades.groups],['roof sheds',roofs.groups]])for(const [k,a] of Object.entries(src)){
-  if(!a.index.length)continue;
+ const meshes=(src,name,parent)=>{let n=0;for(const [k,a] of Object.entries(src)){if(!a.index.length)continue;
   for(const c of chunkGroup(a)){const g=new T.BufferGeometry();
    g.setAttribute('position',new T.Float32BufferAttribute(c.position,3));g.setAttribute('normal',new T.Float32BufferAttribute(c.normal,3));
    g.setAttribute('uv',new T.Float32BufferAttribute(c.uv,2));g.setAttribute('color',new T.Float32BufferAttribute(c.color,3));g.setIndex(c.index);g.computeBoundingSphere();
-   const m=new T.Mesh(g,M[k]);m.name=name+' '+k+' '+c.key;m.castShadow=!k.startsWith('text');m.receiveShadow=true;group.add(m);verts+=c.position.length/3;}}
+   const m=new T.Mesh(g,M[k]);m.name=name+' '+k+' '+c.key;m.castShadow=!k.startsWith('text');m.receiveShadow=true;parent.add(m);n+=c.position.length/3;}}return n;};
+ const roofGroup=new T.Group();roofGroup.name='roof sheds';group.add(roofGroup);
+ let verts=meshes(roofs.groups,'roof sheds',roofGroup);
+ const state=cells.map(c=>({...c,built:null}));
  scene.add(group);
  // 夜間：店面玻璃與招牌發光
  const setNight=l=>{M.shopglass.emissiveIntensity=.25+l*1.4;M.sign.emissiveIntensity=l*.55;M.glassLit.emissiveIntensity=.12+l*1.1;M.glassLit.emissive.set(l>.3?'#ffd9a0':'#7f97a8');};
- // 距離剔除：離鏡頭超過 maxDist 的分塊不畫（細部在遠處看不出來，只增加繪製量）
- const update=(eye,maxDist=400)=>{for(const m of group.children){const s=m.geometry.boundingSphere;m.visible=Math.hypot(s.center.x-eye.x,s.center.z-eye.z)-s.radius<maxDist;}};
- return {group,verts,setNight,update};
+ const dispose=c=>{for(const m of c.built.children)m.geometry.dispose();group.remove(c.built);c.built=null;if(c.proxy)c.proxy.visible=true;};
+ // 每幀：進入範圍的格子每幀最多建一格（避免卡頓），離開範圍再多 80 m 才釋放（避免邊界來回重建）；屋頂加蓋只做距離剔除
+ const update=(eye,maxDist=400)=>{
+  let budget=1;
+  const order=state.map(c=>[c,Math.hypot(c.cx-eye.x,c.cz-eye.z)-c.r]).sort((a,b)=>a[1]-b[1]);
+  for(const [c,d] of order){
+   if(d<maxDist&&!c.built&&budget>0){budget--;c.built=new T.Group();c.built.name='street facades '+c.key;verts+=meshes(buildStreetFacades(c.items,{project}).groups,'street facades',c.built);group.add(c.built);if(c.proxy)c.proxy.visible=false;}
+   else if(c.built&&d>maxDist+80)dispose(c);}
+  for(const m of roofGroup.children){const s=m.geometry.boundingSphere;m.visible=Math.hypot(s.center.x-eye.x,s.center.z-eye.z)-s.radius<maxDist;}
+ };
+ return {group,get verts(){return verts;},get built(){return state.filter(c=>c.built).length;},cells:state.length,setNight,update};
 }
