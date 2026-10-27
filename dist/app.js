@@ -13,7 +13,7 @@ import {createCommanderControl} from './commander-control.js';
 import {addAerialCalculations} from './aerial-calculations.js';
 import {createAerialRescue} from './aerial-rescue.js';
 import {addRooftop} from './rooftops.js';
-import {createFujinStreet} from './fujin-street.js';
+import {createFujinStreet} from './fujin-street.js?v=weathered-20261027';
 import {staging,tankerStaging,surveyCarStaging} from './staging.js?v=survey-20261025';
 import {createVehicle} from './vehicles.js';
 import {createFireState,stepFire,effectiveWater} from './fire-model.js';
