@@ -1628,14 +1628,14 @@
               },
               "bounds": {
                 "min": [
-                  -0.23997493088245392,
+                  -0.23253917694091797,
                   0,
-                  -0.20961637794971466
+                  -0.20711122453212738
                 ],
                 "max": [
-                  0.27227142453193665,
-                  0.37539732456207275,
-                  0.29885074496269226
+                  0.258376806974411,
+                  0.34459760785102844,
+                  0.279570072889328
                 ]
               }
             },
@@ -1644,43 +1644,43 @@
               "attributes": {
                 "position": {
                   "offset": 3079056,
-                  "length": 7776,
+                  "length": 11232,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3110160,
-                  "length": 7776,
+                  "offset": 3123984,
+                  "length": 11232,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3141264,
-                  "length": 5184,
+                  "offset": 3168912,
+                  "length": 7488,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3162000,
-                "length": 3888,
+                "offset": 3198864,
+                "length": 5616,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.28419607877731323,
-                  0.04655996337532997,
-                  -0.25155678391456604
+                  -0.2793322205543518,
+                  0.03489939123392105,
+                  -0.26513877511024475
                 ],
                 "max": [
-                  0.3158039450645447,
+                  0.3177606463432312,
                   0.4000000059604645,
-                  0.3385080397129059
+                  0.33486121892929077
                 ]
               }
             }
           ],
-          "triangles": 2716
+          "triangles": 3292
         },
         {
           "parts": [
@@ -1688,39 +1688,39 @@
               "name": "branches",
               "attributes": {
                 "position": {
-                  "offset": 3177552,
+                  "offset": 3221328,
                   "length": 1884,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3185088,
+                  "offset": 3228864,
                   "length": 1884,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3192624,
+                  "offset": 3236400,
                   "length": 1256,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3197648,
+                "offset": 3241424,
                 "length": 1878,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.23997493088245392,
+                  -0.23253917694091797,
                   0,
-                  -0.20961637794971466
+                  -0.20711122453212738
                 ],
                 "max": [
-                  0.27227142453193665,
-                  0.37539732456207275,
-                  0.29885074496269226
+                  0.258376806974411,
+                  0.34459760785102844,
+                  0.279570072889328
                 ]
               }
             },
@@ -1728,44 +1728,44 @@
               "name": "leaves",
               "attributes": {
                 "position": {
-                  "offset": 3205160,
-                  "length": 972,
+                  "offset": 3248936,
+                  "length": 1404,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3209048,
-                  "length": 972,
+                  "offset": 3254552,
+                  "length": 1404,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3212936,
-                  "length": 648,
+                  "offset": 3260168,
+                  "length": 936,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3215528,
-                "length": 486,
+                "offset": 3263912,
+                "length": 702,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.3218901455402374,
-                  0.03829483315348625,
-                  -0.2870183289051056
+                  -0.2929723262786865,
+                  0.013181011192500591,
+                  -0.2996789216995239
                 ],
                 "max": [
-                  0.3290180265903473,
-                  0.40433990955352783,
-                  0.36674201488494873
+                  0.3759337365627289,
+                  0.4096320569515228,
+                  0.3522961735725403
                 ]
               }
             }
           ],
-          "triangles": 788
+          "triangles": 860
         },
         {
           "parts": [
@@ -1773,39 +1773,39 @@
               "name": "branches",
               "attributes": {
                 "position": {
-                  "offset": 3217472,
+                  "offset": 3266720,
                   "length": 1428,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3223184,
+                  "offset": 3272432,
                   "length": 1428,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3228896,
+                  "offset": 3278144,
                   "length": 952,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3232704,
+                "offset": 3281952,
                 "length": 1188,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.23997493088245392,
+                  -0.23253917694091797,
                   0,
-                  -0.20961637794971466
+                  -0.20711122453212738
                 ],
                 "max": [
-                  0.27227142453193665,
-                  0.37539732456207275,
-                  0.29885074496269226
+                  0.258376806974411,
+                  0.34459760785102844,
+                  0.279570072889328
                 ]
               }
             },
@@ -1813,44 +1813,44 @@
               "name": "leaves",
               "attributes": {
                 "position": {
-                  "offset": 3237456,
-                  "length": 324,
+                  "offset": 3286704,
+                  "length": 468,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3238752,
-                  "length": 324,
+                  "offset": 3288576,
+                  "length": 468,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3240048,
-                  "length": 216,
+                  "offset": 3290448,
+                  "length": 312,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3240912,
-                "length": 162,
+                "offset": 3291696,
+                "length": 234,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.26839014887809753,
-                  0.03076339140534401,
-                  -0.30018824338912964
+                  -0.2576585114002228,
+                  0.05036960914731026,
+                  -0.341662734746933
                 ],
                 "max": [
-                  0.35912826657295227,
-                  0.4070405066013336,
-                  0.3585878908634186
+                  0.37169116735458374,
+                  0.43662354350090027,
+                  0.34203967452049255
                 ]
               }
             }
           ],
-          "triangles": 450
+          "triangles": 474
         }
       ]
     },
@@ -1867,39 +1867,39 @@
               "name": "branches",
               "attributes": {
                 "position": {
-                  "offset": 3241560,
+                  "offset": 3292632,
                   "length": 6849,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3268956,
+                  "offset": 3320028,
                   "length": 6849,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3296352,
+                  "offset": 3347424,
                   "length": 4566,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3314616,
+                "offset": 3365688,
                 "length": 10080,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.15692071616649628,
+                  -0.19341333210468292,
                   0,
-                  -0.3088228702545166
+                  -0.2950361669063568
                 ],
                 "max": [
-                  0.2461373507976532,
-                  0.5300823450088501,
-                  0.2973317503929138
+                  0.2205488681793213,
+                  0.4927046298980713,
+                  0.2881707549095154
                 ]
               }
             },
@@ -1907,44 +1907,44 @@
               "name": "leaves",
               "attributes": {
                 "position": {
-                  "offset": 3354936,
-                  "length": 7776,
+                  "offset": 3406008,
+                  "length": 11232,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3386040,
-                  "length": 7776,
+                  "offset": 3450936,
+                  "length": 11232,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3417144,
-                  "length": 5184,
+                  "offset": 3495864,
+                  "length": 7488,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3437880,
-                "length": 3888,
+                "offset": 3525816,
+                "length": 5616,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.17827138304710388,
-                  0.075206458568573,
-                  -0.36041945219039917
+                  -0.2723179757595062,
+                  0.04709690436720848,
+                  -0.37334397435188293
                 ],
                 "max": [
-                  0.3094823360443115,
+                  0.308515727519989,
                   0.550000011920929,
-                  0.3395805358886719
+                  0.3266560137271881
                 ]
               }
             }
           ],
-          "triangles": 4656
+          "triangles": 5232
         },
         {
           "parts": [
@@ -1952,39 +1952,39 @@
               "name": "branches",
               "attributes": {
                 "position": {
-                  "offset": 3453432,
+                  "offset": 3548280,
                   "length": 2979,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3465348,
+                  "offset": 3560196,
                   "length": 2979,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3477264,
+                  "offset": 3572112,
                   "length": 1986,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3485208,
+                "offset": 3580056,
                 "length": 3600,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.15692071616649628,
+                  -0.19341333210468292,
                   0,
-                  -0.308550626039505
+                  -0.2950361669063568
                 ],
                 "max": [
-                  0.24613666534423828,
-                  0.5300823450088501,
-                  0.2973008453845978
+                  0.2205488681793213,
+                  0.4927046298980713,
+                  0.2881223261356354
                 ]
               }
             },
@@ -1992,44 +1992,44 @@
               "name": "leaves",
               "attributes": {
                 "position": {
-                  "offset": 3499608,
-                  "length": 972,
+                  "offset": 3594456,
+                  "length": 1404,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3503496,
-                  "length": 972,
+                  "offset": 3600072,
+                  "length": 1404,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3507384,
-                  "length": 648,
+                  "offset": 3605688,
+                  "length": 936,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3509976,
-                "length": 486,
+                "offset": 3609432,
+                "length": 702,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.21219667792320251,
-                  0.08063755929470062,
-                  -0.34146666526794434
+                  -0.2544575333595276,
+                  0.056450847536325455,
+                  -0.43302786350250244
                 ],
                 "max": [
-                  0.27883023023605347,
-                  0.5569460391998291,
-                  0.33844515681266785
+                  0.3647238612174988,
+                  0.5447019338607788,
+                  0.3376530706882477
                 ]
               }
             }
           ],
-          "triangles": 1362
+          "triangles": 1434
         },
         {
           "parts": [
@@ -2037,39 +2037,39 @@
               "name": "branches",
               "attributes": {
                 "position": {
-                  "offset": 3511920,
+                  "offset": 3612240,
                   "length": 1764,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3518976,
+                  "offset": 3619296,
                   "length": 1764,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3526032,
+                  "offset": 3626352,
                   "length": 1176,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3530736,
+                "offset": 3631056,
                 "length": 1692,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.15692071616649628,
+                  -0.19341333210468292,
                   0,
-                  -0.30752500891685486
+                  -0.2950361669063568
                 ],
                 "max": [
-                  0.24613666534423828,
-                  0.5300823450088501,
-                  0.29700785875320435
+                  0.2205488681793213,
+                  0.4927046298980713,
+                  0.28800085186958313
                 ]
               }
             },
@@ -2077,44 +2077,44 @@
               "name": "leaves",
               "attributes": {
                 "position": {
-                  "offset": 3537504,
-                  "length": 324,
+                  "offset": 3637824,
+                  "length": 468,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3538800,
-                  "length": 324,
+                  "offset": 3639696,
+                  "length": 468,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3540096,
-                  "length": 216,
+                  "offset": 3641568,
+                  "length": 312,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3540960,
-                "length": 162,
+                "offset": 3642816,
+                "length": 234,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.2529599666595459,
-                  0.08230437338352203,
-                  -0.33117154240608215
+                  -0.2786714732646942,
+                  0.061558663845062256,
+                  -0.329627126455307
                 ],
                 "max": [
-                  0.2969200313091278,
-                  0.5680075287818909,
-                  0.35568392276763916
+                  0.426025390625,
+                  0.5721267461776733,
+                  0.3729376792907715
                 ]
               }
             }
           ],
-          "triangles": 618
+          "triangles": 642
         }
       ]
     },
@@ -2131,39 +2131,39 @@
               "name": "branches",
               "attributes": {
                 "position": {
-                  "offset": 3541608,
+                  "offset": 3643752,
                   "length": 3519,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3555684,
+                  "offset": 3657828,
                   "length": 3519,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3569760,
+                  "offset": 3671904,
                   "length": 2346,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3579144,
+                "offset": 3681288,
                 "length": 5424,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.2621048092842102,
+                  -0.23175545036792755,
                   0,
-                  -0.24879902601242065
+                  -0.13167546689510345
                 ],
                 "max": [
-                  0.14730527997016907,
-                  0.4750477969646454,
-                  0.26220735907554626
+                  0.11548871546983719,
+                  0.4219580590724945,
+                  0.3031827211380005
                 ]
               }
             },
@@ -2171,44 +2171,44 @@
               "name": "leaves",
               "attributes": {
                 "position": {
-                  "offset": 3600840,
-                  "length": 2592,
+                  "offset": 3702984,
+                  "length": 3744,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3611208,
-                  "length": 2592,
+                  "offset": 3717960,
+                  "length": 3744,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3621576,
-                  "length": 1728,
+                  "offset": 3732936,
+                  "length": 2496,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3628488,
-                "length": 1296,
+                "offset": 3742920,
+                "length": 1872,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.3518604636192322,
-                  0.0893695205450058,
-                  -0.31280314922332764
+                  -0.3445017635822296,
+                  0.05919806659221649,
+                  -0.24242360889911652
                 ],
                 "max": [
-                  0.23081649839878082,
+                  0.23987597227096558,
                   0.5,
-                  0.33719682693481445
+                  0.40757638216018677
                 ]
               }
             }
           ],
-          "triangles": 2240
+          "triangles": 2432
         },
         {
           "parts": [
@@ -2216,39 +2216,39 @@
               "name": "branches",
               "attributes": {
                 "position": {
-                  "offset": 3633672,
+                  "offset": 3750408,
                   "length": 1398,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3639264,
+                  "offset": 3756000,
                   "length": 1398,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3644856,
+                  "offset": 3761592,
                   "length": 932,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3648584,
+                "offset": 3765320,
                 "length": 1836,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.2621048092842102,
+                  -0.2317519187927246,
                   0,
-                  -0.24879823625087738
+                  -0.13167546689510345
                 ],
                 "max": [
-                  0.14704568684101105,
-                  0.4750477969646454,
-                  0.2622028887271881
+                  0.11527625471353531,
+                  0.4219580590724945,
+                  0.3031843900680542
                 ]
               }
             },
@@ -2256,44 +2256,44 @@
               "name": "leaves",
               "attributes": {
                 "position": {
-                  "offset": 3655928,
-                  "length": 324,
+                  "offset": 3772664,
+                  "length": 468,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3657224,
-                  "length": 324,
+                  "offset": 3774536,
+                  "length": 468,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3658520,
-                  "length": 216,
+                  "offset": 3776408,
+                  "length": 312,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3659384,
-                "length": 162,
+                "offset": 3777656,
+                "length": 234,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.2732768654823303,
-                  0.10011076182126999,
-                  -0.3171682059764862
+                  -0.35373103618621826,
+                  0.052186936140060425,
+                  -0.25849851965904236
                 ],
                 "max": [
-                  0.30034324526786804,
-                  0.5101230144500732,
-                  0.31601303815841675
+                  0.2826959490776062,
+                  0.529827356338501,
+                  0.3299807906150818
                 ]
               }
             }
           ],
-          "triangles": 666
+          "triangles": 690
         },
         {
           "parts": [
@@ -2301,39 +2301,39 @@
               "name": "branches",
               "attributes": {
                 "position": {
-                  "offset": 3660032,
+                  "offset": 3778592,
                   "length": 720,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3662912,
+                  "offset": 3781472,
                   "length": 720,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3665792,
+                  "offset": 3784352,
                   "length": 480,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3667712,
+                "offset": 3786272,
                 "length": 774,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.2621048092842102,
+                  -0.2317519187927246,
                   0,
-                  -0.2487911880016327
+                  -0.13167546689510345
                 ],
                 "max": [
-                  0.14703664183616638,
-                  0.4750475287437439,
-                  0.2622028887271881
+                  0.11527625471353531,
+                  0.42195773124694824,
+                  0.303180068731308
                 ]
               }
             },
@@ -2341,44 +2341,44 @@
               "name": "leaves",
               "attributes": {
                 "position": {
-                  "offset": 3670808,
-                  "length": 108,
+                  "offset": 3789368,
+                  "length": 156,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "normal": {
-                  "offset": 3671240,
-                  "length": 108,
+                  "offset": 3789992,
+                  "length": 156,
                   "type": "Float32Array",
                   "itemSize": 3
                 },
                 "uv": {
-                  "offset": 3671672,
-                  "length": 72,
+                  "offset": 3790616,
+                  "length": 104,
                   "type": "Float32Array",
                   "itemSize": 2
                 }
               },
               "index": {
-                "offset": 3671960,
-                "length": 54,
+                "offset": 3791032,
+                "length": 78,
                 "type": "Uint32Array"
               },
               "bounds": {
                 "min": [
-                  -0.24150949716567993,
-                  0.10963764041662216,
-                  -0.23959989845752716
+                  -0.4208790957927704,
+                  0.03580447658896446,
+                  -0.3210490047931671
                 ],
                 "max": [
-                  0.36987000703811646,
-                  0.49523571133613586,
-                  0.3675377368927002
+                  0.27897313237190247,
+                  0.5781500935554504,
+                  0.36760222911834717
                 ]
               }
             }
           ],
-          "triangles": 276
+          "triangles": 284
         }
       ]
     }

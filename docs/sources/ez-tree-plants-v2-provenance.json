@@ -19,12 +19,12 @@
   ],
   "files": {
     "geometry.bin": {
-      "bytes": 3672176,
-      "sha256": "afee4b5f786b18d92a11680494bd935feb125b97ee6241130fcadb03a97e6114"
+      "bytes": 3791344,
+      "sha256": "41c0d4c089500ce969c8e19599679d770cff03c6b3d308daefac9277ea86da41"
     },
     "catalog.json": {
-      "bytes": 67243,
-      "sha256": "efa2a455fb2698c72782149204723d904ab2703e79bd3a90d5ef9943c3267503"
+      "bytes": 67228,
+      "sha256": "463b550a16bcf4b470b7170f942b61e49f68e83fbc8e25158ba7f39a299920a0"
     },
     "leaves.png": {
       "bytes": 68964,
