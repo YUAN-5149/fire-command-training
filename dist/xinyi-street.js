@@ -1,4 +1,4 @@
-import {loadTreeAssets,createRealisticTrees} from './xinyi-realistic-trees.js?v=trees-20261027';
+import {loadTreeAssets,createRealisticTrees} from './xinyi-realistic-trees.js?v=plants-20261027';
 import {treeInstances} from './xinyi-trees.js?v=5';
 import {applyEocFrontage,reviewEocGreen} from './xinyi-eoc-frontage.js?v=photo-20261027';
 import {createWalkSurface,placeCharacterFeet} from './xinyi-walk-surface.js?v=ground-20261023';
@@ -204,7 +204,7 @@ step('建立車流、行人與店面');
 const exclude=new Set([357399,265936,266115,266138,...zhuangjingIds]);(function collect(o){if(Array.isArray(o))o.forEach(collect);else if(o&&typeof o==='object')for(const [k,v] of Object.entries(o)){if(k==='officialVolumeCandidates'&&Array.isArray(v))v.forEach(id=>exclude.add(+id));else collect(v);}})(firstBatch);
 const life=createStreetLife(scene,{features:streets.features,buildings:district.buildings,ground,colliders,fixtures,exclude,spawn,markings:!laneData,busFeatures:navigationFeatures});
 // Only hide old crowns after both geometry and textures loaded successfully.
-loadTreeAssets().then(assets=>{treeForest=createRealisticTrees({scene,assets,ground:walkSurface,street:treeInstances(furniture?.trees??[]),supplemental:life.groups.trees.children.find(m=>m.isInstancedMesh)});if(eocRoot)treeForest.replaceEoc(eocRoot);scene.traverse(o=>{if(o.name==='street trees')o.visible=false;});life.groups.trees.visible=false;treeForest.setVisible(forestVisible);treeForest.setQuality(forestQuality);$('treeAssetStatus').textContent='已載入 GitHub EZ-Tree：分枝樹幹、透明葉片及三層遠近細節；樹位沿用既有資料，樹種與季節外觀為示意。';}).catch(e=>{console.warn('Tree assets unavailable; original trees retained',e);$('treeAssetStatus').textContent='新樹木素材未載入，暫時保留原樹木；請重新整理。';});
+loadTreeAssets().then(assets=>{treeForest=createRealisticTrees({scene,assets,ground:walkSurface,street:treeInstances(furniture?.trees??[]),supplemental:life.groups.trees.children.find(m=>m.isInstancedMesh)});if(eocRoot)treeForest.replaceEoc(eocRoot);scene.traverse(o=>{if(o.name==='street trees')o.visible=false;});life.groups.trees.visible=false;treeForest.setVisible(forestVisible);treeForest.setQuality(forestQuality);$('treeAssetStatus').textContent='已載入 GitHub EZ-Tree：六種樹形、三種灌木與三層遠近細節；灌木限既有植栽島內，樹種、數量與尺寸為示意待核對。';}).catch(e=>{console.warn('Tree assets unavailable; original trees retained',e);$('treeAssetStatus').textContent='新樹木素材未載入，暫時保留原樹木；請重新整理。';});
 $('busStatus').textContent=life.busStats.count?'已接入最多 '+life.busStats.count+' 輛示意公車，沿較寬幹道路段行駛；非實際營運路線或時刻。':'目前資料沒有適合的寬幹道路段，暫不生成公車。';
 const sky=createSky();scene.add(sky);
 const audio=createAudio();
