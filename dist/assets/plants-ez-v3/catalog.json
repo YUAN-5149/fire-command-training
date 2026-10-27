@@ -1,0 +1,5443 @@
+{
+  "version": 3,
+  "source": {
+    "repository": "https://github.com/dgreenheck/ez-tree",
+    "commit": "dcf309bd86bd521083d9c70f01f2de45fdc7c457",
+    "license": "MIT"
+  },
+  "models": [
+    {
+      "kind": "broad",
+      "label": "broad",
+      "preset": "Ash Medium",
+      "height": 7.5,
+      "category": "tree",
+      "species": false,
+      "dense": false,
+      "seed": 36330,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 0,
+                  "length": 11523,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 46092,
+                  "length": 11523,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 92184,
+                  "length": 7682,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 122912,
+                "length": 16416,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1958231925964355,
+                  0,
+                  -1.9690709114074707
+                ],
+                "max": [
+                  1.8157336711883545,
+                  7.228801727294922,
+                  2.9829657077789307
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 188576,
+                  "length": 25920,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 292256,
+                  "length": 25920,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 395936,
+                  "length": 17280,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 465056,
+                "length": 12960,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.4412460327148438,
+                  1.2913322448730469,
+                  -2.353203058242798
+                ],
+                "max": [
+                  2.1768991947174072,
+                  7.5,
+                  3.2755815982818604
+                ]
+              }
+            }
+          ],
+          "triangles": 9792
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 516896,
+                  "length": 5253,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 537908,
+                  "length": 5253,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 558920,
+                  "length": 3502,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 572928,
+                "length": 6120,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.195802927017212,
+                  0,
+                  -1.9690709114074707
+                ],
+                "max": [
+                  1.8157336711883545,
+                  7.228801250457764,
+                  2.9788999557495117
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 597408,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 610368,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 623328,
+                  "length": 2160,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 631968,
+                "length": 1620,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.4412460327148438,
+                  1.3886040449142456,
+                  -2.353203058242798
+                ],
+                "max": [
+                  2.1768991947174072,
+                  7.5,
+                  3.2755815982818604
+                ]
+              }
+            }
+          ],
+          "triangles": 2580
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 638448,
+                  "length": 3276,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 651552,
+                  "length": 3276,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 664656,
+                  "length": 2184,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 673392,
+                "length": 3060,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.195802927017212,
+                  0,
+                  -1.9690709114074707
+                ],
+                "max": [
+                  1.8157336711883545,
+                  7.228801727294922,
+                  2.978877067565918
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 685632,
+                  "length": 1080,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 689952,
+                  "length": 1080,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 694272,
+                  "length": 720,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 697152,
+                "length": 540,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.4412460327148438,
+                  1.6332927942276,
+                  -2.353203058242798
+                ],
+                "max": [
+                  2.1768991947174072,
+                  7.5,
+                  3.2339513301849365
+                ]
+              }
+            }
+          ],
+          "triangles": 1200
+        }
+      ]
+    },
+    {
+      "kind": "spreading",
+      "label": "spreading",
+      "preset": "Oak Medium",
+      "height": 7,
+      "category": "tree",
+      "species": false,
+      "dense": false,
+      "seed": 35729,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 699312,
+                  "length": 5634,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 721848,
+                  "length": 5634,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 744384,
+                  "length": 3756,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 759408,
+                "length": 6852,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.7821078300476074,
+                  0,
+                  -1.8056342601776123
+                ],
+                "max": [
+                  2.280766487121582,
+                  6.835862159729004,
+                  2.272026300430298
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 786816,
+                  "length": 25920,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 890496,
+                  "length": 25920,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 994176,
+                  "length": 17280,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1063296,
+                "length": 12960,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.120720386505127,
+                  1.6703146696090698,
+                  -2.2295072078704834
+                ],
+                "max": [
+                  2.6371617317199707,
+                  7,
+                  2.5291357040405273
+                ]
+              }
+            }
+          ],
+          "triangles": 6604
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 1115136,
+                  "length": 3468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1129008,
+                  "length": 3468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1142880,
+                  "length": 2312,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1152128,
+                "length": 3354,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.7829585075378418,
+                  0,
+                  -1.8056342601776123
+                ],
+                "max": [
+                  2.280766487121582,
+                  6.835862159729004,
+                  2.272026300430298
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 1165544,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1178504,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1191464,
+                  "length": 2160,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1200104,
+                "length": 1620,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.120720386505127,
+                  1.4617016315460205,
+                  -2.2272846698760986
+                ],
+                "max": [
+                  2.6371617317199707,
+                  7,
+                  2.5291357040405273
+                ]
+              }
+            }
+          ],
+          "triangles": 1658
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 1206584,
+                  "length": 2700,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1217384,
+                  "length": 2700,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1228184,
+                  "length": 1800,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1235384,
+                "length": 2196,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.7829585075378418,
+                  0,
+                  -1.8056342601776123
+                ],
+                "max": [
+                  2.280766487121582,
+                  6.835862159729004,
+                  2.272026300430298
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 1244168,
+                  "length": 1080,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1248488,
+                  "length": 1080,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1252808,
+                  "length": 720,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1255688,
+                "length": 540,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.120720386505127,
+                  1.344314455986023,
+                  -2.1685500144958496
+                ],
+                "max": [
+                  2.6371617317199707,
+                  7,
+                  2.240535259246826
+                ]
+              }
+            }
+          ],
+          "triangles": 912
+        }
+      ]
+    },
+    {
+      "kind": "upright",
+      "label": "upright",
+      "preset": "Aspen Medium",
+      "height": 8.2,
+      "category": "tree",
+      "species": false,
+      "dense": false,
+      "seed": 18020,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 1257848,
+                  "length": 5793,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1281020,
+                  "length": 5793,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1304192,
+                  "length": 3862,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1319640,
+                "length": 8784,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.9396557807922363,
+                  0,
+                  -1.1423125267028809
+                ],
+                "max": [
+                  1.6558196544647217,
+                  7.952728748321533,
+                  1.513951063156128
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 1354776,
+                  "length": 6912,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1382424,
+                  "length": 6912,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1410072,
+                  "length": 4608,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1428504,
+                "length": 3456,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.3212302923202515,
+                  3.3853237628936768,
+                  -1.666741967201233
+                ],
+                "max": [
+                  2.002558946609497,
+                  8.199999809265137,
+                  1.7523423433303833
+                ]
+              }
+            }
+          ],
+          "triangles": 4080
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 1442328,
+                  "length": 2358,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1451760,
+                  "length": 2358,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1461192,
+                  "length": 1572,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1467480,
+                "length": 3036,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.939615786075592,
+                  0,
+                  -1.142295479774475
+                ],
+                "max": [
+                  1.6558183431625366,
+                  7.95272970199585,
+                  1.5139639377593994
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 1479624,
+                  "length": 864,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1483080,
+                  "length": 864,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1486536,
+                  "length": 576,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1488840,
+                "length": 432,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.3212302923202515,
+                  3.213212251663208,
+                  -1.666741967201233
+                ],
+                "max": [
+                  2.002558946609497,
+                  8.199999809265137,
+                  1.7523423433303833
+                ]
+              }
+            }
+          ],
+          "triangles": 1156
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 1490568,
+                  "length": 1272,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1495656,
+                  "length": 1272,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1500744,
+                  "length": 848,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1504136,
+                "length": 1350,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.939615786075592,
+                  0,
+                  -1.142295479774475
+                ],
+                "max": [
+                  1.6558183431625366,
+                  7.952724933624268,
+                  1.5139639377593994
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 1509536,
+                  "length": 288,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1510688,
+                  "length": 288,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1511840,
+                  "length": 192,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1512608,
+                "length": 144,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.3212302923202515,
+                  2.957754373550415,
+                  -1.666741967201233
+                ],
+                "max": [
+                  2.002558946609497,
+                  8.199999809265137,
+                  1.7523423433303833
+                ]
+              }
+            }
+          ],
+          "triangles": 498
+        }
+      ]
+    },
+    {
+      "kind": "open",
+      "label": "open",
+      "preset": "Ash Medium",
+      "height": 7,
+      "category": "tree",
+      "species": false,
+      "dense": false,
+      "seed": 741,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 1513184,
+                  "length": 11523,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1559276,
+                  "length": 11523,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1605368,
+                  "length": 7682,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1636096,
+                "length": 16416,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.145132303237915,
+                  0,
+                  -2.458595037460327
+                ],
+                "max": [
+                  2.026984214782715,
+                  6.603848934173584,
+                  2.3812921047210693
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 1701760,
+                  "length": 25920,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 1805440,
+                  "length": 25920,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 1909120,
+                  "length": 17280,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 1978240,
+                "length": 12960,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.5042643547058105,
+                  1.1879444122314453,
+                  -2.817897081375122
+                ],
+                "max": [
+                  2.4290246963500977,
+                  7,
+                  2.6306216716766357
+                ]
+              }
+            }
+          ],
+          "triangles": 9792
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 2030080,
+                  "length": 5253,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2051092,
+                  "length": 5253,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2072104,
+                  "length": 3502,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2086112,
+                "length": 6120,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.145132303237915,
+                  0,
+                  -2.4515528678894043
+                ],
+                "max": [
+                  2.0270066261291504,
+                  6.603848934173584,
+                  2.3812646865844727
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 2110592,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2123552,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2136512,
+                  "length": 2160,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2145152,
+                "length": 1620,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.5042643547058105,
+                  0.8861783146858215,
+                  -2.6476030349731445
+                ],
+                "max": [
+                  2.367678165435791,
+                  7,
+                  2.6260509490966797
+                ]
+              }
+            }
+          ],
+          "triangles": 2580
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 2151632,
+                  "length": 3276,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2164736,
+                  "length": 3276,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2177840,
+                  "length": 2184,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2186576,
+                "length": 3060,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.145132303237915,
+                  0,
+                  -2.4515528678894043
+                ],
+                "max": [
+                  2.0270066261291504,
+                  6.603848934173584,
+                  2.3812646865844727
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 2198816,
+                  "length": 1080,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2203136,
+                  "length": 1080,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2207456,
+                  "length": 720,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2210336,
+                "length": 540,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.0718905925750732,
+                  0.5844122171401978,
+                  -2.6502256393432617
+                ],
+                "max": [
+                  2.4290246963500977,
+                  7,
+                  2.6306216716766357
+                ]
+              }
+            }
+          ],
+          "triangles": 1200
+        }
+      ]
+    },
+    {
+      "kind": "wide",
+      "label": "wide",
+      "preset": "Oak Medium",
+      "height": 6.2,
+      "category": "tree",
+      "species": false,
+      "dense": false,
+      "seed": 295,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 2212496,
+                  "length": 5634,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2235032,
+                  "length": 5634,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2257568,
+                  "length": 3756,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2272592,
+                "length": 6852,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1473870277404785,
+                  0,
+                  -2.2723307609558105
+                ],
+                "max": [
+                  2.407379150390625,
+                  5.8447065353393555,
+                  2.60817289352417
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 2300000,
+                  "length": 25920,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2403680,
+                  "length": 25920,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2507360,
+                  "length": 17280,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2576480,
+                "length": 12960,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.4911348819732666,
+                  1.1280696392059326,
+                  -2.594172954559326
+                ],
+                "max": [
+                  2.8368916511535645,
+                  6.199999809265137,
+                  3.000190258026123
+                ]
+              }
+            }
+          ],
+          "triangles": 6604
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 2628320,
+                  "length": 3468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2642192,
+                  "length": 3468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2656064,
+                  "length": 2312,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2665312,
+                "length": 3354,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1473870277404785,
+                  0,
+                  -2.2723307609558105
+                ],
+                "max": [
+                  2.407379150390625,
+                  5.8447065353393555,
+                  2.60817289352417
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 2678728,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2691688,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2704648,
+                  "length": 2160,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2713288,
+                "length": 1620,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.4347100257873535,
+                  0.912032961845398,
+                  -2.594172954559326
+                ],
+                "max": [
+                  2.8368916511535645,
+                  6.171873569488525,
+                  2.872309446334839
+                ]
+              }
+            }
+          ],
+          "triangles": 1658
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 2719768,
+                  "length": 2700,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2730568,
+                  "length": 2700,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2741368,
+                  "length": 1800,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2748568,
+                "length": 2196,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1473870277404785,
+                  0,
+                  -2.2723307609558105
+                ],
+                "max": [
+                  2.407379150390625,
+                  5.8447065353393555,
+                  2.60817289352417
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 2757352,
+                  "length": 1080,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2761672,
+                  "length": 1080,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2765992,
+                  "length": 720,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2768872,
+                "length": 540,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.4911348819732666,
+                  1.1968131065368652,
+                  -2.594172954559326
+                ],
+                "max": [
+                  2.8368916511535645,
+                  6.199999809265137,
+                  3.000190258026123
+                ]
+              }
+            }
+          ],
+          "triangles": 912
+        }
+      ]
+    },
+    {
+      "kind": "column",
+      "label": "column",
+      "preset": "Aspen Medium",
+      "height": 9,
+      "category": "tree",
+      "species": false,
+      "dense": false,
+      "seed": 839,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 2771032,
+                  "length": 5793,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2794204,
+                  "length": 5793,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2817376,
+                  "length": 3862,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2832824,
+                "length": 8784,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.7659599184989929,
+                  0,
+                  -0.8443031311035156
+                ],
+                "max": [
+                  1.2935034036636353,
+                  8.60825252532959,
+                  1.5740305185317993
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 2867960,
+                  "length": 6912,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2895608,
+                  "length": 6912,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2923256,
+                  "length": 4608,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2941688,
+                "length": 3456,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.0629907846450806,
+                  4.151854991912842,
+                  -1.0751036405563354
+                ],
+                "max": [
+                  1.6276675462722778,
+                  9,
+                  1.9674770832061768
+                ]
+              }
+            }
+          ],
+          "triangles": 4080
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 2955512,
+                  "length": 2358,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2964944,
+                  "length": 2358,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2974376,
+                  "length": 1572,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 2980664,
+                "length": 3036,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.7659838199615479,
+                  0,
+                  -0.8443031311035156
+                ],
+                "max": [
+                  1.2935007810592651,
+                  8.60825252532959,
+                  1.5740255117416382
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 2992808,
+                  "length": 864,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 2996264,
+                  "length": 864,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 2999720,
+                  "length": 576,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3002024,
+                "length": 432,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.9336547255516052,
+                  4.190592288970947,
+                  -1.0751036405563354
+                ],
+                "max": [
+                  1.558929681777954,
+                  9,
+                  1.9549825191497803
+                ]
+              }
+            }
+          ],
+          "triangles": 1156
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3003752,
+                  "length": 1272,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3008840,
+                  "length": 1272,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3013928,
+                  "length": 848,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3017320,
+                "length": 1350,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.7659838199615479,
+                  0,
+                  -0.8443031311035156
+                ],
+                "max": [
+                  1.2935007810592651,
+                  8.60825252532959,
+                  1.5740305185317993
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3022720,
+                  "length": 288,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3023872,
+                  "length": 288,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3025024,
+                  "length": 192,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3025792,
+                "length": 144,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.002737283706665,
+                  4.693568706512451,
+                  -1.0751036405563354
+                ],
+                "max": [
+                  1.504982352256775,
+                  9,
+                  1.9674770832061768
+                ]
+              }
+            }
+          ],
+          "triangles": 498
+        }
+      ]
+    },
+    {
+      "kind": "shrub-low",
+      "label": "shrub-low",
+      "preset": "Oak Medium",
+      "height": 0.4,
+      "category": "shrub",
+      "species": false,
+      "dense": false,
+      "seed": 103,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3026368,
+                  "length": 3342,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3039736,
+                  "length": 3342,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3053104,
+                  "length": 2228,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3062016,
+                "length": 4260,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.23253917694091797,
+                  0,
+                  -0.20711122453212738
+                ],
+                "max": [
+                  0.258376806974411,
+                  0.34459760785102844,
+                  0.279570072889328
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3079056,
+                  "length": 11232,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3123984,
+                  "length": 11232,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3168912,
+                  "length": 7488,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3198864,
+                "length": 5616,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.2793322205543518,
+                  0.03489939123392105,
+                  -0.26513877511024475
+                ],
+                "max": [
+                  0.3177606463432312,
+                  0.4000000059604645,
+                  0.33486121892929077
+                ]
+              }
+            }
+          ],
+          "triangles": 3292
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3221328,
+                  "length": 1884,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3228864,
+                  "length": 1884,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3236400,
+                  "length": 1256,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3241424,
+                "length": 1878,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.23253917694091797,
+                  0,
+                  -0.20711122453212738
+                ],
+                "max": [
+                  0.258376806974411,
+                  0.34459760785102844,
+                  0.279570072889328
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3248936,
+                  "length": 1404,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3254552,
+                  "length": 1404,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3260168,
+                  "length": 936,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3263912,
+                "length": 702,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.2793322205543518,
+                  0.013181011192500591,
+                  -0.26513877511024475
+                ],
+                "max": [
+                  0.3177606463432312,
+                  0.4000000059604645,
+                  0.33486121892929077
+                ]
+              }
+            }
+          ],
+          "triangles": 860
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3266720,
+                  "length": 1428,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3272432,
+                  "length": 1428,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3278144,
+                  "length": 952,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3281952,
+                "length": 1188,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.23253917694091797,
+                  0,
+                  -0.20711122453212738
+                ],
+                "max": [
+                  0.258376806974411,
+                  0.34459760785102844,
+                  0.279570072889328
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3286704,
+                  "length": 468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3288576,
+                  "length": 468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3290448,
+                  "length": 312,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3291696,
+                "length": 234,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.2576585114002228,
+                  0.05036960914731026,
+                  -0.26513877511024475
+                ],
+                "max": [
+                  0.3177606463432312,
+                  0.4000000059604645,
+                  0.33486121892929077
+                ]
+              }
+            }
+          ],
+          "triangles": 474
+        }
+      ]
+    },
+    {
+      "kind": "shrub-fan",
+      "label": "shrub-fan",
+      "preset": "Ash Medium",
+      "height": 0.55,
+      "category": "shrub",
+      "species": false,
+      "dense": false,
+      "seed": 407,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3292632,
+                  "length": 6849,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3320028,
+                  "length": 6849,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3347424,
+                  "length": 4566,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3365688,
+                "length": 10080,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.19341333210468292,
+                  0,
+                  -0.2950361669063568
+                ],
+                "max": [
+                  0.2205488681793213,
+                  0.4927046298980713,
+                  0.2881707549095154
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3406008,
+                  "length": 11232,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3450936,
+                  "length": 11232,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3495864,
+                  "length": 7488,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3525816,
+                "length": 5616,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.2723179757595062,
+                  0.04709690436720848,
+                  -0.37334397435188293
+                ],
+                "max": [
+                  0.308515727519989,
+                  0.550000011920929,
+                  0.3266560137271881
+                ]
+              }
+            }
+          ],
+          "triangles": 5232
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3548280,
+                  "length": 2979,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3560196,
+                  "length": 2979,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3572112,
+                  "length": 1986,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3580056,
+                "length": 3600,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.19341333210468292,
+                  0,
+                  -0.2950361669063568
+                ],
+                "max": [
+                  0.2205488681793213,
+                  0.4927046298980713,
+                  0.2881223261356354
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3594456,
+                  "length": 1404,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3600072,
+                  "length": 1404,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3605688,
+                  "length": 936,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3609432,
+                "length": 702,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.2544575333595276,
+                  0.056450847536325455,
+                  -0.37334397435188293
+                ],
+                "max": [
+                  0.308515727519989,
+                  0.5447019338607788,
+                  0.3266560137271881
+                ]
+              }
+            }
+          ],
+          "triangles": 1434
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3612240,
+                  "length": 1764,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3619296,
+                  "length": 1764,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3626352,
+                  "length": 1176,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3631056,
+                "length": 1692,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.19341333210468292,
+                  0,
+                  -0.2950361669063568
+                ],
+                "max": [
+                  0.2205488681793213,
+                  0.4927046298980713,
+                  0.28800085186958313
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3637824,
+                  "length": 468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3639696,
+                  "length": 468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3641568,
+                  "length": 312,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3642816,
+                "length": 234,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.2723179757595062,
+                  0.061558663845062256,
+                  -0.329627126455307
+                ],
+                "max": [
+                  0.308515727519989,
+                  0.550000011920929,
+                  0.3266560137271881
+                ]
+              }
+            }
+          ],
+          "triangles": 642
+        }
+      ]
+    },
+    {
+      "kind": "shrub-upright",
+      "label": "shrub-upright",
+      "preset": "Aspen Medium",
+      "height": 0.5,
+      "category": "shrub",
+      "species": false,
+      "dense": false,
+      "seed": 821,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3643752,
+                  "length": 3519,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3657828,
+                  "length": 3519,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3671904,
+                  "length": 2346,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3681288,
+                "length": 5424,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.23175545036792755,
+                  0,
+                  -0.13167546689510345
+                ],
+                "max": [
+                  0.11548871546983719,
+                  0.4219580590724945,
+                  0.3031827211380005
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3702984,
+                  "length": 3744,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3717960,
+                  "length": 3744,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3732936,
+                  "length": 2496,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3742920,
+                "length": 1872,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.3445017635822296,
+                  0.05919806659221649,
+                  -0.24242360889911652
+                ],
+                "max": [
+                  0.23987597227096558,
+                  0.5,
+                  0.40757638216018677
+                ]
+              }
+            }
+          ],
+          "triangles": 2432
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3750408,
+                  "length": 1398,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3756000,
+                  "length": 1398,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3761592,
+                  "length": 932,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3765320,
+                "length": 1836,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.2317519187927246,
+                  0,
+                  -0.13167546689510345
+                ],
+                "max": [
+                  0.11527625471353531,
+                  0.4219580590724945,
+                  0.3031843900680542
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3772664,
+                  "length": 468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3774536,
+                  "length": 468,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3776408,
+                  "length": 312,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3777656,
+                "length": 234,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.3445017635822296,
+                  0.052186936140060425,
+                  -0.24242360889911652
+                ],
+                "max": [
+                  0.23987597227096558,
+                  0.5,
+                  0.3299807906150818
+                ]
+              }
+            }
+          ],
+          "triangles": 690
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3778592,
+                  "length": 720,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3781472,
+                  "length": 720,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3784352,
+                  "length": 480,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3786272,
+                "length": 774,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.2317519187927246,
+                  0,
+                  -0.13167546689510345
+                ],
+                "max": [
+                  0.11527625471353531,
+                  0.42195773124694824,
+                  0.303180068731308
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3789368,
+                  "length": 156,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3789992,
+                  "length": 156,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3790616,
+                  "length": 104,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3791032,
+                "length": 78,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -0.3445017635822296,
+                  0.03580447658896446,
+                  -0.24242360889911652
+                ],
+                "max": [
+                  0.23987597227096558,
+                  0.5,
+                  0.36760222911834717
+                ]
+              }
+            }
+          ],
+          "triangles": 284
+        }
+      ]
+    },
+    {
+      "kind": "dense-dome",
+      "label": "茂密圓頂",
+      "preset": "Oak Medium",
+      "height": 7.5,
+      "category": "tree",
+      "species": false,
+      "dense": true,
+      "seed": 1901,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 3791344,
+                  "length": 7500,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 3821344,
+                  "length": 7500,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 3851344,
+                  "length": 5000,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 3871344,
+                "length": 8868,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1503524780273438,
+                  0,
+                  -2.5554869174957275
+                ],
+                "max": [
+                  2.053436040878296,
+                  6.884976863861084,
+                  2.3164587020874023
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 3906816,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 4138656,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 4370496,
+                  "length": 38640,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 4525056,
+                "length": 28980,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6718530654907227,
+                  1.4391083717346191,
+                  -3.1888322830200195
+                ],
+                "max": [
+                  2.5946927070617676,
+                  7.5,
+                  2.8780670166015625
+                ]
+              }
+            }
+          ],
+          "triangles": 12616
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 4640976,
+                  "length": 4860,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 4660416,
+                  "length": 4860,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 4679856,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 4692816,
+                "length": 4632,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1503524780273438,
+                  0,
+                  -2.5554869174957275
+                ],
+                "max": [
+                  2.053436040878296,
+                  6.884976863861084,
+                  2.3164587020874023
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 4711344,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 4730688,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 4750032,
+                  "length": 3224,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 4762928,
+                "length": 2418,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6718530654907227,
+                  0.8977143168449402,
+                  -3.1888322830200195
+                ],
+                "max": [
+                  2.5946927070617676,
+                  7.5,
+                  2.8780670166015625
+                ]
+              }
+            }
+          ],
+          "triangles": 2350
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 4772600,
+                  "length": 3816,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 4787864,
+                  "length": 3816,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 4803128,
+                  "length": 2544,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 4813304,
+                "length": 3060,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1503524780273438,
+                  0,
+                  -2.5554869174957275
+                ],
+                "max": [
+                  2.053436040878296,
+                  6.884976863861084,
+                  2.3164587020874023
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 4825544,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 4831352,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 4837160,
+                  "length": 968,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 4841032,
+                "length": 726,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6718530654907227,
+                  1.4869861602783203,
+                  -3.1888322830200195
+                ],
+                "max": [
+                  2.5946927070617676,
+                  7.5,
+                  2.8780670166015625
+                ]
+              }
+            }
+          ],
+          "triangles": 1262
+        }
+      ]
+    },
+    {
+      "kind": "dense-umbrella",
+      "label": "茂密傘冠",
+      "preset": "Ash Medium",
+      "height": 7.8,
+      "category": "tree",
+      "species": false,
+      "dense": true,
+      "seed": 1902,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 4843936,
+                  "length": 15510,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 4905976,
+                  "length": 15510,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 4968016,
+                  "length": 10340,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 5009376,
+                "length": 21744,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.061723232269287,
+                  0,
+                  -4.355952739715576
+                ],
+                "max": [
+                  4.055185794830322,
+                  7.140823841094971,
+                  5.117729187011719
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 5096352,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 5328192,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 5560032,
+                  "length": 38640,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 5714592,
+                "length": 28980,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -5.058180809020996,
+                  0.5858163833618164,
+                  -5.489938259124756
+                ],
+                "max": [
+                  5.0437703132629395,
+                  7.800000190734863,
+                  5.973923206329346
+                ]
+              }
+            }
+          ],
+          "triangles": 16908
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 5830512,
+                  "length": 7230,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 5859432,
+                  "length": 7230,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 5888352,
+                  "length": 4820,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 5907632,
+                "length": 8280,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.061723232269287,
+                  0,
+                  -4.350015163421631
+                ],
+                "max": [
+                  4.055185794830322,
+                  7.140823841094971,
+                  5.117729187011719
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 5940752,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 5960096,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 5979440,
+                  "length": 3224,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 5992336,
+                "length": 2418,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -5.058180809020996,
+                  0.35868072509765625,
+                  -5.489938259124756
+                ],
+                "max": [
+                  5.0437703132629395,
+                  7.800000190734863,
+                  5.973923206329346
+                ]
+              }
+            }
+          ],
+          "triangles": 3566
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 6002008,
+                  "length": 4632,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6020536,
+                  "length": 4632,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 6039064,
+                  "length": 3088,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 6051416,
+                "length": 4284,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.061723232269287,
+                  0,
+                  -4.342987537384033
+                ],
+                "max": [
+                  4.055185794830322,
+                  7.140823841094971,
+                  5.117729187011719
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 6068552,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6074360,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 6080168,
+                  "length": 968,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 6084040,
+                "length": 726,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -5.058180809020996,
+                  0,
+                  -5.489938259124756
+                ],
+                "max": [
+                  5.0437703132629395,
+                  7.800000190734863,
+                  5.973923206329346
+                ]
+              }
+            }
+          ],
+          "triangles": 1670
+        }
+      ]
+    },
+    {
+      "kind": "dense-column",
+      "label": "茂密直立",
+      "preset": "Aspen Medium",
+      "height": 9,
+      "category": "tree",
+      "species": false,
+      "dense": true,
+      "seed": 1903,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 6086944,
+                  "length": 7605,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6117364,
+                  "length": 7605,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 6147784,
+                  "length": 5070,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 6168064,
+                "length": 11424,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.1657475233078003,
+                  0,
+                  -1.0276328325271606
+                ],
+                "max": [
+                  0.8845526576042175,
+                  8.294496536254883,
+                  1.2990208864212036
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 6213760,
+                  "length": 19320,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6291040,
+                  "length": 19320,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 6368320,
+                  "length": 12880,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 6419840,
+                "length": 9660,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.6879055500030518,
+                  3.6480648517608643,
+                  -1.5443525314331055
+                ],
+                "max": [
+                  1.3617452383041382,
+                  9,
+                  1.6769907474517822
+                ]
+              }
+            }
+          ],
+          "triangles": 7028
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 6458480,
+                  "length": 3138,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6471032,
+                  "length": 3138,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 6483584,
+                  "length": 2092,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 6491952,
+                "length": 3996,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.1657190322875977,
+                  0,
+                  -1.0276399850845337
+                ],
+                "max": [
+                  0.8845269083976746,
+                  8.294496536254883,
+                  1.2990208864212036
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 6507936,
+                  "length": 1620,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6514416,
+                  "length": 1620,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 6520896,
+                  "length": 1080,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 6525216,
+                "length": 810,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.6879055500030518,
+                  3.639400005340576,
+                  -1.5443525314331055
+                ],
+                "max": [
+                  1.3617452383041382,
+                  9,
+                  1.6769907474517822
+                ]
+              }
+            }
+          ],
+          "triangles": 1602
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 6528456,
+                  "length": 1728,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6535368,
+                  "length": 1728,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 6542280,
+                  "length": 1152,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 6546888,
+                "length": 1818,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.1657190322875977,
+                  0,
+                  -1.0276399850845337
+                ],
+                "max": [
+                  0.8845269083976746,
+                  8.294496536254883,
+                  1.2990208864212036
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 6554160,
+                  "length": 492,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6556128,
+                  "length": 492,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 6558096,
+                  "length": 328,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 6559408,
+                "length": 246,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -1.6879055500030518,
+                  3.5137078762054443,
+                  -1.5443525314331055
+                ],
+                "max": [
+                  1.3617452383041382,
+                  9,
+                  1.6769907474517822
+                ]
+              }
+            }
+          ],
+          "triangles": 688
+        }
+      ]
+    },
+    {
+      "kind": "dense-low",
+      "label": "茂密低冠",
+      "preset": "Oak Medium",
+      "height": 5.8,
+      "category": "tree",
+      "species": false,
+      "dense": true,
+      "seed": 1904,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 6560392,
+                  "length": 7500,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6590392,
+                  "length": 7500,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 6620392,
+                  "length": 5000,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 6640392,
+                "length": 8868,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.0715062618255615,
+                  0,
+                  -1.9221683740615845
+                ],
+                "max": [
+                  2.1451845169067383,
+                  5.2149248123168945,
+                  2.0662012100219727
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 6675864,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 6907704,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 7139544,
+                  "length": 38640,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 7294104,
+                "length": 28980,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.529613494873047,
+                  0.8744271993637085,
+                  -2.5076425075531006
+                ],
+                "max": [
+                  2.529404640197754,
+                  5.800000190734863,
+                  2.548673629760742
+                ]
+              }
+            }
+          ],
+          "triangles": 12616
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 7410024,
+                  "length": 4860,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 7429464,
+                  "length": 4860,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 7448904,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 7461864,
+                "length": 4632,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.0715062618255615,
+                  0,
+                  -1.9221683740615845
+                ],
+                "max": [
+                  2.1451845169067383,
+                  5.2149248123168945,
+                  2.0662012100219727
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 7480392,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 7499736,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 7519080,
+                  "length": 3224,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 7531976,
+                "length": 2418,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.529613494873047,
+                  0.23169000446796417,
+                  -2.5076425075531006
+                ],
+                "max": [
+                  2.529404640197754,
+                  5.800000190734863,
+                  2.548673629760742
+                ]
+              }
+            }
+          ],
+          "triangles": 2350
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 7541648,
+                  "length": 3816,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 7556912,
+                  "length": 3816,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 7572176,
+                  "length": 2544,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 7582352,
+                "length": 3060,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.0715062618255615,
+                  0,
+                  -1.9221683740615845
+                ],
+                "max": [
+                  2.1451845169067383,
+                  5.2149248123168945,
+                  2.0662012100219727
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 7594592,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 7600400,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 7606208,
+                  "length": 968,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 7610080,
+                "length": 726,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.529613494873047,
+                  0.17782166600227356,
+                  -2.5076425075531006
+                ],
+                "max": [
+                  2.529404640197754,
+                  5.800000190734863,
+                  2.548673629760742
+                ]
+              }
+            }
+          ],
+          "triangles": 1262
+        }
+      ]
+    },
+    {
+      "kind": "dense-broad",
+      "label": "茂密展冠",
+      "preset": "Ash Medium",
+      "height": 8,
+      "category": "tree",
+      "species": false,
+      "dense": true,
+      "seed": 1905,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 7612984,
+                  "length": 15510,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 7675024,
+                  "length": 15510,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 7737064,
+                  "length": 10340,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 7778424,
+                "length": 21744,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.322751998901367,
+                  0,
+                  -3.465883731842041
+                ],
+                "max": [
+                  3.0814080238342285,
+                  7.456812381744385,
+                  1.6487377882003784
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 7865400,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 8097240,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 8329080,
+                  "length": 38640,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 8483640,
+                "length": 28980,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.109700679779053,
+                  1.4429888725280762,
+                  -4.202275276184082
+                ],
+                "max": [
+                  3.849668264389038,
+                  8,
+                  2.3824305534362793
+                ]
+              }
+            }
+          ],
+          "triangles": 16908
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 8599560,
+                  "length": 7230,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 8628480,
+                  "length": 7230,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 8657400,
+                  "length": 4820,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 8676680,
+                "length": 8280,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.322751998901367,
+                  0,
+                  -3.4631035327911377
+                ],
+                "max": [
+                  3.0813708305358887,
+                  7.456812381744385,
+                  1.6485371589660645
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 8709800,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 8729144,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 8748488,
+                  "length": 3224,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 8761384,
+                "length": 2418,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.109700679779053,
+                  1.4502869844436646,
+                  -4.202275276184082
+                ],
+                "max": [
+                  3.849668264389038,
+                  8,
+                  2.3824305534362793
+                ]
+              }
+            }
+          ],
+          "triangles": 3566
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 8771056,
+                  "length": 4632,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 8789584,
+                  "length": 4632,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 8808112,
+                  "length": 3088,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 8820464,
+                "length": 4284,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.322751998901367,
+                  0,
+                  -3.4631035327911377
+                ],
+                "max": [
+                  3.0813708305358887,
+                  7.456812381744385,
+                  1.6487377882003784
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 8837600,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 8843408,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 8849216,
+                  "length": 968,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 8853088,
+                "length": 726,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.109700679779053,
+                  0.6232282519340515,
+                  -4.202275276184082
+                ],
+                "max": [
+                  3.849668264389038,
+                  8,
+                  2.3824305534362793
+                ]
+              }
+            }
+          ],
+          "triangles": 1670
+        }
+      ]
+    },
+    {
+      "kind": "dense-rounded",
+      "label": "茂密團簇",
+      "preset": "Oak Medium",
+      "height": 6.8,
+      "category": "tree",
+      "species": false,
+      "dense": true,
+      "seed": 1906,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 8855992,
+                  "length": 7500,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 8885992,
+                  "length": 7500,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 8915992,
+                  "length": 5000,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 8935992,
+                "length": 8868,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.292410135269165,
+                  0,
+                  -2.3281614780426025
+                ],
+                "max": [
+                  1.764413833618164,
+                  6.274117946624756,
+                  2.3621275424957275
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 8971464,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 9203304,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 9435144,
+                  "length": 38640,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 9589704,
+                "length": 28980,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.7361104488372803,
+                  1.5629615783691406,
+                  -2.8911185264587402
+                ],
+                "max": [
+                  2.2728352546691895,
+                  6.800000190734863,
+                  2.766321897506714
+                ]
+              }
+            }
+          ],
+          "triangles": 12616
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 9705624,
+                  "length": 4860,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 9725064,
+                  "length": 4860,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 9744504,
+                  "length": 3240,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 9757464,
+                "length": 4632,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.292410135269165,
+                  0,
+                  -2.3281614780426025
+                ],
+                "max": [
+                  1.764413833618164,
+                  6.274117946624756,
+                  2.3621275424957275
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 9775992,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 9795336,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 9814680,
+                  "length": 3224,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 9827576,
+                "length": 2418,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.7361104488372803,
+                  1.31727933883667,
+                  -2.8911185264587402
+                ],
+                "max": [
+                  2.2728352546691895,
+                  6.800000190734863,
+                  2.766321897506714
+                ]
+              }
+            }
+          ],
+          "triangles": 2350
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 9837248,
+                  "length": 3816,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 9852512,
+                  "length": 3816,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 9867776,
+                  "length": 2544,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 9877952,
+                "length": 3060,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.292410135269165,
+                  0,
+                  -2.3281614780426025
+                ],
+                "max": [
+                  1.764413833618164,
+                  6.274117946624756,
+                  2.3621275424957275
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 9890192,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 9896000,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 9901808,
+                  "length": 968,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 9905680,
+                "length": 726,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.7361104488372803,
+                  1.3661130666732788,
+                  -2.8911185264587402
+                ],
+                "max": [
+                  2.2728352546691895,
+                  6.800000190734863,
+                  2.766321897506714
+                ]
+              }
+            }
+          ],
+          "triangles": 1262
+        }
+      ]
+    },
+    {
+      "kind": "cherry",
+      "label": "櫻花樹（花期示意）",
+      "preset": "Ash Medium",
+      "height": 6,
+      "category": "tree",
+      "species": true,
+      "dense": true,
+      "seed": 2011,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 9908584,
+                  "length": 15510,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 9970624,
+                  "length": 15510,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 10032664,
+                  "length": 10340,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 10074024,
+                "length": 21744,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1102516651153564,
+                  0,
+                  -1.794829249382019
+                ],
+                "max": [
+                  2.276946783065796,
+                  5.43330717086792,
+                  1.6399438381195068
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 10161000,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 10392840,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 10624680,
+                  "length": 38640,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 10779240,
+                "length": 28980,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6771023273468018,
+                  0.5331448912620544,
+                  -2.287083625793457
+                ],
+                "max": [
+                  2.8136744499206543,
+                  6,
+                  2.1631617546081543
+                ]
+              }
+            },
+            {
+              "name": "flowers",
+              "attributes": {
+                "position": {
+                  "offset": 10895160,
+                  "length": 25935,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 10998900,
+                  "length": 25935,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11102640,
+                  "length": 17290,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11171800,
+                "length": 18525,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.3182339668273926,
+                  2.6475627422332764,
+                  -1.8335926532745361
+                ],
+                "max": [
+                  2.4206385612487793,
+                  5.775082588195801,
+                  1.9277229309082031
+                ]
+              }
+            }
+          ],
+          "triangles": 23083
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 11245900,
+                  "length": 7230,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11274820,
+                  "length": 7230,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11303740,
+                  "length": 4820,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11323020,
+                "length": 8280,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1102497577667236,
+                  0,
+                  -1.7947932481765747
+                ],
+                "max": [
+                  2.276946783065796,
+                  5.43330717086792,
+                  1.6404050588607788
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 11356140,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11375484,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11394828,
+                  "length": 3224,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11407724,
+                "length": 2418,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6771023273468018,
+                  0.020955398678779602,
+                  -2.287083625793457
+                ],
+                "max": [
+                  2.8136744499206543,
+                  6,
+                  2.1631617546081543
+                ]
+              }
+            },
+            {
+              "name": "flowers",
+              "attributes": {
+                "position": {
+                  "offset": 11417396,
+                  "length": 5880,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11440916,
+                  "length": 5880,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11464436,
+                  "length": 3920,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11480116,
+                "length": 4200,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.5411860942840576,
+                  2.896517515182495,
+                  -1.8351712226867676
+                ],
+                "max": [
+                  2.3511953353881836,
+                  6,
+                  1.8588054180145264
+                ]
+              }
+            }
+          ],
+          "triangles": 4966
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 11496916,
+                  "length": 4632,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11515444,
+                  "length": 4632,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11533972,
+                  "length": 3088,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11546324,
+                "length": 4284,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.1102263927459717,
+                  0,
+                  -1.7947932481765747
+                ],
+                "max": [
+                  2.276946783065796,
+                  5.43330717086792,
+                  1.6404050588607788
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 11563460,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11569268,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11575076,
+                  "length": 968,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11578948,
+                "length": 726,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6771023273468018,
+                  0,
+                  -2.287083625793457
+                ],
+                "max": [
+                  2.8136744499206543,
+                  6,
+                  2.1631617546081543
+                ]
+              }
+            },
+            {
+              "name": "flowers",
+              "attributes": {
+                "position": {
+                  "offset": 11581852,
+                  "length": 1470,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11587732,
+                  "length": 1470,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11593612,
+                  "length": 980,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11597532,
+                "length": 1050,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6771023273468018,
+                  2.8762362003326416,
+                  -1.445906162261963
+                ],
+                "max": [
+                  2.607257843017578,
+                  6,
+                  2.1631617546081543
+                ]
+              }
+            }
+          ],
+          "triangles": 2020
+        }
+      ]
+    },
+    {
+      "kind": "terminalia",
+      "label": "小葉欖仁（分層樹冠）",
+      "preset": "Ash Medium",
+      "height": 9,
+      "category": "tree",
+      "species": true,
+      "dense": true,
+      "seed": 2012,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 11601732,
+                  "length": 2658,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11612364,
+                  "length": 2658,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11622996,
+                  "length": 1772,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11630084,
+                "length": 1524,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.7009658813476562,
+                  0,
+                  -3.219356060028076
+                ],
+                "max": [
+                  3.7009658813476562,
+                  9,
+                  3.219356060028076
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 11636180,
+                  "length": 5760,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11659220,
+                  "length": 5760,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11682260,
+                  "length": 3840,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11697620,
+                "length": 2880,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.629920482635498,
+                  2.8336145877838135,
+                  -4.238164901733398
+                ],
+                "max": [
+                  4.312925815582275,
+                  8.926385879516602,
+                  4.25875997543335
+                ]
+              }
+            }
+          ],
+          "triangles": 1468
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 11709140,
+                  "length": 2622,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11719628,
+                  "length": 2622,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11730116,
+                  "length": 1748,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11737108,
+                "length": 1500,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.7009658813476562,
+                  0,
+                  -3.219356060028076
+                ],
+                "max": [
+                  3.7009658813476562,
+                  9,
+                  3.219356060028076
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 11743108,
+                  "length": 2520,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11753188,
+                  "length": 2520,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11763268,
+                  "length": 1680,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11769988,
+                "length": 1260,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.629920482635498,
+                  2.684819221496582,
+                  -4.238164901733398
+                ],
+                "max": [
+                  4.312925815582275,
+                  9,
+                  4.25875997543335
+                ]
+              }
+            }
+          ],
+          "triangles": 920
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 11775028,
+                  "length": 1362,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11780476,
+                  "length": 1362,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11785924,
+                  "length": 908,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11789556,
+                "length": 780,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.618946075439453,
+                  0,
+                  -3.219356060028076
+                ],
+                "max": [
+                  3.7009658813476562,
+                  9,
+                  3.219356060028076
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 11792676,
+                  "length": 360,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11794116,
+                  "length": 360,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11795556,
+                  "length": 240,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11796516,
+                "length": 180,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.020627975463867,
+                  2.4202945232391357,
+                  -4.201331615447998
+                ],
+                "max": [
+                  4.312925815582275,
+                  9,
+                  4.235830783843994
+                ]
+              }
+            }
+          ],
+          "triangles": 320
+        }
+      ]
+    },
+    {
+      "kind": "banyan-species",
+      "label": "榕樹（寬冠與氣根）",
+      "preset": "Oak Medium",
+      "height": 7.5,
+      "category": "tree",
+      "species": true,
+      "dense": true,
+      "seed": 2013,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 11797236,
+                  "length": 9336,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 11834580,
+                  "length": 9336,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 11871924,
+                  "length": 6224,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 11896820,
+                "length": 9948,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.527043104171753,
+                  0,
+                  -3.1527462005615234
+                ],
+                "max": [
+                  3.3393824100494385,
+                  6.735745429992676,
+                  2.9903452396392822
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 11936612,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 12168452,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 12400292,
+                  "length": 38640,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 12554852,
+                "length": 28980,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.4456915855407715,
+                  0.9921488165855408,
+                  -3.9184937477111816
+                ],
+                "max": [
+                  4.326796054840088,
+                  7.5,
+                  3.8030645847320557
+                ]
+              }
+            }
+          ],
+          "triangles": 12976
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 12670772,
+                  "length": 5388,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 12692324,
+                  "length": 5388,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 12713876,
+                  "length": 3592,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 12728244,
+                "length": 4920,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.527043104171753,
+                  0,
+                  -3.1527462005615234
+                ],
+                "max": [
+                  3.3393824100494385,
+                  6.735745429992676,
+                  2.9903452396392822
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 12747924,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 12767268,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 12786612,
+                  "length": 3224,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 12799508,
+                "length": 2418,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.378317832946777,
+                  0.5577875971794128,
+                  -3.9184937477111816
+                ],
+                "max": [
+                  4.326796054840088,
+                  7.5,
+                  3.8030645847320557
+                ]
+              }
+            }
+          ],
+          "triangles": 2446
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 12809180,
+                  "length": 4014,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 12825236,
+                  "length": 4014,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 12841292,
+                  "length": 2676,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 12851996,
+                "length": 3168,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.527043104171753,
+                  0,
+                  -3.1527462005615234
+                ],
+                "max": [
+                  3.3393824100494385,
+                  6.735745429992676,
+                  2.9903452396392822
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 12864668,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 12870476,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 12876284,
+                  "length": 968,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 12880156,
+                "length": 726,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -4.4456915855407715,
+                  0,
+                  -3.9184937477111816
+                ],
+                "max": [
+                  4.326796054840088,
+                  7.5,
+                  3.8030645847320557
+                ]
+              }
+            }
+          ],
+          "triangles": 1298
+        }
+      ]
+    },
+    {
+      "kind": "taiwan-goldenrain",
+      "label": "台灣欒樹（花果示意）",
+      "preset": "Ash Medium",
+      "height": 8,
+      "category": "tree",
+      "species": true,
+      "dense": true,
+      "seed": 2014,
+      "levels": [
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 12883060,
+                  "length": 15510,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 12945100,
+                  "length": 15510,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 13007140,
+                  "length": 10340,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 13048500,
+                "length": 21744,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6835100650787354,
+                  0,
+                  -2.595013380050659
+                ],
+                "max": [
+                  2.542024850845337,
+                  7.329556941986084,
+                  3.005906105041504
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 13135476,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 13367316,
+                  "length": 57960,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 13599156,
+                  "length": 38640,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 13753716,
+                "length": 28980,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.28061842918396,
+                  0.7137401103973389,
+                  -3.206719160079956
+                ],
+                "max": [
+                  3.2589128017425537,
+                  8,
+                  3.567274570465088
+                ]
+              }
+            },
+            {
+              "name": "flowers",
+              "attributes": {
+                "position": {
+                  "offset": 13869636,
+                  "length": 34272,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14006724,
+                  "length": 34272,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14143812,
+                  "length": 22848,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14235204,
+                "length": 11424,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.689814329147339,
+                  3.5249874591827393,
+                  -2.6717071533203125
+                ],
+                "max": [
+                  2.5576891899108887,
+                  7.452822208404541,
+                  2.9622879028320312
+                ]
+              }
+            },
+            {
+              "name": "fruits",
+              "attributes": {
+                "position": {
+                  "offset": 14280900,
+                  "length": 2700,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14291700,
+                  "length": 2700,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14302500,
+                  "length": 1800,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14309700,
+                "length": 1080,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.489687442779541,
+                  3.3061606884002686,
+                  -1.4770156145095825
+                ],
+                "max": [
+                  2.3576486110687256,
+                  7.106201171875,
+                  2.8863525390625
+                ]
+              }
+            }
+          ],
+          "triangles": 21076
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 14314020,
+                  "length": 7230,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14342940,
+                  "length": 7230,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14371860,
+                  "length": 4820,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14391140,
+                "length": 8280,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6835014820098877,
+                  0,
+                  -2.5933051109313965
+                ],
+                "max": [
+                  2.542024850845337,
+                  7.329556941986084,
+                  3.005906105041504
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 14424260,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14443604,
+                  "length": 4836,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14462948,
+                  "length": 3224,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14475844,
+                "length": 2418,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.28061842918396,
+                  0.06722346693277359,
+                  -3.206719160079956
+                ],
+                "max": [
+                  3.2589128017425537,
+                  8,
+                  3.567274570465088
+                ]
+              }
+            },
+            {
+              "name": "flowers",
+              "attributes": {
+                "position": {
+                  "offset": 14485516,
+                  "length": 8640,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14520076,
+                  "length": 8640,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14554636,
+                  "length": 5760,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14577676,
+                "length": 2880,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.866708517074585,
+                  3.995441198348999,
+                  -1.2467941045761108
+                ],
+                "max": [
+                  2.942317247390747,
+                  7.480977535247803,
+                  2.9343106746673584
+                ]
+              }
+            },
+            {
+              "name": "fruits",
+              "attributes": {
+                "position": {
+                  "offset": 14589196,
+                  "length": 1350,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14594596,
+                  "length": 1350,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14599996,
+                  "length": 900,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14603596,
+                "length": 540,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.7906274795532227,
+                  3.5167346000671387,
+                  -1.0457302331924438
+                ],
+                "max": [
+                  2.984384775161743,
+                  6.737106800079346,
+                  3.027148962020874
+                ]
+              }
+            }
+          ],
+          "triangles": 4706
+        },
+        {
+          "parts": [
+            {
+              "name": "branches",
+              "attributes": {
+                "position": {
+                  "offset": 14605756,
+                  "length": 4632,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14624284,
+                  "length": 4632,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14642812,
+                  "length": 3088,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14655164,
+                "length": 4284,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.6835014820098877,
+                  0,
+                  -2.5933051109313965
+                ],
+                "max": [
+                  2.542024850845337,
+                  7.329556941986084,
+                  3.005906105041504
+                ]
+              }
+            },
+            {
+              "name": "leaves",
+              "attributes": {
+                "position": {
+                  "offset": 14672300,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14678108,
+                  "length": 1452,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14683916,
+                  "length": 968,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14687788,
+                "length": 726,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.28061842918396,
+                  0,
+                  -2.997156858444214
+                ],
+                "max": [
+                  3.2589128017425537,
+                  8,
+                  3.567274570465088
+                ]
+              }
+            },
+            {
+              "name": "flowers",
+              "attributes": {
+                "position": {
+                  "offset": 14690692,
+                  "length": 2880,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14702212,
+                  "length": 2880,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14713732,
+                  "length": 1920,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14721412,
+                "length": 960,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -3.176645278930664,
+                  3.315023183822632,
+                  -0.8755031824111938
+                ],
+                "max": [
+                  2.9378139972686768,
+                  7.591947555541992,
+                  2.3060882091522217
+                ]
+              }
+            },
+            {
+              "name": "fruits",
+              "attributes": {
+                "position": {
+                  "offset": 14725252,
+                  "length": 450,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "normal": {
+                  "offset": 14727052,
+                  "length": 450,
+                  "type": "Float32Array",
+                  "itemSize": 3
+                },
+                "uv": {
+                  "offset": 14728852,
+                  "length": 300,
+                  "type": "Float32Array",
+                  "itemSize": 2
+                }
+              },
+              "index": {
+                "offset": 14730052,
+                "length": 180,
+                "type": "Uint32Array"
+              },
+              "bounds": {
+                "min": [
+                  -2.977678060531616,
+                  2.7946205139160156,
+                  -0.6730940341949463
+                ],
+                "max": [
+                  3.0094940662384033,
+                  6.7832841873168945,
+                  2.289341926574707
+                ]
+              }
+            }
+          ],
+          "triangles": 2050
+        }
+      ]
+    }
+  ]
+}
