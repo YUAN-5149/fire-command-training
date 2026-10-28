@@ -19,6 +19,7 @@
   <button id="enter" title="E">上車</button>
   <button id="siren" title="Q" hidden>警示燈</button>
   <button id="missionBtn" title="T" class="mission-btn">🔥 任務</button>
+  <button id="sidewalkReviewButton" type="button" aria-pressed="false" disabled>近看人行道</button>
   <button id="grassReviewButton" type="button" aria-pressed="false" disabled>近看短草</button>
   <button id="mapBtn" title="M">地圖</button>
   <button id="reset" title="R">回信義分隊</button>
@@ -132,6 +133,7 @@
     <p class="note"><a href="https://www.historygis.udd.gov.taipei/urban/?id=B5775BBE" target="_blank" rel="noopener">影像來源：臺北市政府都市發展局</a>。已核對可辨識的影像外框，非現地量測；遮蔽、褪色及模糊位置仍可能漏辨。</p>
     <p id="zebraStatus" class="note" role="status">載入人行穿越道…</p>
     <label>樹木外觀<select id="treeAppearance" disabled><option value="auto">原樹位混合樣式（含六種茂密樹形）</option><option value="dense-dome">茂密圓頂（示意預覽）</option><option value="dense-umbrella">茂密傘冠（示意預覽）</option><option value="dense-column">茂密直立（示意預覽）</option><option value="dense-low">茂密低冠（示意預覽）</option><option value="dense-broad">茂密展冠（示意預覽）</option><option value="dense-rounded">茂密團簇（示意預覽）</option><option value="cherry">櫻花樹（花期示意預覽）</option><option value="terminalia">小葉欖仁（示意預覽）</option><option value="banyan-species">榕樹（示意預覽）</option><option value="taiwan-goldenrain">台灣欒樹（花果示意預覽）</option></select></label>
+    <label><input id="sidewalkAppearance" type="checkbox" checked> EOC 人行道鋪磚試作</label><p class="note">僅既有前方／東側步道；鋪磚外觀與尺寸待核對，可關閉比較。高差、斜坡與導盲磚尚待現況資料。</p>
     <label><input id="shortGrass" type="checkbox" checked> EOC 短草試作（6–12公分）</label><button id="shortGrassLocate" type="button">近看北側短草</button><p id="shortGrassStatus" class="note" role="status">等待既有草坪載入…</p><p class="note">草葉方案：<a href="https://github.com/Steve245270533/three-stylized" target="_blank" rel="noopener">three-stylized（MIT）</a>。限北側既有圓形草坪，前方綠籬維持灌木。</p>
     <p id="treeAssetStatus" class="note" role="status">載入十六種樹木外觀與三種灌木…</p>
     <p class="note">樹木模型來源：<a href="https://github.com/dgreenheck/ez-tree" target="_blank" rel="noopener">EZ-Tree（MIT）</a>；樹皮貼圖來自 ambientCG（CC0）。樹位依現有資料，樹形為示意，非現地樹種調查。</p>
@@ -183,6 +185,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=grass-view-20261027"></script>
+<script type="module" src="xinyi-street.js?v=sidewalk-20261028"></script>
 </body>
 </html>
