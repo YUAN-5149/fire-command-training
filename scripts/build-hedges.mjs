@@ -22,6 +22,9 @@ const SEEN=[
  {name:'微風南山',street:'松智路',offset:1.0,photo:'Google 街景 2025，松智路8號東望：玻璃店面前綠籬'},
  {name:'松勤街76號一帶住宅',street:'松勤街',offset:1.0,photo:'Google 街景 2025，松勤街76號南望：圍牆前綠籬與行道樹'},
  {name:'國際貿易大樓（世貿國貿大樓）',street:'基隆路一段',offset:1.5,photo:'Google 街景 2025，基隆路一段333號東北望：人行道旁長條綠籬'},
+ {name:'信義之星',street:'松平路',offset:1.2,photo:'Google 街景 2025-01，松平路54號北望：石柱鐵柵圍牆內綠籬與花架'},
+ {name:'松平路西段南側住宅',street:'松平路',offset:1.0,photo:'Google 街景 2025-01，松平路54號南望：低矮圍籬內連續綠籬'},
+ {name:'松平路87號住宅',street:'松平路',offset:1.8,photo:'Google 街景 2025-01，松平路87號北望：鐵花圍籬前一排盆栽灌木（盆栽，非地植）'},
 ];
 // 共用灌木模型高約 0.45 m；照片中綠籬約 0.8 m（目測示意，未量測），放大 1.8 倍且株距 1.1 m 成連續一列
 const STEP=1.1,END=1,GAP=4,TREE_CLEAR=1.6,SCALE=1.8;
