@@ -53,10 +53,21 @@ export function stationGeometry(){
 export function addYouBikeStations({scene,data,features,ground,eocAnchor=null,laneData=null,roadFeatures=features}){
  const records=stationPlacements(data,features,{eocAnchor,laneData,roadFeatures}),geometries=stationGeometry(),group=new T.Group();group.name='YouBike — reviewed layouts only';scene.add(group);
  const material=new T.MeshStandardMaterial({vertexColors:true,roughness:.8});
- const make=(geometry,n,name)=>{const mesh=new T.InstancedMesh(geometry,material,Math.max(1,n));mesh.count=0;mesh.name=name;mesh.receiveShadow=true;mesh.castShadow=false;group.add(mesh);return mesh;};
+ const make=(geometry,n,name)=>{const mesh=new T.InstancedMesh(geometry,material,Math.max(1,n));mesh.count=0;mesh.name=name;mesh.receiveShadow=true;mesh.castShadow=false;mesh.renderOrder=2;group.add(mesh);return mesh;};
  const beacons=make(geometries.beacon,records.length,'YouBike station markers'),docks=make(geometries.dock,records.reduce((n,s)=>n+s.dockCount,0),'Nearby full-capacity docks'),bikes=make(geometries.bike,records.reduce((n,s)=>n+s.bikeCount,0),'Nearby illustrative bicycles');
  const matrix=new T.Matrix4(),quat=new T.Quaternion(),pos=new T.Vector3(),scale=new T.Vector3(1,1,1),up=new T.Vector3(0,1,0);
- function place(mesh,index,s,lx,lz){const c=Math.cos(s.heading),n=Math.sin(s.heading),x=(s.visualX??s.x)+c*lx+n*lz,z=(s.visualZ??s.z)-n*lx+c*lz;pos.set(x,ground.at(x,z)+.025,z);quat.setFromAxisAngle(up,s.heading);matrix.compose(pos,quat,scale);mesh.setMatrixAt(index,matrix);}
+ // Cache the lower wheel contour once; re-evaluate only when station batches refresh.
+ const wheelPoints=[],gp=geometries.bike.attributes.position;for(let i=0;i<gp.count;i++)if(gp.getY(i)<=.341)wheelPoints.push(new T.Vector3().fromBufferAttribute(gp,i));
+ const pitchQ=new T.Quaternion(),axisX=new T.Vector3(1,0,0),wheelPoint=new T.Vector3();
+ function place(mesh,index,s,lx,lz){const c=Math.cos(s.heading),n=Math.sin(s.heading),x=(s.visualX??s.x)+c*lx+n*lz,z=(s.visualZ??s.z)-n*lx+c*lz;pos.set(x,ground.at(x,z)+.025,z);quat.setFromAxisAngle(up,s.heading);
+  if(mesh===bikes){
+   // Local Z follows the bicycle. Match front/rear supports before clearing the full tire contour.
+   const rear=ground.at(x-n*.62,z-c*.62),front=ground.at(x+n*.62,z+c*.62);
+   quat.multiply(pitchQ.setFromAxisAngle(axisX,-Math.atan2(front-rear,1.24)));
+   let support=-Infinity;for(const point of wheelPoints){wheelPoint.copy(point).applyQuaternion(quat);support=Math.max(support,ground.at(x+wheelPoint.x,z+wheelPoint.z)-wheelPoint.y);}
+   pos.y=support+.008;
+  }
+  matrix.compose(pos,quat,scale);mesh.setMatrixAt(index,matrix);}
  function refreshMarkers(){let n=0;for(const s of records)if(s.renderable)place(beacons,n++,s,s.slots[0].x-.7,s.slots[0].z);beacons.count=n;beacons.instanceMatrix.needsUpdate=true;beacons.computeBoundingSphere();}
  refreshMarkers();let surfaceRevision=ground.revision;
  let lastX=Infinity,lastZ=Infinity,force=true;const active=new Set();const stats={stations:records.length,reviewed:records.filter(s=>s.renderable).length,pending:records.filter(s=>!s.renderable).length,nearby:0,docks:0,bikes:0,batches:3};
