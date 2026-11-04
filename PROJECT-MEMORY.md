@@ -2,6 +2,15 @@
 
 本檔保存使用者已確認的決策與後續建置規則，供 Codex、Claude 及後續接手者共同讀取。修改前先同步最新 main，對照現有原始碼及相關批次文件；不得以歷史快照覆蓋較新成果。當次使用者明確指示優先。
 
+## 老舊立面與真實材質（2026-11-04）
+
+- 使用者要求：環景建物要有像富錦街專案一樣的污漬、外牆、管線、瓦斯管等老舊感與真實材質，以利後續渲染更貼近真實。之後逐街精修的老公寓（style 0）都套用，不需每條街另問。
+- 富錦街作法在 `dist/weathered-apartment.js`（canvas 程序貼圖：二丁掛、雨痕、冷氣滴水、鐵窗鏽痕、牆腳潮濕；附屬：落水管、黃色瓦斯管、冷氣排水管、電纜、電錶箱）。
+- 信義街景比照：`dist/xinyi-shophouse.js` 的 `weather()`、污漬圖集 `stainAtlas()`、外掛構件擺放 `slot()`；Blender 同步在 `blender/taipei_facade.py` 的 `weather()` 與 `build_xinyi_district.py` 的 `build_weathered()`。
+- 外掛構件 `dist/assets/weathered-parts.glb`（冷氣室外機 6 款、排水管、電錶箱 3 款）由 `blender/build_weathered_parts.py` 從 GitHub `achrefelouafi/BuildingGeneratorThreeJS`（MIT）的 kit.glb 取出；模型為 Sketchfab uday「Procedural Hong Kong building」**CC BY 4.0，須保留署名**（網站「資料來源」頁、`docs/sources/weathered-parts-provenance.json`）。貼圖的商標與店招文字區塊已塗灰，不得改用。
+- 污漬、管線、瓦斯錶與電錶箱位置皆為示意，非實測；不影響步行面與高差（皆貼在牆面上）。照片確認的實際位置可在逐街精修時再調整。
+- Blender 近看檢查鏡頭：`--only wuxing_facade`。
+
 ## 街道植栽（2026-10-27）
 
 ### 使用者已確認

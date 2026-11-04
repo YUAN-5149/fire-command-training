@@ -1,0 +1,20 @@
+{
+  "repository": "https://github.com/achrefelouafi/BuildingGeneratorThreeJS",
+  "commit": "74cb71b0db1efa894a9763fba3ae67ca8ea54547",
+  "license": "Code: MIT, Copyright (c) 2026 mohamedachrefelouafi",
+  "assetLicense": "Models and textures: CC BY 4.0 (Creative Commons Attribution 4.0), \"Procedural Hong Kong building\" by uday, https://sketchfab.com/3d-models/procedural-hong-kong-building-528a732e84c44fd49c4726f341014a23 (license checked via Sketchfab API on 2026-10-28)",
+  "attribution": "冷氣室外機、冷氣排水管、電錶箱模型與貼圖：uday「Procedural Hong Kong building」（CC BY 4.0），經 BuildingGeneratorThreeJS（MIT）匯出為 kit.glb；本專案以 blender/build_weathered_parts.py 取出部分組件、縮放為公尺並縮小貼圖。",
+  "scope": "kit.glb collections ac.001 (variants 0,1,4,5,8,9), AC WIRE.001 (0-3), eletricarea (0-2) only. Atlas downscaled to 1024 JPEG; regions containing trademarks or shop-sign text (7-Eleven, Coca-Cola, Chinese shop signs) painted neutral grey.",
+  "changes": "Joined each collection into one mesh, rotated to X along wall / Y up / Z outward, scaled 2.8x to metres, origin at wall-side bottom centre.",
+  "output": "dist/assets/weathered-parts.glb",
+  "sources": [
+    {
+      "path": "public/assets/kit.glb",
+      "sha256": "d6ae2303fd3e77b2a638c8131f3f8942778d32d9d2c0d3bdeb251c99fc0988e1"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "fa655f413edefb7d5416d743714e4cdd7899134b2fb4003732b2ef9eecac4fd4"
+    }
+  ]
+}

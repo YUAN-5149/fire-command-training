@@ -42,7 +42,7 @@ import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=roads-20261023';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
 import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings,styleOf} from './xinyi-facades.js?v=6';
-import {detailWalls,shedHeight,facadeCells,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=9';
+import {detailWalls,shedHeight,facadeCells,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=10';
 import {kitPlacements,createFacadeKits} from './facade-kits.js?v=2';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';
 import {drapeSite,enhanceEoc} from './eoc-detail.js?v=rules-20261027';
@@ -121,6 +121,8 @@ let detailMats,farMat,facadeSigns=null,shophouse=null;
    const g=buildFacadeBatch(bs,styles.buildings,overrides,{skipWall:(b,k)=>!skipWall(b,k)});
    c.proxy=new T.Mesh(facadeGeometry(T,g,toLocal,ground,linearColors),farMat);c.proxy.castShadow=false;c.proxy.receiveShadow=true;c.proxy.name='street facade proxy '+c.key;scene.add(c.proxy);}
   shophouse=addShophouses({T,scene,cells,roofs:buildRoofSheds(shedItems,{project}),project});
+  // 老舊立面外掛構件（冷氣室外機、排水管、電錶箱；blender/build_weathered_parts.py 由 BuildingGeneratorThreeJS 組件包取出，CC BY 4.0 uday），背景載入
+  new GLTFLoader().loadAsync('assets/weathered-parts.glb?v=1').then(g=>shophouse.setParts(g.scene)).catch(e=>console.warn('外掛構件載入失敗',e));
   // 精修建物臨街牆的立面構件（窗框、窗台、陽台；building_tools 產生，facade-kits.js），背景載入
   createFacadeKits(T,GLTFLoader,kitPlacements(basic,overrides,{project,facesStreet:nearRoad,skipWall})).then(g=>scene.add(g)).catch(e=>console.error(e));
  }else{
