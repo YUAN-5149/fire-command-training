@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {project,nearestStreet} from '../dist/xinyi-street-world.js';
 import {styleOf,overrideIndex,fillBuildings,facadeProps,buildFacadeBatch} from '../dist/xinyi-facades.js';
-import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,cellH,cellV,SHOPS,chunkGroup,facadeCells} from '../dist/xinyi-shophouse.js';
+import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,cellH,cellV,cellS,slotMatrix,SHOPS,chunkGroup,facadeCells} from '../dist/xinyi-shophouse.js';
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const district=read('district-xinyi.json'),styles=read('building-styles-xinyi.json').buildings,streets=read('streets-xinyi.json'),od=read('building-overrides-xinyi.json'),ov=overrideIndex(od);
 district.buildings.push(...fillBuildings(od,district));
@@ -55,4 +55,20 @@ for(const g of [F.groups.tile,R.groups[Object.keys(R.groups)[0]]]){
  const parts=chunkGroup(g);assert(parts.length>1);
  assert.equal(parts.reduce((s,c)=>s+c.index.length,0),g.index.length,'triangles preserved');
  for(const c of parts){const n=c.position.length/3;assert.equal(c.normal.length/3,n);assert.equal(c.uv.length/2,n);for(const i of c.index)assert(i>=0&&i<n);}}
+// 老舊感：污漬貼花、落水管與瓦斯立管；外掛構件（冷氣、排水管、電錶箱）擺放點與 weathered-parts.glb 對應
+for(const k of ['stain','pipe'])assert(F.groups[k]?.index.length>0,'has '+k);
+for(const v of F.groups.stain.uv)assert(v>0&&v<1,'stain uv inside atlas');
+for(let r=0;r<4;r++)for(let c=0;c<4;c++)assert(cellS(r,c).every(v=>v>0&&v<1));
+const kinds=new Map();for(const s of F.slots){kinds.set(s.part,(kinds.get(s.part)??0)+1);
+ assert(['ac','acwire','meter'].includes(s.part)&&s.s>0&&s.s<1);if(s.part==='ac')assert([0,1,4,5,8,9].includes(s.v),'AC variant exists in GLB');
+ const m=slotMatrix(s);assert(m.every(Number.isFinite));
+ const X=[m[0],m[1],m[2]],Z=[m[8],m[9],m[10]],cr=[X[1]*0-X[2]*s.s,X[2]*0-X[0]*0,X[0]*s.s-X[1]*0];
+ assert(cr[0]*Z[0]+cr[2]*Z[2]>0,'right-handed slot frame (no mirrored parts)');
+ assert(Math.abs(Math.hypot(Z[0],Z[2])-s.s)<1e-6,'slot faces outward along wall normal');}
+assert(kinds.get('ac')>100&&kinds.get('acwire')===kinds.get('ac'),'every AC has a drain line');
+assert(kinds.get('meter')>20,'meter boxes on old apartments');
+const glb=fs.readFileSync(new URL('../dist/assets/weathered-parts.glb',import.meta.url));
+assert.equal(glb.toString('latin1',0,4),'glTF');assert(glb.length<3.5e6,'parts GLB stays small');
+const json=glb.toString('utf8',20,20+glb.readUInt32LE(12));
+for(const p of ['ac_0','ac_1','ac_4','ac_5','ac_8','ac_9','acwire_3','meter_0','meter_1','meter_2'])assert(json.includes('"'+p+'"'),'GLB has '+p);
 console.log('shophouse walls',F.walls,'verts',nF,'| sheds',R.sheds,'verts',nR);

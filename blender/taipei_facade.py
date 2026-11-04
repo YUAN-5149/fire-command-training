@@ -86,7 +86,18 @@ def materials():
         L.new(dirt.outputs['Fac'], dr.inputs[0])
         mul = nt.nodes.new('ShaderNodeMix'); mul.data_type = 'RGBA'; mul.blend_type = 'MULTIPLY'; mul.inputs[0].default_value = 1
         L.new(br.outputs['Color'], mul.inputs[6]); L.new(dr.outputs[0], mul.inputs[7])
-        L.new(mul.outputs[2], b.inputs['Base Color'])
+        # 細長的垂直髒污（雨水沿牆面往下帶的灰）：雜訊在高度方向拉長
+        sv = nt.nodes.new('ShaderNodeMapping'); sv.inputs['Scale'].default_value = (2.2, .12, 1)
+        L.new(uv.outputs[0], sv.inputs['Vector'])
+        sn = nt.nodes.new('ShaderNodeTexNoise'); sn.inputs['Scale'].default_value = 1.6; sn.inputs['Detail'].default_value = 6
+        L.new(sv.outputs[0], sn.inputs['Vector'])
+        sr = nt.nodes.new('ShaderNodeValToRGB')
+        sr.color_ramp.elements[0].position = .45; sr.color_ramp.elements[0].color = (1, 1, 1, 1)
+        sr.color_ramp.elements[1].position = .75; sr.color_ramp.elements[1].color = (.74, .72, .66, 1)
+        L.new(sn.outputs['Fac'], sr.inputs[0])
+        mul2 = nt.nodes.new('ShaderNodeMix'); mul2.data_type = 'RGBA'; mul2.blend_type = 'MULTIPLY'; mul2.inputs[0].default_value = 1
+        L.new(mul.outputs[2], mul2.inputs[6]); L.new(sr.outputs[0], mul2.inputs[7])
+        L.new(mul2.outputs[2], b.inputs['Base Color'])
         b.inputs['Roughness'].default_value = .78
         bump = nt.nodes.new('ShaderNodeBump'); bump.inputs['Strength'].default_value = .35; bump.inputs['Distance'].default_value = .004
         L.new(br.outputs['Fac'], bump.inputs['Height']); L.new(bump.outputs['Normal'], b.inputs['Normal'])
@@ -118,6 +129,29 @@ def materials():
     plain('iron', "TP iron grille", '#ffffff', .55, .5, use_col=True)
     plain('ac', "TP AC unit", '#e8e6df', .45)
     plain('acgrille', "TP AC grille", '#3a3d3f', .6, .3)
+    plain('pipe', "TP pipes (PVC / gas / meters)", '#ffffff', .6, .1, use_col=True)
+    # 污漬貼片：頂點色（上濃下淡）× 拉長的雜訊做出一道道垂流
+    m, b = _mat("TP weathering stains")
+    if b:
+        nt, L = m.node_tree, m.node_tree.links
+        col, uv = colour_node(nt), uvxyz(nt)
+        mp = nt.nodes.new('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (9, .35, 1)
+        L.new(uv.outputs[0], mp.inputs['Vector'])
+        nz = nt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 2.5; nz.inputs['Detail'].default_value = 5
+        L.new(mp.outputs[0], nz.inputs['Vector'])
+        rp = nt.nodes.new('ShaderNodeValToRGB')
+        rp.color_ramp.elements[0].position = .3; rp.color_ramp.elements[0].color = (0, 0, 0, 1)
+        rp.color_ramp.elements[1].position = .55; rp.color_ramp.elements[1].color = (1, 1, 1, 1)
+        L.new(nz.outputs['Fac'], rp.inputs[0])
+        a = nt.nodes.new('ShaderNodeMath'); a.operation = 'MULTIPLY'
+        L.new(col.outputs['Alpha'], a.inputs[0]); L.new(rp.outputs[0], a.inputs[1])
+        L.new(col.outputs['Color'], b.inputs['Base Color']); L.new(a.outputs[0], b.inputs['Alpha'])
+        b.inputs['Roughness'].default_value = .95
+        try:
+            m.surface_render_method = 'BLENDED'
+        except AttributeError:
+            pass
+    out['stain'] = m
     plain('shopglass', "TP shop glass", '#5b6a70', .1, .1, emit=('#ffe2b0', .6))
     plain('ceiling', "TP arcade ceiling", '#a9a7a0', .9)
     plain('floor', "TP arcade floor", '#8b857a', .8)
@@ -169,6 +203,22 @@ class OBuf:
 
     def __init__(self):
         self.v, self.f, self.fm, self.uv, self.col, self.mats = [], [], [], [], [], []
+        self.slots = []        # 外掛構件擺放點：(part, variant, 位置, 沿牆, 外法線, 縮放)
+
+    def quad(self, F, m, a0, a1, d, z0, z1, top, bottom):
+        """牆面上的貼片（污漬）：上緣頂點色 top、下緣 bottom（RGBA，A 為不透明度）。"""
+        mi = self._mi(m)
+        i = len(self.v)
+        L = [(a0, d, z0), (a1, d, z0), (a1, d, z1), (a0, d, z1)]
+        self.v += [F.p(*q) for q in L]
+        self.f.append((i, i + 1, i + 2, i + 3))
+        self.fm.append(mi)
+        for a, _, z in L:
+            self.uv.append((a, z))
+            self.col.append(top if z == z1 else bottom)
+
+    def slot(self, F, part, v, a, d, z, s):
+        self.slots.append((part, v, F.p(a, d, z), F.u, F.n, s))
 
     def _mi(self, m):
         if m not in self.mats:
@@ -226,6 +276,43 @@ class OBuf:
 
 
 # ------------------------------------------------------------------ facades
+# 老舊感（與網頁 xinyi-shophouse.js 的 weather() 同一套規則；依富錦街公寓外觀升級作法）：
+# 女兒牆垂流、牆腳潮濕、老公寓 PVC 落水管與黃色瓦斯立管（各戶瓦斯錶集中一樓）、一樓電錶箱。位置示意，非實測。
+DIRT_TOP, DIRT_BOTTOM = (.14, .13, .1, .8), (.17, .16, .13, 0)
+DAMP_TOP, DAMP_BOTTOM = (.15, .17, .12, 0), (.12, .13, .1, .65)
+AC_V = (0, 1, 4, 5, 8, 9)       # weathered-parts.glb 的冷氣室外機款式
+
+
+def weather(buf, F, H, fh, style, shop, floors, top, nb, pw, M):
+    W = F.W
+    a = 0.0
+    while a < W - .2:
+        buf.quad(F, M['stain'], a, min(a + 3, W), .026, top, top + 1.0, DIRT_TOP, DIRT_BOTTOM)
+        if not shop:
+            buf.quad(F, M['stain'], a, min(a + 3, W), .006, 0, .9, DAMP_TOP, DAMP_BOTTOM)
+        a += 3
+    if style != 0:
+        return
+    pvc, gas, brk, gm = srgb('#c8cac2'), srgb('#d9b437'), srgb('#6f7470'), srgb('#8f938c')
+    xa, d = (W - .3 if shop else W - .22), .1
+    buf.box(F, M['pipe'], xa - .05, xa + .05, d - .05, d + .05, .05, top + .85, pvc)
+    buf.box(F, M['pipe'], xa - .055, xa + .055, 0, d, top + .75, top + .86, pvc)
+    z = 1.2
+    while z < top:
+        buf.box(F, M['pipe'], xa - .065, xa + .065, 0, d + .065, z, z + .04, brk)
+        z += 1.6
+    xg, dg = (.3 if shop else min(.35, pw * .9)), .06
+    buf.box(F, M['pipe'], xg - .025, xg + .025, dg - .025, dg + .025, .4, (floors - 1) * fh + 1.35, gas)
+    for f in range(floors):
+        z = f * fh + 1.15
+        buf.box(F, M['pipe'], xg - .02, xg + .02, 0, dg, z - .02, z + .02, gas)
+    for i in range(min(floors, 5)):
+        z = .55 + i * .3
+        buf.box(F, M['pipe'], xg + .07, xg + .27, 0, .11, z, z + .24, gm)
+        buf.box(F, M['pipe'], xg + .025, xg + .07, dg - .015, dg + .015, z + .1, z + .13, gas)
+    buf.slot(F, 'meter', (nb + floors) % 3, .3 if shop else max(.7, pw + .3), 0, 1.1 if shop else .85, .24 if shop else .4)
+
+
 def street_wall(buf, F, H, fh, style, shop, colour, rng, M, texts):
     """一面臨街牆的精細立面。H 牆高、fh 樓高；texts 收集要放的文字 (內容, 位置, 方向基底, 大小, 材質)。"""
     W = F.W
@@ -242,6 +329,7 @@ def street_wall(buf, F, H, fh, style, shop, colour, rng, M, texts):
     buf.box(F, M['trim'], -.02, W + .02, -.25, .08, top + 1.0, top + 1.08)
     if top < H - .3:                       # 樓層數取整後剩下的牆
         buf.box(F, M['tile'], 0, W, -.25, 0, top, H, tile)
+    weather(buf, F, H, fh, style, shop, floors, top, nb, pw, M)
 
     # ---- 一樓
     if shop:
@@ -302,6 +390,7 @@ def street_wall(buf, F, H, fh, style, shop, colour, rng, M, texts):
                 continue
             buf.box(F, M['tile'], ox0, ox1, -.25, 0, z0, z0 + sill, tile)
             buf.box(F, M['trim'], ox0 - .06, ox1 + .06, 0, .09, z0 + sill - .06, z0 + sill)   # 窗台
+            buf.quad(F, M['stain'], ox0 - .1, ox1 + .1, .006, max(z0 + sill - 1.3, z0 - .42), z0 + sill - .06, DIRT_TOP, DIRT_BOTTOM)   # 窗台雨痕
             buf.box(F, M['glass'], ox0, ox1, -.2, -.18, z0 + sill, z0 + head)
             for a0, a1, b0, b1 in ((ox0, ox0 + .05, sill, head), (ox1 - .05, ox1, sill, head),
                                    ((ox0 + ox1) / 2 - .025, (ox0 + ox1) / 2 + .025, sill, head),
@@ -328,10 +417,10 @@ def street_wall(buf, F, H, fh, style, shop, colour, rng, M, texts):
             if rng.random() < .38:
                 ac = (ox0 + ox1) / 2 + (rng.random() - .5) * (ox1 - ox0 - .9)
                 za = z0 + sill - .75
-                buf.box(F, M['ac'], ac - .4, ac + .4, .04, .32, za, za + .52)
-                buf.box(F, M['acgrille'], ac - .36, ac + .16, .32, .335, za + .06, za + .46)
-                for s in (-.3, .3):
-                    buf.box(F, M['frame'], ac + s - .02, ac + s + .02, 0, .34, za - .05, za)
+                # 冷氣室外機（含支架與鏽蝕雨遮）與排水管：weathered-parts.glb 外掛構件；機下一道滴水痕
+                buf.slot(F, 'ac', AC_V[(k * 7 + f * 3) % 6], ac, 0, za - .12, .76)
+                buf.slot(F, 'acwire', 3, ac + .1, 0, za - .55, .5)
+                buf.quad(F, M['stain'], ac - .3, ac + .3, .006, za - 1.25, za, (.16, .18, .13, .6), (.16, .18, .13, 0))
 
     # ---- 直立招牌（店面才有）
     if shop and floors > 1:

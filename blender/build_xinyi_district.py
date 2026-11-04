@@ -383,6 +383,58 @@ TREE_KINDS = {
 }
 
 
+
+# 老舊立面外掛構件（dist/assets/weathered-parts.glb，blender/build_weathered_parts.py 由 BuildingGeneratorThreeJS
+# 組件包取出；模型 CC BY 4.0 uday）：依 taipei_facade.py 的擺放點（冷氣室外機、排水管、電錶箱），每種合併成一個網格。
+def build_weathered(slots, root):
+    import numpy as np
+    path = os.path.join(REPO, "dist", "assets", "weathered-parts.glb")
+    if not slots or not os.path.exists(path):
+        return 0
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=path)
+    imported = [o for o in bpy.data.objects if o not in before]
+    src = {(o.get('part'), o.get('variant')): o for o in imported if o.type == 'MESH' and o.get('part')}
+    groups = {}
+    for part, v, p, u, n, sc in slots:
+        groups.setdefault((part, v), []).append((p, u, n, sc))
+    total = 0
+    for key, items in groups.items():
+        ob = src.get(key)
+        if ob is None:
+            continue
+        me = ob.data
+        co = np.array([v.co[:] for v in me.vertices])
+        polys = [list(p.vertices) for p in me.polygons]
+        mats = [p.material_index for p in me.polygons]
+        verts, faces, mi = [], [], []
+        for p, u, n, sc in items:
+            # glTF 匯入後構件 X 沿牆、Z 向上、-Y 朝外；沿牆方向必要時反向，避免鏡像
+            ux, uy = (-u[0], -u[1]) if u[0] * n[1] - u[1] * n[0] > 0 else u
+            w = (np.outer(co[:, 0] * sc, (ux, uy, 0)) + np.outer(-co[:, 1] * sc, (n[0], n[1], 0))
+                 + np.outer(co[:, 2] * sc, (0, 0, 1)) + p)
+            off = len(verts)
+            verts.extend(map(tuple, w))
+            faces.extend([[i + off for i in f] for f in polys])
+            mi.extend(mats)
+        m2 = bpy.data.meshes.new(f"Weathered {key[0]} {key[1]}")
+        m2.from_pydata(verts, [], faces)
+        uvl = me.uv_layers.active
+        if uvl:
+            uvs = np.array([d.uv[:] for d in uvl.data])
+            m2.uv_layers.new(name=uvl.name).data.foreach_set('uv', np.tile(uvs, (len(items), 1)).ravel())
+        for mt in me.materials:
+            m2.materials.append(mt)
+        m2.polygons.foreach_set('material_index', mi)
+        m2.update()
+        o2 = bpy.data.objects.new(f"Weathered {key[0]} {key[1]}", m2)
+        bpy.context.scene.collection.objects.link(o2)
+        o2.parent = root
+        total += len(items)
+    for o in imported:
+        bpy.data.objects.remove(o, do_unlink=True)
+    return total
+
 def tree_mesh(kind):
     import bmesh
     import random
@@ -553,6 +605,8 @@ def main():
     if face_buf.f:
         face_buf.emit("Street facades", detail_root)
     TF.make_texts(texts, X.load_font(), detail_root)
+    n_parts = build_weathered(face_buf.slots, detail_root)
+    print("WEATHERED_PARTS=", n_parts)
     print("DETAIL_WALLS=", len(detail_walls), "SIGN_TEXTS=", len(texts), "ROOF_SHEDS=", len(shed_boxes))
 
     # 舊的方塊小物件：鐵皮屋改由屋頂加蓋取代；精細牆旁的冷氣、鐵窗、招牌改由精細立面取代；水塔墊高到加蓋頂
@@ -649,6 +703,7 @@ def main():
         ("songlian", (140.0, -22.0, 1.8), (185.0, 40.0, 40.0), 16),
         ("keelung", (-520.0, 40.0, 1.8), (-420.0, 120.0, 50.0), 16),
         ("songping", (170.0, -360.0, 1.8), (200.0, -335.0, 20.0), 18),
+        ("wuxing_facade", (-493.0, -400.0, 1.8), (-481.0, -391.0, 8.0), 20),   # 老公寓立面近看（污漬、管線、冷氣）
     ]
     only = arg("--only")
     if only:
