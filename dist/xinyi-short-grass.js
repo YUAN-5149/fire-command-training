@@ -16,3 +16,35 @@ export function createShortGrass({scene,root,features=[],laneData=null,quality='
  return {layer,surface,source,center,stats,coverage,update,setQuality,setVisible,reviewPose,useFallback,dispose};}
 
 export function installGrassShaderFallback(renderer,getGrass,onFallback=()=>{}){const previous=renderer.debug.onShaderError;const handler=(gl,program,vertexShader,fragmentShader)=>{if((gl.getShaderSource(vertexShader)??'').includes('deformGrassBlade')&&getGrass()){getGrass().useFallback();onFallback();console.warn('草葉動態材質無法編譯，已切換靜態短草。');return;}if(previous)previous(gl,program,vertexShader,fragmentShader);else console.error('場景材質編譯失敗',gl.getProgramInfoLog(program),gl.getShaderInfoLog(vertexShader),gl.getShaderInfoLog(fragmentShader));};renderer.debug.onShaderError=handler;return ()=>{if(renderer.debug.onShaderError===handler)renderer.debug.onShaderError=previous;};}
+
+// 逐街精修所見草坪（street-lawns-xinyi.json，scripts/build-lawns.mjs）：照片確認為草坪的 OSM 綠地，長與 EOC 相同的 6–12 cm 短草。
+// 草葉貼在既有綠地面（地面高＋0.06 m）上，只作視覺覆蓋，不改步行面或碰撞；道路範圍內不長草。每塊草坪一個 GrassLayer，
+// 玩家接近（距離依畫質）才顯示；密度依面積限制在 LAWN.maxBlades 內。
+export const LAWN={minHeight:.06,maxHeight:.12,maxBlades:100000,lift:.06};
+export function createLawnGrass({scene,lawns=[],groundAt,features=[],laneData=null,quality='medium',sun=null}){
+ if(!lawns.length)return null;
+ const density={low:25,medium:55,high:80},ranges={low:35,medium:55,high:75},guard=createRoadGuard(features,laneData);
+ let current=quality in density?quality:'medium',visible=true,lastLight=-Infinity;const items=[];
+ for(const [i,l] of lawns.entries()){
+  const p=l.polygon,pts=[];for(let k=0;k<p.length;k+=2)pts.push(new T.Vector2(p[k],p[k+1]));
+  const tris=T.ShapeUtils.triangulateShape(pts,[]),pos=[];
+  for(const t of tris)for(const k of t){const {x,y:z}=pts[k];pos.push(x,groundAt(x,z)+LAWN.lift+.002,z);}
+  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(pos,3));geometry.computeVertexNormals();
+  // 三角化的繞向不一定朝上；草葉取樣需要朝上的法線
+  if(geometry.attributes.normal.getY(0)<0){const a=geometry.attributes.position.array;for(let k=0;k<a.length;k+=9)for(let j=0;j<3;j++){const t=a[k+3+j];a[k+3+j]=a[k+6+j];a[k+6+j]=t;}geometry.computeVertexNormals();}
+  const surface=new T.Mesh(geometry,new T.MeshBasicMaterial());surface.name=l.name+' lawn sampling surface (not walk collider)';
+  const coverage={sample:({position:{x,z}})=>guard.overlap([[x-.15,z-.15],[x+.15,z-.15],[x+.15,z+.15],[x-.15,z+.15]])?0:1};
+  const d=k=>Math.min(density[k],LAWN.maxBlades/Math.max(1,l.area));
+  const layer=new GrassLayer({surface,seed:20261104+i,density:d(current),coverage,blade:{minWidth:.018,maxWidth:.034,minHeight:LAWN.minHeight,maxHeight:LAWN.maxHeight,segments:2,lean:.03},wind:{strength:.008,lean:.003,speed:.8,turbulence:.12},colors:{bottom:'#2e4a26',top:'#9ab862',backlight:'#a8c27a'},brightness:.75,shadow:false,lighting:{backlightStrength:.3}});
+  layer.name=l.name+' — short grass 6–12cm illustrative';
+  layer.blades.material.vertexShader='#undef USE_SHADOWMAP\n'+layer.blades.material.vertexShader;layer.blades.material.fragmentShader='#undef USE_SHADOWMAP\n'+layer.blades.material.fragmentShader;layer.blades.material.lights=false;
+  layer.visible=false;scene.add(layer);
+  let xs=[],zs=[];for(const v of pts){xs.push(v.x);zs.push(v.y);}const cx=(Math.min(...xs)+Math.max(...xs))/2,cz=(Math.min(...zs)+Math.max(...zs))/2,r=Math.hypot(Math.max(...xs)-cx,Math.max(...zs)-cz);
+  items.push({lawn:l,layer,geometry,surface,cx,cz,r,d});}
+ const stats={lawns:items.length,get blades(){return items.reduce((s,it)=>s+it.layer.bladeCount,0);},get visible(){return items.filter(it=>it.layer.visible).length;},quality:current};
+ function setQuality(v){if(!(v in density)||v===current)return;current=v;stats.quality=v;for(const it of items)it.layer.setOptions({density:it.d(v)});}
+ function setVisible(v){visible=!!v;if(!visible)for(const it of items)it.layer.visible=false;}
+ function update(time,eye){for(const it of items){it.layer.visible=visible&&Math.hypot(eye.x-it.cx,eye.z-it.cz)-it.r<ranges[current];if(!it.layer.visible)continue;it.layer.update(time);if(sun&&time-lastLight>1){it.layer.syncDirectionalLight(sun);lastLight=time;}}}
+ function dispose(){for(const it of items){scene.remove(it.layer);it.layer.dispose();it.geometry.dispose();it.surface.material.dispose();}}
+ return {items,stats,update,setQuality,setVisible,dispose};
+}
