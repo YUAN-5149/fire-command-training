@@ -28,7 +28,7 @@ for(const e of entries){
 const nearRoad=(x,z)=>!!nearestStreet(streets.features,x,z,10);
 const P=kitPlacements(district.buildings,ov,{project,facesStreet:nearRoad});
 const n=Object.values(P).reduce((s,v)=>s+v.length,0);
-assert(n>5000&&n<60000,'kit instances within budget: '+n);
+assert(n>5000&&n<70000,'kit instances within budget: '+n);
 for(const name of Object.keys(P))assert(kits.has(name),'placed kit exists: '+name);
 for(const list of Object.values(P))for(const m of list){
  assert.equal(m.length,16);for(const v of m)assert(Number.isFinite(v));

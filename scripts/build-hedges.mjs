@@ -25,6 +25,12 @@ const SEEN=[
  {name:'信義之星',street:'松平路',offset:1.2,photo:'Google 街景 2025-01，松平路54號北望：石柱鐵柵圍牆內綠籬與花架'},
  {name:'松平路西段南側住宅',street:'松平路',offset:1.0,photo:'Google 街景 2025-01，松平路54號南望：低矮圍籬內連續綠籬'},
  {name:'松平路87號住宅',street:'松平路',offset:1.8,photo:'Google 街景 2025-01，松平路87號北望：鐵花圍籬前一排盆栽灌木（盆栽，非地植）'},
+ {name:'中油大樓',street:'松勇路',offset:1.2,photo:'Google 街景，松勇路北端南望：西側臨街高花台內一列灌木'},
+ {name:'國泰金融中心',street:'松勇路',offset:1.5,photo:'Google 街景，松勇路27號西望：草坪前一列低矮綠籬'},
+ {name:'信義富邦國際館',street:'松勇路',offset:1.0,scale:3,gap:false,photo:'Google 街景，松勇路27號東望：臨街約 2 m 高連續綠籬（示意高約 1.35 m，未量測）'},
+ {name:'台北花園',street:'松勇路',offset:1.5,photo:'Google 街景，松勇路34號東望：石柱金屬欄杆圍牆內一列綠籬'},
+ {name:'松仁路89～93號辦公大樓',street:'松勇路',offset:1.0,photo:'Google 街景，松勇路34號西望：廣場邊低矮綠籬'},
+ {name:'松勇路55～57號住宅',street:'松勇路',offset:1.0,photo:'Google 街景，松勇路63號東北望：矮牆鐵欄杆前灌木植栽'},
 ];
 // 共用灌木模型高約 0.45 m；照片中綠籬約 0.8 m（目測示意，未量測），放大 1.8 倍且株距 1.1 m 成連續一列
 const STEP=1.1,END=1,GAP=4,TREE_CLEAR=1.6,SCALE=1.8;
@@ -53,13 +59,13 @@ for(const s of SEEN){
    const L=Math.hypot(bx-ax,bz-az),tx=(bx-ax)/L,tz=(bz-az)/L;
    walls++;
    for(let u=END,k=0;u<=L-END;u+=STEP,k++){
-    if(Math.abs(u-L/2)<GAP/2)continue;      // 入口缺口（位置未核對，先留牆中央）
+    if(s.gap!==false&&Math.abs(u-L/2)<GAP/2)continue;      // 入口缺口（位置未核對，先留牆中央）；gap:false＝照片所見為連續綠籬（立面為多段短牆）
     const lat=(k%2?.25:-.25),x=ax+tx*u+nx*(s.offset+lat),z=az+tz*u+nz*(s.offset+lat);
     const [dr,rw]=distTo(segs,x,z);if(dr<rw/2+1.5)continue;
     if(trees.some(([px,pz])=>Math.hypot(px-x,pz-z)<TREE_CLEAR))continue;
     points.push([+x.toFixed(2),+z.toFixed(2),+(Math.atan2(tx,tz)+k*1.7).toFixed(2)]);
    }}
- hedges.push({name:s.name,street:s.street,photo:s.photo,walls,scale:SCALE,status:`概略：沿臨街牆外推 ${s.offset} m、高約 0.8 m（示意）；邊界、入口缺口、高度、株距與品種待核對`,points});
+ hedges.push({name:s.name,street:s.street,photo:s.photo,walls,scale:s.scale??SCALE,status:`概略：沿臨街牆外推 ${s.offset} m、高約 ${((s.scale??SCALE)*.45).toFixed(1)} m（示意）；邊界、入口缺口、高度、株距與品種待核對`,points});
 }
 const out={place:'xinyi',source:'Google 街景目測（各列 photo）；灌木模型為 dist/assets/plants-ez-v3 共用低矮葉叢',
  note:'僅照片確認有綠籬的臨街面；位置概略、未量測。沿用地坪高度，不推測台階或坡度。座標為街景本地公尺（x 東、z 南）。',hedges};

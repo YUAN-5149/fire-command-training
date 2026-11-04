@@ -13,7 +13,7 @@ export const hasKit=s=>!!s&&(s.variant>0||s.style===1);
 
 // 回傳 {名稱: [16 個數字的欄主序矩陣, ...]}。只放臨街牆（沿外法線 45 m 內靠近道路）、每面最多 maxFloors 層。
 // skipWall(b,k)：已由臺北街屋精細立面（xinyi-shophouse.js）處理的牆不重複擺放。
-export function kitPlacements(buildings,overrides,{project,facesStreet=()=>true,skipWall=null,maxFloors=24,max=60000}={}){
+export function kitPlacements(buildings,overrides,{project,facesStreet=()=>true,skipWall=null,maxFloors=24,max=70000}={}){
  const out={};let count=0;
  for(const b of buildings){
   const o=overrides[b.id];if(!o)continue;
@@ -47,7 +47,7 @@ export function kitPlacements(buildings,overrides,{project,facesStreet=()=>true,
 
 // three.js：載入構件 GLB，依 kitPlacements 建 InstancedMesh（每個構件、每個材質一個）。
 // 牆面方向不一定是右手座標（牆的走向與外法線），構件材質雙面繪製。
-export async function createFacadeKits(T,GLTFLoader,placements,url='assets/facade-kits.glb?v=14'){
+export async function createFacadeKits(T,GLTFLoader,placements,url='assets/facade-kits.glb?v=15'){
  const gltf=await new GLTFLoader().loadAsync(url),group=new T.Group();group.name='facade kits';
  const byName=new Map();
  gltf.scene.traverse(o=>{if(o.userData?.kit)byName.set(o.userData.kit,o);});

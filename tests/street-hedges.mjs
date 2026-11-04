@@ -6,7 +6,7 @@ import {project} from '../dist/xinyi-street-world.js';
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const data=read('street-hedges-xinyi.json'),streets=read('streets-xinyi.json'),furniture=read('street-furniture-xinyi.json');
 const ov=read('building-overrides-xinyi.json'),names=new Set(ov.streets.flatMap(s=>s.buildings.map(b=>b.name)));
-assert(data.hedges.length>0&&data.hedges.length<=12,'only photo-confirmed frontages');
+assert(data.hedges.length>0&&data.hedges.length<=24,'only photo-confirmed frontages (one entry per photographed frontage)');
 let total=0;
 for(const h of data.hedges){
  assert(names.has(h.name),'hedge tied to a refined building: '+h.name);
