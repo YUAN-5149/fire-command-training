@@ -4,12 +4,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {GLTFLoader} from '../dist/vendor/GLTFLoader.js';
 import {project,nearestStreet} from '../dist/xinyi-street-world.js';
-import {overrideIndex,fillBuildings,styleOf} from '../dist/xinyi-facades.js';
+import {overrideIndex,applyFills,styleOf} from '../dist/xinyi-facades.js';
 import {kitPlacements,hasKit,KIT_FH} from '../dist/facade-kits.js';
 
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const od=read('building-overrides-xinyi.json'),district=read('district-xinyi.json'),streets=read('streets-xinyi.json');
-district.buildings.push(...fillBuildings(od,district));
+applyFills(od,district);
 const ov=overrideIndex(od);
 
 const buf=fs.readFileSync(new URL('../dist/assets/facade-kits.glb',import.meta.url));

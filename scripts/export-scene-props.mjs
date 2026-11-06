@@ -7,7 +7,7 @@
 // 牆腳最低高程（上層退縮量體保留相對高度）；街道設施高度原本即為離地高。
 import fs from 'node:fs';
 import {project,nearestStreet} from '../dist/xinyi-street-world.js';
-import {styleOf,facadeProps,overrideIndex,fillBuildings} from '../dist/xinyi-facades.js';
+import {styleOf,facadeProps,overrideIndex,applyFills} from '../dist/xinyi-facades.js';
 import {furnitureParts} from '../dist/xinyi-furniture.js';
 import {kitPlacements} from '../dist/facade-kits.js';
 import {detailWalls} from '../dist/xinyi-shophouse.js';
@@ -16,7 +16,7 @@ const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta
 const district=read('district-xinyi.json'),styles=read('building-styles-xinyi.json').buildings,furniture=read('street-furniture-xinyi.json'),streets=read('streets-xinyi.json');
 // 逐街精修：官方缺漏量體依 OSM 外框補建，精修參數一併輸出給 Blender
 const overrideData=read('building-overrides-xinyi.json'),overrides=overrideIndex(overrideData);
-district.buildings.push(...fillBuildings(overrideData,district));
+applyFills(overrideData,district);
 const r2=v=>Math.round(v*100)/100;
 const buildings=[],baseOf=new Map();
 for(const b of district.buildings){

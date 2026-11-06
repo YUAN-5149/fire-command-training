@@ -19,6 +19,7 @@
 | 1 選街 | 依 §7 順序挑下一條；跑清單看未精修量體 | `node scripts/list-street.mjs <路名> 40` |
 | 2 取景 | 依 §1.1 取足照片：臨街兩側、路口四向、側巷與後巷、仰角看屋頂 | Google 街景縮圖（只判讀不存檔入庫） |
 | 3 對位 | 把照片中的建物對到 LOD1 量體 id（看牆座標、高度、臨路牆長）；注意已有專屬模型的地標（如 `hq-anchor.json` 的消防局） | 同上＋`district-xinyi.json` |
+| 3a 缺漏檢查 | 照片是連棟、模型卻是零碎柱體或缺牆（官方 LOD1 只剩樓梯間）時，依 OSM 外框以 `footprint`＋`height` 補建；重疊的零碎官方量體列入 `replaces` 移除（只在被外框完整包住時） | OSM API `map.json?bbox=…`（瀏覽器內取得） |
 | 4 填表 | 每棟填「精修紀錄表」（§6 範本）：外觀、斑駁等級、四面與屋頂、植栽 | `docs/elevation-reviews/<街>-<日期>.md` |
 | 5 寫資料 | 外觀 → `building-overrides-xinyi.json`；綠籬 → `build-hedges.mjs` SEEN；草坪 → `build-lawns.mjs` SEEN；樹木／花台 → §4 對應工具 | 資料檔＋產生腳本 |
 | 6 重建 | 有新 variant 或 style 1 → 重建立面構件 GLB；調高快取版本號 | `blender/build_facade_kits.py`、各 `?v=` |
