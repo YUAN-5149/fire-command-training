@@ -1,7 +1,7 @@
 // 逐街精修（building-overrides-xinyi.json）：每筆都對得到量體、參數合理；缺漏量體依 OSM 外框補建正確。
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {overrideIndex,styleOf,buildFacadeBatch,fillBuildings,earcut,facadeProps,weatherGrade,faceSpec,FACE_ENUMS} from '../dist/xinyi-facades.js';
+import {overrideIndex,styleOf,buildFacadeBatch,fillBuildings,earcut,facadeProps,weatherGrade,faceSpec,FACE_ENUMS,applyFills,replacedIds} from '../dist/xinyi-facades.js';
 import {project} from '../dist/xinyi-street-world.js';
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const data=read('building-overrides-xinyi.json'),district=read('district-xinyi.json');
@@ -32,6 +32,7 @@ for(const st of data.streets){
    if(rear?.kind)assert(FACE_ENUMS.rear.includes(rear.kind));
    if(roof){if('shed' in roof)assert.equal(typeof roof.shed,'boolean');if('solar' in roof)assert.equal(typeof roof.solar,'boolean');if('tanks' in roof)assert(Number.isInteger(roof.tanks)&&roof.tanks>=0&&roof.tanks<=6);}
   }
+  if(e.replaces){assert(e.footprint?.length,'replaces only with a fill footprint: '+e.name);for(const id of e.replaces){assert(ids.has(id),'replaced id exists: '+id);assert(!data.streets.some(s=>s.buildings.some(x=>x.ids.includes(id))),'replaced id not used by another entry: '+id);}}
  }
 }
 // 補建量體：牆數、外法線、屋頂三角化面積等於外框面積
@@ -59,4 +60,6 @@ assert.equal(weatherGrade({style:0}),2);assert.equal(weatherGrade({style:3}),1);
 {const f=faceSpec({style:0});assert.equal(f.side.windows,'few');assert.equal(f.rear.kind,'cage-balcony');assert.equal(f.roof.shed,null);assert(['side','rear','roof'].every(k=>f[k].evidence==='C'));}
 {const f=faceSpec({style:1,faces:{roof:{shed:true,evidence:'A'}}});assert.equal(f.roof.shed,true);assert.equal(f.roof.evidence,'A');assert.equal(f.rear.kind,'plain');assert.equal(f.side.evidence,'C');}
 for(const b of targets){const s=styleOf({},b,ov);assert(s.weather>=0&&s.weather<=3&&s.faces.side&&s.faces.rear&&s.faces.roof);}
+// 取代：被取代的官方量體從 district 移除、補建量體加入
+{const d2={buildings:[...district.buildings]},gone=[...replacedIds(data)];applyFills(data,d2);for(const id of gone)assert(!d2.buildings.some(b=>b.id===id),'replaced LOD1 removed: '+id);assert(d2.buildings.some(b=>b.id==='osm-1016280255'),'HQ-opposite row filled');}
 console.log('overrides',data.streets.map(s=>s.street+' '+s.section+' '+s.buildings.length).join('; '),'filled',filled.length);

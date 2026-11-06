@@ -3,11 +3,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {project,nearestStreet} from '../dist/xinyi-street-world.js';
-import {styleOf,overrideIndex,fillBuildings,facadeProps,buildFacadeBatch} from '../dist/xinyi-facades.js';
+import {styleOf,overrideIndex,applyFills,facadeProps,buildFacadeBatch} from '../dist/xinyi-facades.js';
 import {detailWalls,shedHeight,buildStreetFacades,buildRoofSheds,cellH,cellV,cellS,slotMatrix,SHOPS,chunkGroup,facadeCells} from '../dist/xinyi-shophouse.js';
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const district=read('district-xinyi.json'),styles=read('building-styles-xinyi.json').buildings,streets=read('streets-xinyi.json'),od=read('building-overrides-xinyi.json'),ov=overrideIndex(od);
-district.buildings.push(...fillBuildings(od,district));
+applyFills(od,district);
 const nearRoad=(x,z)=>!!nearestStreet(streets.features,x,z,10);
 const items=[],sheds=[],skip=new Map();
 for(const b of district.buildings){if(!b.walls.length)continue;const s=styleOf(styles,b,ov);

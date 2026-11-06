@@ -241,6 +241,14 @@ export function addFacadeProps(T,scene,props){
 
 // 官方 LOD1 缺漏的量體：依精修資料的 OSM 外框與估計高度補建，格式與 district-xinyi.json 的 buildings 相同
 // （walls 經緯度＋絕對高程、roofs 每三點一個三角形）。牆腳高程取 120 m 內官方量體牆腳的最低值。
+// 補建量體可列 replaces：官方 LOD1 只剩零碎牆面、會與補建外框重疊閃爍時，移除這些官方量體（只在補建資料存在時生效）。
+export function replacedIds(data){return new Set((data?.streets??[]).flatMap(st=>st.buildings.filter(e=>e.footprint?.length&&e.height).flatMap(e=>e.replaces??[])));}
+// 套用逐街精修的補建：移除被取代的官方量體，加入依 OSM 外框補建的量體（就地修改 district.buildings）
+export function applyFills(data,district){
+ if(!data)return district;
+ const gone=replacedIds(data);if(gone.size)district.buildings=district.buildings.filter(b=>!gone.has(b.id));
+ district.buildings.push(...fillBuildings(data,district));return district;
+}
 export function fillBuildings(data,district){
  const out=[];
  for(const st of data?.streets??[])for(const e of st.buildings){
