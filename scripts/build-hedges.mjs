@@ -8,7 +8,7 @@
 // 邊界、缺口、株數與品種皆待核對；輸出的 status 與 note 會說明。
 import fs from 'node:fs';
 import {project} from '../dist/xinyi-street-world.js';
-import {overrideIndex} from '../dist/xinyi-facades.js';
+import {overrideIndex,fillBuildings} from '../dist/xinyi-facades.js';
 
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const district=read('district-xinyi.json'),streets=read('streets-xinyi.json'),furniture=read('street-furniture-xinyi.json');
@@ -30,6 +30,7 @@ const SEEN=[
  {name:'信義富邦國際館',street:'松勇路',offset:1.0,scale:3,gap:false,photo:'Google 街景，松勇路27號東望：臨街約 2 m 高連續綠籬（示意高約 1.35 m，未量測）'},
  {name:'台北花園',street:'松勇路',offset:1.5,photo:'Google 街景，松勇路34號東望：石柱金屬欄杆圍牆內一列綠籬'},
  {name:'松仁路89～93號辦公大樓',street:'松勇路',offset:1.0,photo:'Google 街景，松勇路34號西望：廣場邊低矮綠籬'},
+ {name:'中油大樓南側五層裙樓',street:'忠孝東路五段236巷2弄',offset:8,photo:'Google 街景，236巷2弄 211號一帶南望：裙樓前廣場外緣、人行道內側一長條低矮灌木帶（含一列落葉喬木，喬木位置待核對）'},
  {name:'松勇路55～57號住宅',street:'松勇路',offset:1.0,photo:'Google 街景，松勇路63號東北望：矮牆鐵欄杆前灌木植栽'},
 ];
 // 共用灌木模型高約 0.45 m；照片中綠籬約 0.8 m（目測示意，未量測），放大 1.8 倍且株距 1.1 m 成連續一列
@@ -39,7 +40,8 @@ const roads=streets.features.filter(f=>f.kind==='road'&&f.tags.name);
 const segsOf=name=>roads.filter(f=>f.tags.name===name).flatMap(f=>f.paths.flatMap(p=>p.slice(1).map((q,i)=>[project(p[i][0],p[i][1]),project(q[0],q[1]),f.width||8])));
 const distTo=(segs,x,z)=>{let best=[1e9,8];for(const [[ax,az],[bx,bz],w] of segs){const dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz||1))),d=Math.hypot(x-ax-dx*t,z-az-dz*t);if(d<best[0])best=[d,w];}return best;};
 const trees=(furniture.trees||[]).map(([x,z])=>[x,z]);
-const idx=new Map(district.buildings.map(b=>[b.id,b]));
+// 補建量體（osm-*）也可作為綠籬依附的臨街牆
+const idx=new Map([...district.buildings,...fillBuildings(ov,district)].map(b=>[b.id,b]));
 
 const hedges=[];
 for(const s of SEEN){
