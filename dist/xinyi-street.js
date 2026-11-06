@@ -1,5 +1,5 @@
 import {createEocSidewalks} from './xinyi-eoc-sidewalks.js?v=wheel-ground-20261028';
-import {createShortGrass,createLawnGrass,installGrassShaderFallback} from './xinyi-short-grass.js?v=lawns-20261104';
+import {createShortGrass,createLawnGrass,installGrassShaderFallback} from './xinyi-short-grass.js?v=lawn-tiles-20261104';
 import {loadTreeAssets,createRealisticTrees} from './xinyi-realistic-trees.js?v=hedges2-20261027';
 import {treeInstances} from './xinyi-trees.js?v=5';
 import {applyEocFrontage,reviewEocGreen} from './xinyi-eoc-frontage.js?v=photo-20261027';
@@ -43,7 +43,7 @@ import {addLanesToScene} from './xinyi-lanes.js?v=roads-20261023';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
 import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings,styleOf} from './xinyi-facades.js?v=6';
 import {detailWalls,shedHeight,facadeCells,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=10';
-import {kitPlacements,createFacadeKits} from './facade-kits.js?v=3';
+import {kitPlacements,createFacadeKits} from './facade-kits.js?v=4';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';
 import {drapeSite,enhanceEoc} from './eoc-detail.js?v=rules-20261027';
 import {focusedBuilding,buildXinyiDetail,createDetailMaterials,inFocus} from './geo-xinyi-detail.js?v=70';
@@ -90,7 +90,7 @@ const zhuangjingIds=new Set(zhuangjingData?.buildingIds??[]);
 const landmarks=await loadLandmarks().catch(()=>[]);for(const a of landmarks)if(a.collider)district.buildings.push(footprintBuilding(a));
 // 逐街精修（building-overrides-xinyi.json）：官方 LOD1 缺漏的量體依 OSM 外框補建（含碰撞與地面高程）。
 const legacyFacades=new URLSearchParams(location.search).get('facades')==='legacy';
-const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=23').then(r=>r.ok?r.json():null).catch(()=>null);
+const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=24').then(r=>r.ok?r.json():null).catch(()=>null);
 const overrides=overrideIndex(overrideData);if(overrideData)district.buildings.push(...fillBuildings(overrideData,district));
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox);
@@ -216,7 +216,7 @@ const life=createStreetLife(scene,{features:streets.features,buildings:district.
 // Only hide old crowns after both geometry and textures loaded successfully.
 shortGrassReady=true;if(eocRoot)setupShortGrass();
 // 逐街精修所見草坪（照片確認為草坪的綠地）長短草，與 EOC 短草同一套 GrassLayer
-fetch('assets/street-lawns-xinyi.json?v=1').then(r=>r.ok?r.json():null).then(d=>{if(!d)return;lawnGrass=createLawnGrass({scene,lawns:d.lawns,groundAt:(x,z)=>ground.at(x,z),features:[...navigationFeatures,...streets.features],laneData,quality:forestQuality,sun});lawnGrass?.setVisible($('shortGrass').checked);}).catch(e=>console.warn('草坪短草未載入；保留原綠地',e));sidewalkReady=true;setupSidewalks();
+fetch('assets/street-lawns-xinyi.json?v=2').then(r=>r.ok?r.json():null).then(d=>{if(!d)return;lawnGrass=createLawnGrass({scene,lawns:d.lawns,groundAt:(x,z)=>ground.at(x,z),features:[...navigationFeatures,...streets.features],laneData,quality:forestQuality,sun});lawnGrass?.setVisible($('shortGrass').checked);}).catch(e=>console.warn('草坪短草未載入；保留原綠地',e));sidewalkReady=true;setupSidewalks();
 const treeChoice=$('treeAppearance'),requestedTree=new URLSearchParams(location.search).get('trees');if([...treeChoice.options].some(o=>o.value===requestedTree))treeChoice.value=requestedTree;
 function describeTreeStyle(){const label=treeChoice.selectedOptions[0]?.textContent;$('treeAssetStatus').textContent=treeChoice.value==='auto'?'已載入十二種一般樹形（含六種新增茂密樹形）、四種樹種外觀與三種灌木。樹位沿用既有資料；樹種與現場尺寸待核對。':'目前為 '+label+'；沿用原樹位並限制原有樹冠範圍，屬外觀與季節示意，不代表現場樹種。';}
 treeChoice.onchange=()=>{if(treeForest?.setAppearance(treeChoice.value))describeTreeStyle();};

@@ -12,6 +12,7 @@ const furniture=read('street-furniture-xinyi.json');
 // 街景確認為草坪的綠地（名稱、臨接道路、種子點 [x 東, z 南]、照片出處）
 const SEEN=[
  {name:'國泰金融中心後側草坪',street:'松勇路',seed:[423,-486],photo:'Google 街景，松勇路27號西望：大片草坪、樹與低矮綠籬'},
+ {name:'忠孝松仁路口西南側草坪',street:'忠孝東路五段',seed:[235,-780],photo:'Google 街景，忠孝東路五段松仁路口西側南望：人行道後大片草坪，後方樹列'},
 ];
 
 const inside=(p,x,z)=>{let c=false;const n=p.length/2;for(let i=0,j=n-1;i<n;j=i++){const xi=p[2*i],zi=p[2*i+1],xj=p[2*j],zj=p[2*j+1];if((zi>z)!==(zj>z)&&x<(xj-xi)*(z-zi)/(zj-zi)+xi)c=!c;}return c;};
