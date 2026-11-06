@@ -16,10 +16,22 @@ export function overrideIndex(data){
  return out;
 }
 const PODIUM={arcade:1,lobby:2};
+// 逐街精修標準（docs/street-refinement-standard.md §2.2、§3.1）：斑駁等級與四面／屋頂描述。
+// 未填時的預設：老公寓（style 0）斑駁 2、其他 1；看不到的面一律證據 C（示意）。屋頂 shed／tanks 為 null 表示沿用程序化。
+export const FACE_ENUMS={evidence:['A','B','C'],windows:['none','few','regular'],rear:['cage-balcony','plain','glass']};
+export function weatherGrade(o,style=o?.style){return Number.isInteger(o?.weather)?o.weather:style===0?2:1;}
+export function faceSpec(o,style=o?.style){
+ const f=o?.faces??{};
+ return {
+  side:{windows:style===0?'few':'regular',colour:null,evidence:'C',...f.side},
+  rear:{kind:style===0?'cage-balcony':style===1?'plain':'glass',evidence:'C',...f.rear},
+  roof:{shed:null,tanks:null,solar:null,evidence:'C',...f.roof},
+ };
+}
 // 預設外觀：沒有 style 資料的量體依高度推定（與產生腳本的備援規則相同）；有精修資料時以精修為準。
 export function styleOf(styles,b,overrides){
  const o=overrides?.[b.id];
- if(o)return {style:o.style,levels:o.levels,shop:o.shop,colour:o.colour,variant:o.variant??0,bay:o.bay??0,win:o.win??[0,0],podium:o.podium??null,glass:o.glass??null,name:o.name,signs:o.signs??!o.variant};
+ if(o)return {style:o.style,levels:o.levels,shop:o.shop,colour:o.colour,variant:o.variant??0,bay:o.bay??0,win:o.win??[0,0],podium:o.podium??null,glass:o.glass??null,name:o.name,signs:o.signs??!o.variant,weather:weatherGrade(o),faces:faceSpec(o)};
  const s=styles?.[b.id];if(s)return {style:s[0],levels:s[1],shop:s[2],colour:s[3]};
  const h=Math.max(...b.walls.map(w=>w.h));const style=h<3.5?6:h<=21?0:h<=48?1:2;
  return {style,levels:Math.max(1,Math.round(h/(style===0?3:3.4))),shop:0,colour:['#d8cfbf','#d9d3c7','#d5d1c8','#9a9d98'][style===6?3:style]};

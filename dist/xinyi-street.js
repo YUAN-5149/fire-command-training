@@ -41,7 +41,7 @@ import {unproject} from './xinyi-street-world.js?v=garage-20261023';
 import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=roads-20261023';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
-import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings,styleOf} from './xinyi-facades.js?v=6';
+import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,fillBuildings,styleOf} from './xinyi-facades.js?v=7';
 import {detailWalls,shedHeight,facadeCells,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=10';
 import {kitPlacements,createFacadeKits} from './facade-kits.js?v=4';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';

@@ -1,7 +1,7 @@
 // 逐街精修（building-overrides-xinyi.json）：每筆都對得到量體、參數合理；缺漏量體依 OSM 外框補建正確。
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {overrideIndex,styleOf,buildFacadeBatch,fillBuildings,earcut,facadeProps} from '../dist/xinyi-facades.js';
+import {overrideIndex,styleOf,buildFacadeBatch,fillBuildings,earcut,facadeProps,weatherGrade,faceSpec,FACE_ENUMS} from '../dist/xinyi-facades.js';
 import {project} from '../dist/xinyi-street-world.js';
 const read=f=>JSON.parse(fs.readFileSync(new URL('../dist/assets/'+f,import.meta.url)));
 const data=read('building-overrides-xinyi.json'),district=read('district-xinyi.json');
@@ -18,6 +18,20 @@ for(const st of data.streets){
   assert.match(e.colour,/^#[0-9a-f]{6}$/i);
   if(e.variant){assert(e.bay>.5&&e.bay<25);assert(e.win[0]>0&&e.win[0]<=1&&e.win[1]>0&&e.win[1]<=1);assert(e.podium.h>0&&e.podium.h<20);assert(['arcade','lobby'].includes(e.podium.kind));assert.match(e.glass,/^#[0-9a-f]{6}$/i);}
   if(e.footprint){assert(e.height>3&&e.height<400);assert(e.footprint.length>=3);}
+  // 逐街精修標準：斑駁等級 0～3；四面／屋頂每面必有證據等級，C（示意）不得寫成照片確認
+  if('weather' in e)assert(Number.isInteger(e.weather)&&e.weather>=0&&e.weather<=3,'weather grade 0-3: '+e.name);
+  if(e.faces){
+   for(const k of Object.keys(e.faces))assert(['side','rear','roof'].includes(k),'face key: '+k+' '+e.name);
+   for(const [k,f] of Object.entries(e.faces)){
+    assert(FACE_ENUMS.evidence.includes(f.evidence),'face evidence A/B/C: '+k+' '+e.name);
+    if(f.evidence!=='A')assert(!/照片確認/.test(f.note??''),'non-A face not claimed as photo-confirmed: '+k+' '+e.name);
+   }
+   const {side,rear,roof}=e.faces;
+   if(side?.windows)assert(FACE_ENUMS.windows.includes(side.windows));
+   if(side?.colour)assert.match(side.colour,/^#[0-9a-f]{6}$/i);
+   if(rear?.kind)assert(FACE_ENUMS.rear.includes(rear.kind));
+   if(roof){if('shed' in roof)assert.equal(typeof roof.shed,'boolean');if('solar' in roof)assert.equal(typeof roof.solar,'boolean');if('tanks' in roof)assert(Number.isInteger(roof.tanks)&&roof.tanks>=0&&roof.tanks<=6);}
+  }
  }
 }
 // 補建量體：牆數、外法線、屋頂三角化面積等於外框面積
@@ -40,4 +54,9 @@ for(const v of [1,2,3,4])assert(batch.fac.some((x,i)=>i%4===3&&x===v),'variant '
 for(const b of targets)if(ov[b.id].variant)assert.equal(styleOf({},b,ov).signs,false);
 // 有精修樣式（variant）的建物不掛直立招牌；只調色、樓層而沿用分類外觀的（如中華電信）照常掛
 assert.equal(facadeProps(targets.filter(b=>ov[b.id].variant),{},{project,overrides:ov}).sign.length,0);
+// 預設：老公寓斑駁 2、其他 1；未填的面為證據 C、屋頂沿用程序化（null）
+assert.equal(weatherGrade({style:0}),2);assert.equal(weatherGrade({style:3}),1);assert.equal(weatherGrade({style:0,weather:0}),0);
+{const f=faceSpec({style:0});assert.equal(f.side.windows,'few');assert.equal(f.rear.kind,'cage-balcony');assert.equal(f.roof.shed,null);assert(['side','rear','roof'].every(k=>f[k].evidence==='C'));}
+{const f=faceSpec({style:1,faces:{roof:{shed:true,evidence:'A'}}});assert.equal(f.roof.shed,true);assert.equal(f.roof.evidence,'A');assert.equal(f.rear.kind,'plain');assert.equal(f.side.evidence,'C');}
+for(const b of targets){const s=styleOf({},b,ov);assert(s.weather>=0&&s.weather<=3&&s.faces.side&&s.faces.rear&&s.faces.roof);}
 console.log('overrides',data.streets.map(s=>s.street+' '+s.section+' '+s.buildings.length).join('; '),'filled',filled.length);
