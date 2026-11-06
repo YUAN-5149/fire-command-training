@@ -24,7 +24,7 @@ const count=g=>Object.values(g).reduce((s,a)=>s+a.position.length/3,0);
 const nF=count(F.groups),nR=count(R.groups);
 // 依 160 m 分塊做視錐剔除，畫面上同時只畫看得到的幾塊
 // 網頁逐格（100 m）延後建構，只建玩家附近的格子；全區總量只是資料量上限，單格要小
-assert(nF>50000&&nF<4000000,'facade detail total: '+nF);
+assert(nF>50000&&nF<6000000,'facade detail total: '+nF); // 2026-11-06 莊敬路289巷後超過 4M；實際繪製受單格上限約束
 const cells=facadeCells(items,{project});
 assert.equal(cells.reduce((s,c)=>s+c.items.length,0),items.length,'every detailed building in one cell');
 let maxCell=0;for(const c of cells){const g=buildStreetFacades(c.items,{project}).groups;maxCell=Math.max(maxCell,count(g));assert(c.r>0&&Number.isFinite(c.cx+c.cz));}
