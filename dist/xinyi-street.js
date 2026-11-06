@@ -41,7 +41,7 @@ import {unproject} from './xinyi-street-world.js?v=garage-20261023';
 import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=roads-20261023';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
-import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,applyFills,styleOf} from './xinyi-facades.js?v=8';
+import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,applyFills,styleOf} from './xinyi-facades.js?v=9';
 import {detailWalls,shedHeight,facadeCells,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=10';
 import {kitPlacements,createFacadeKits} from './facade-kits.js?v=4';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';
@@ -90,7 +90,7 @@ const zhuangjingIds=new Set(zhuangjingData?.buildingIds??[]);
 const landmarks=await loadLandmarks().catch(()=>[]);for(const a of landmarks)if(a.collider)district.buildings.push(footprintBuilding(a));
 // 逐街精修（building-overrides-xinyi.json）：官方 LOD1 缺漏的量體依 OSM 外框補建（含碰撞與地面高程）。
 const legacyFacades=new URLSearchParams(location.search).get('facades')==='legacy';
-const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=28').then(r=>r.ok?r.json():null).catch(()=>null);
+const overrideData=legacyFacades?null:await fetch('assets/building-overrides-xinyi.json?v=29').then(r=>r.ok?r.json():null).catch(()=>null);
 const overrides=overrideIndex(overrideData);applyFills(overrideData,district);
 step('建立地形、建物與道路');
 const ground=buildHeightField(district.buildings,district.bbox);

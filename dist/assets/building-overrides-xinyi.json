@@ -10,6 +10,8 @@
   "footprint": "官方 LOD1 缺漏的量體：OSM 外框（簡化至 0.8 m）＋估計高度 height，街景漫遊與 Blender 以此補建",
   "signs": "是否掛臺式直立招牌；有 variant 的精修建物預設 false",
   "ids": "官方 LOD1 量體 id；osm-<way> 為依 OSM 外框補建的量體",
+  "weather": "斑駁等級 0 新、1 輕、2 中（老公寓預設）、3 重；未填時 style 0 為 2、其他為 1（docs/street-refinement-standard.md §3.1）",
+  "faces": "四面與屋頂描述（§2.2）：side {colour, windows: none/few/regular}、rear {kind: cage-balcony/plain/glass}、roof {shed, tanks, solar}；每面必填 evidence：A 照片確認、B 由同棟可見面推定、C 示意（同類型通則）。未填沿用預設（證據 C）",
   "replaces": "補建量體取代的官方 LOD1 id：官方只剩零碎牆面、與補建外框重疊時移除（只列被外框完整包住者）"
  },
  "streets": [
@@ -4173,7 +4175,8 @@
      "style": 0,
      "levels": 5,
      "shop": 1,
-     "colour": "#a9a8a2"
+     "colour": "#a9a8a2",
+     "weather": 2
     },
     {
      "ids": [
@@ -4188,7 +4191,8 @@
      "style": 0,
      "levels": 5,
      "shop": 1,
-     "colour": "#9f9e98"
+     "colour": "#9f9e98",
+     "weather": 2
     },
     {
      "ids": [
@@ -4201,7 +4205,8 @@
      "style": 0,
      "levels": 5,
      "shop": 1,
-     "colour": "#c4978a"
+     "colour": "#c4978a",
+     "weather": 2
     },
     {
      "ids": [
