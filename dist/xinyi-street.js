@@ -9,7 +9,8 @@ import {addYouBikeStations} from './xinyi-youbike.js?v=wheel-ground-20261028';
 import {createFrameBudget,createFrameWindow} from './xinyi-performance.js?v=runtime-20261023';
 import {addYellowBoxes} from './xinyi-yellow-boxes.js?v=yellowbox-20261023';
 import {addZebraCrossings} from './xinyi-zebra-crossings.js?v=zebra-20261023';
-import {addRoadPaint,explicitDivider,outerGroundGeometry} from './xinyi-road-paint.js?v=roads-20261023';
+import {addRoadSurface} from './xinyi-road-surface.js?v=surface-20261116b';
+import {addRoadPaint,explicitDivider,outerGroundGeometry,paintStrips} from './xinyi-road-paint.js?v=roads-20261023';
 import {addZhuangjingStation} from './zhuangjing-station.js?v=zhuangjing-20261023';
 import {createWalkMotion,smoothHeading} from './character-motion.js?v=cadence-20261023';
 import {createStationCrew} from './xinyi-station-crew.js?v=cadence-20261023';
@@ -150,6 +151,10 @@ else for(const g of buildStreetBase(streets.features,ground,inFocus)){const m=me
  const m=mesh(toLocal(d.position,ground,true),{uv:d.uv,groups:d.groups,materials:mats});m.castShadow=false;scene.add(m);walkSurface.addMeshes([m]);}
 
 }
+// 第 1 階段路面：柏油／鋪磚貼圖與機車停等區（示意，可在設定關閉）。
+const crossingRings=navigationFeatures.filter(f=>f.kind==='crossing'&&f.width>0&&f.tags?.['crossing:markings']!=='no'&&f.tags?.crossing!=='unmarked'&&f.tags?.bridge!=='yes'&&f.tags?.tunnel!=='yes')
+ .flatMap(f=>f.paths.flatMap(p=>paintStrips(p.map(q=>project(q[0],q[1])),{width:f.width,step:2})));
+const roadSurface=laneData?addRoadSurface({T,scene,laneMesh,data:laneData,ground,crossings:crossingRings}):null;
 const zebraCrossings=addZebraCrossings({T,scene,features:navigationFeatures,ground});
 const yellowBoxData=await fetch('assets/xinyi-yellow-boxes.json?v=yellowbox-20261023').then(r=>r.ok?r.json():null).catch(()=>null);
 const yellowBoxes=yellowBoxData?addYellowBoxes({T,scene,data:yellowBoxData,ground}):null;
@@ -1050,6 +1055,11 @@ $('zebraReview').checked=settings.zebraReview!==false;zebraCrossings.groups.revi
 $('zebraMapped').onchange=()=>{settings.zebraMapped=$('zebraMapped').checked;zebraCrossings.groups.mapped.visible=settings.zebraMapped;saveSettings();};
 $('zebraReview').onchange=()=>{settings.zebraReview=$('zebraReview').checked;zebraCrossings.groups.review.visible=settings.zebraReview;saveSettings();};
 $('zebraStatus').textContent='黑白斑馬線：'+zebraCrossings.counts.mapped+' 段有 OSM 斑馬線標記；另 '+zebraCrossings.counts.review+' 段已有穿越道位置，條紋樣式待核對。寬度、條紋與間距仍為示意。';
+$('roadTexture').checked=settings.roadTexture!==false;roadSurface?.setTextures($('roadTexture').checked);
+$('roadTexture').onchange=()=>{settings.roadTexture=$('roadTexture').checked;roadSurface?.setTextures(settings.roadTexture);saveSettings();};
+$('motoBoxes').checked=settings.motoBoxes!==false;if(roadSurface)roadSurface.group.visible=$('motoBoxes').checked;
+$('motoBoxes').onchange=()=>{settings.motoBoxes=$('motoBoxes').checked;if(roadSurface)roadSurface.group.visible=settings.motoBoxes;saveSettings();};
+$('roadSurfaceStatus').textContent=roadSurface?'機車停等區 '+roadSurface.counts.boxes+' 處（兩車道以上、能判斷行車方向的停止線；其餘 '+roadSurface.counts.skipped+' 處未加）。其中 '+roadSurface.counts.shifted+' 處因穿越道位在停止線上游，改畫在穿越道上游。縱深 3 m、線寬與字樣皆為示意，未逐處現勘。':'逐車道路面未載入，路面質感與機車停等區未啟用。';
 $('officialPaint').checked=settings.officialPaint!==false;if(officialPaint)officialPaint.visible=$('officialPaint').checked;if(mappedPaint)mappedPaint.visible=$('officialPaint').checked;
 $('officialPaint').onchange=()=>{settings.officialPaint=$('officialPaint').checked;if(officialPaint)officialPaint.visible=settings.officialPaint;if(mappedPaint)mappedPaint.visible=settings.officialPaint;saveSettings();};
 addEventListener('resize',resize);applyTime('afternoon');quality.apply();resize();
@@ -1066,5 +1076,5 @@ $('loading').hidden=true;
 {const at=new URLSearchParams(location.search).get('at');if(at)goToLandmark(at);}
 // 測試用：以固定時間步推進模擬（不渲染）。
 grassReviewUiReady=true;if(sidewalks&&new URLSearchParams(location.search).get('review')==='sidewalk'&&!sidewalkReview)reviewSidewalks();if(shortGrass&&new URLSearchParams(location.search).get('review')==='grass'&&!grassReview)reviewShortGrass();
-window.__xinyiStreet={get sidewalks(){return sidewalks;},get lawnGrass(){return lawnGrass;},get shortGrass(){return shortGrass;},get treeForest(){return treeForest;},get tankerKit(){return tankerKit;},get surveyKit(){return surveyKit;},walkSurface,youBike,zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);}}};
+window.__xinyiStreet={roadSurface,get sidewalks(){return sidewalks;},get lawnGrass(){return lawnGrass;},get shortGrass(){return shortGrass;},get treeForest(){return treeForest;},get tankerKit(){return tankerKit;},get surveyKit(){return surveyKit;},walkSurface,youBike,zhuangjing,stationTeam,squadKit,openSquads,renderSquads,squadCtx,resetIndoor(closed){mission.indoor=setupIndoor(mission.site,closed);mission.intensity=closed?.3:.55;renderIndoorLine();},indoor,enterBuilding,exitBuilding,openEquip,nearEntry,interiorKey,supplyAction,toggleNozzle,fireList,get upperFx(){return upperFx;},missionRecord,sceneCircles,mapMarkers,openTransport,renderTransport,openTriage,submitTriage,renderer,gis,get gisDep(){return gisDep;},syncGisLink,get aerial(){return aerial;},aerialAction,setAerialMode,get aerialPreview(){return aerialPreview;},fireFx,scene,camera,get mission(){return mission;},startMission,toggleHose,state,truck,colliders,ground,life,applyTime,quality,settings,setPaused,bigmap,openMap,closeMap,setWaypoint,audio,routeGraphs,pollPad,tick(dt,n=1){for(let i=0;i<n;i++){zhuangjing?.update(state);stationTeam.update(dt,{mode:state.mode,truck,leader:state,blockers:[...truckCircles(),...life.circles(),...(aerial?.circles()??[])]});state.mode==='walk'?updateWalk(dt):state.mode==='drive'?updateDrive(dt):updateInterior(dt);updateAerial(dt);updateMission(dt,i*dt);updateAir(dt);actionKit.updateCharacters(dt);if(state.mode==='walk')placeCharacterFeet(player,person,walkSurface);}}};
 requestAnimationFrame(frame);
