@@ -13,3 +13,9 @@ blender/smoke-truck/*.blend
 blender/smoke-truck/*.blend1
 blender/smoke-truck/*.glb
 blender/smoke-truck/smoke_*.png
+blender/rescue-truck/*.blend
+blender/rescue-truck/*.blend1
+blender/rescue-truck/*.glb
+blender/rescue-truck/rescue_*.png
+blender/rescue-truck/anim_test_*.png
+blender/rescue-truck/*.log

@@ -20,3 +20,7 @@ export const surveyCarStaging={x:38,z:8.8,heading:Math.PI/2};
 // 排煙車「劍潭76」（Fire Wolf 霧化排煙車）：同車道已無 7.4 m 空位，停在對向側車道（z=14.6）西段、順向。
 // 車寬 2.45 m 佔 z 13.375..15.825（道路 z 4.5..17.5），x -36.7..-29.3；不占雲梯作業區（x ±6）。示意，同上。
 export const smokeTruckStaging={x:-33,z:14.6,heading:Math.PI/2};
+
+// 救助器材車「信義71」（後置曲臂式吊臂）：同車道已無 7.7 m 空位，停在對向側車道（z=14.6）東段、順向，與排煙車左右對稱。
+// 車寬 2.5 m 佔 z 13.35..15.85（道路 z 4.5..17.5），x 29.15..36.85；不占雲梯作業區（x ±6）。示意，同上。
+export const rescueTruckStaging={x:33,z:14.6,heading:Math.PI/2};
