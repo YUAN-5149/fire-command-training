@@ -119,6 +119,9 @@
     <h2>街道生活層（示意）</h2>
     <div class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 汽車、機車與公車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 推估車道線（含雙黃線）</label><label><input type="checkbox" id="lifeTrees" checked> 樹木（行道樹與應變中心）</label></div>
     <label><input type="checkbox" id="officialPaint" checked> 官方紅黃線與明確標記中線</label>
+    <h2>路面（第 1 階段，示意）</h2>
+    <div class="toggles"><label><input type="checkbox" id="roadTexture" checked> 柏油與人行道鋪磚質感</label><label><input type="checkbox" id="motoBoxes" checked> 機車停等區（推估）</label></div>
+    <p id="roadSurfaceStatus" class="note" role="status">載入路面…</p>
     <div class="toggles"><label><input type="checkbox" id="zebraMapped" checked> 黑白斑馬線（OSM 已標記）</label><label><input type="checkbox" id="zebraReview" checked> 其餘穿越道示意（條紋待核對）</label></div>
     <h2>YouBike 公共自行車站</h2>
     <label><input type="checkbox" id="youBike" checked> 顯示 YouBike 地圖站點與已核對配置</label>
@@ -186,6 +189,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s69-lane236-20261106"></script>
+<script type="module" src="xinyi-street.js?v=s70-surface-20261116b"></script>
 </body>
 </html>
