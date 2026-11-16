@@ -16,3 +16,7 @@ export const tankerStaging={x:-39.5,z:8.8,heading:Math.PI/2};
 // 消防局勤務車（Outlander，指揮勤務）：停在第四車組前方同一車道、順向。
 // 車長 4.7 m，佔 x 35.65..40.35，與第四車組（x=29，半長約 3.72 m）間隔約 2.9 m；道路至 x=45。示意，同上。
 export const surveyCarStaging={x:38,z:8.8,heading:Math.PI/2};
+
+// 排煙車「劍潭76」（Fire Wolf 霧化排煙車）：同車道已無 7.4 m 空位，停在對向側車道（z=14.6）西段、順向。
+// 車寬 2.45 m 佔 z 13.375..15.825（道路 z 4.5..17.5），x -36.7..-29.3；不占雲梯作業區（x ±6）。示意，同上。
+export const smokeTruckStaging={x:-33,z:14.6,heading:Math.PI/2};
