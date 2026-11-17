@@ -28,6 +28,33 @@ export function faceSpec(o,style=o?.style){
   roof:{shed:null,tanks:null,solar:null,evidence:'C',...f.roof},
  };
 }
+// 逐街精修 P2：牆面分類（回傳 faceOf(b,k) → 'front'|'side'|'rear'；project 為經緯度轉本地公尺，x 東、z 南）。
+// 1. 隱藏牆：牆外 probe 公尺、沿牆 1/4、1/2、3/4 三點至少兩點有他棟牆，且該鄰棟牆頂不低於本牆頂減四成牆高 → side（被鄰棟遮住）。
+// 2. 臨街：牆外 5 m 處 9 m 內有道路 → front。
+// 3. 其餘依與本棟臨街牆的方向：反向（後巷）→ rear；垂直（山牆、露出的側牆）→ side；同向（退縮面）→ front。
+//    沒有臨街牆時以最長牆的方向當正面軸：與其平行者 rear、垂直者 side。
+export function classifyWalls(buildings,{project,facesStreet=()=>true,probe=.9,party=1.2,cell=10}){
+ const grid=new Map(),key=(i,j)=>i*100003+j;
+ for(const b of buildings)for(const w of b.walls){const [ax,az]=project(w.a[0],w.a[1]),[bx,bz]=project(w.b[0],w.b[1]),sg={id:b.id,ax,az,bx,bz,top:Math.max(w.a[2],w.b[2])+w.h};
+  for(let i=Math.floor(Math.min(ax,bx)/cell);i<=Math.floor(Math.max(ax,bx)/cell);i++)for(let j=Math.floor(Math.min(az,bz)/cell);j<=Math.floor(Math.max(az,bz)/cell);j++){const k=key(i,j);if(!grid.has(k))grid.set(k,[]);grid.get(k).push(sg);}}
+ const near=(id,x,z,minTop)=>{for(const sg of grid.get(key(Math.floor(x/cell),Math.floor(z/cell)))??[]){if(sg.id===id||sg.top<minTop)continue;const dx=sg.bx-sg.ax,dz=sg.bz-sg.az,l=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((x-sg.ax)*dx+(z-sg.az)*dz)/l));if(Math.hypot(x-sg.ax-dx*t,z-sg.az-dz*t)<party)return true;}return false;};
+ const out=new Map();
+ for(const b of buildings){
+  const ws=b.walls.map(({a,b:e,n,h,w})=>{const [ax,az]=project(a[0],a[1]),[bx,bz]=project(e[0],e[1]),nx=n[0],nz=-n[1],top=Math.max(a[2],e[2])+h,minTop=top-.4*h;
+   let hits=0;for(const f of [.25,.5,.75])if(near(b.id,ax+(bx-ax)*f+nx*probe,az+(bz-az)*f+nz*probe,minTop))hits++;
+   const mx=(ax+bx)/2,mz=(az+bz)/2;return {nx,nz,w,hidden:hits>=2,street:hits<2&&facesStreet(mx+nx*5,mz+nz*5)};});
+  // 正面方向：臨街牆長度加權的法線；沒有臨街牆則用最長牆（取其軸向，正負不分）。
+  let fx=0,fz=0;for(const q of ws)if(q.street){fx+=q.nx*q.w;fz+=q.nz*q.w;}
+  let axisOnly=false;if(Math.hypot(fx,fz)<1e-6){const L=ws.reduce((m,q)=>q.w>(m?.w??0)?q:m,null);if(L){fx=L.nx;fz=L.nz;axisOnly=true;}}
+  const fl=Math.hypot(fx,fz)||1;fx/=fl;fz/=fl;
+  out.set(b.id,ws.map(q=>{if(q.hidden)return 'side';if(q.street)return 'front';const d=q.nx*fx+q.nz*fz;
+   if(axisOnly)return Math.abs(d)>.7?'rear':'side';return d<-.7?'rear':Math.abs(d)<=.7?'side':'front';}));
+ }
+ return (b,k)=>out.get(b.id)?.[k]??'front';
+}
+// 牆面型式代碼（著色器用）：0 一般窗格、1 側牆少窗、2 側牆無窗、3 後陽台鐵窗。依 faceSpec（精修資料或預設）。
+export function faceCode(kind,spec){if(kind==='side')return spec.side.windows==='none'?2:spec.side.windows==='few'?1:0;if(kind==='rear')return spec.rear.kind==='cage-balcony'?3:0;return 0;}
+
 // 預設外觀：沒有 style 資料的量體依高度推定（與產生腳本的備援規則相同）；有精修資料時以精修為準。
 export function styleOf(styles,b,overrides){
  const o=overrides?.[b.id];
@@ -42,31 +69,31 @@ export function styleOf(styles,b,overrides){
 //   精修：fac3 (窗距, 窗寬比, 窗高比, 底層高)、fac4 (玻璃 r, g, b, 底層型式 1 拱廊 2 玻璃大廳)
 // opts.skipWall(b,k)：由精細立面（xinyi-shophouse.js）取代的牆不畫
 export function buildFacadeBatch(buildings,styles,overrides,opts={}){
- const position=[],color=[],fuv=[],fac=[],fac2=[],fac3=[],fac4=[],index=[];
+ const position=[],color=[],fuv=[],fac=[],fac2=[],fac3=[],fac4=[],fac5=[],index=[];
  for(const b of buildings){
-  const s=styleOf(styles,b,overrides),seed=hash(b.id),top=Math.max(...b.walls.map(w=>w.h));
+  const s=styleOf(styles,b,overrides),seed=hash(b.id),top=Math.max(...b.walls.map(w=>w.h)),spec=s.faces??faceSpec(null,s.style),wg=s.weather??weatherGrade(null,s.style);
   const g=s.glass?rgb(s.glass).slice(0,3).map(c=>c/255):[0,0,0],p3=[s.bay||0,s.win?.[0]||0,s.win?.[1]||0,s.podium?.h||0],p4=[...g,PODIUM[s.podium?.kind]||0];
   const floorH=s.style===STYLE.CANOPY||s.style===STYLE.TEMPLE?top+1:Math.max(2.8,Math.min(5,top/Math.max(1,s.levels))),code=s.style+(s.shop?10:0),wall=rgb(s.colour),roof=rgb(ROOF[s.style]);
   for(let i=0;i<b.roofs.length;i+=3){const st=position.length/3;
-   for(const p of b.roofs.slice(i,i+3)){position.push(p[0],p[1],p[2]+.045);color.push(...roof);fuv.push(0,0);fac.push(STYLE.ROOF,3,seed,0);fac2.push(0,0);fac3.push(0,0,0,0);fac4.push(0,0,0,0);}
+   for(const p of b.roofs.slice(i,i+3)){position.push(p[0],p[1],p[2]+.045);color.push(...roof);fuv.push(0,0);fac.push(STYLE.ROOF,3,seed,0);fac2.push(0,0);fac3.push(0,0,0,0);fac4.push(0,0,0,0);fac5.push(0,0);}
    index.push(st,st+1,st+2);}
-  for(const [k,{a,b:e,w,h,n}] of b.walls.entries()){if(w<.05||h<.05||opts.skipWall?.(b,k))continue;const st=position.length/3,d=.035;
+  for(const [k,{a,b:e,w,h,n}] of b.walls.entries()){if(w<.05||h<.05||opts.skipWall?.(b,k))continue;const st=position.length/3,d=.035,fc=opts.faceOf?faceCode(opts.faceOf(b,k),spec):0;
    const ox=n[0]*d/LON_M,oy=n[1]*d/LAT_M;
    for(const [x,y,z,u,v] of [[a[0],a[1],a[2],0,0],[e[0],e[1],e[2],w,0],[e[0],e[1],e[2]+h,w,h],[a[0],a[1],a[2]+h,0,h]]){
-    position.push(x+ox,y+oy,z);color.push(...wall);fuv.push(u,v);fac.push(code,floorH,seed,s.variant||0);fac2.push(w,h);fac3.push(...p3);fac4.push(...p4);}
+    position.push(x+ox,y+oy,z);color.push(...wall);fuv.push(u,v);fac.push(code,floorH,seed,s.variant||0);fac2.push(w,h);fac3.push(...p3);fac4.push(...p4);fac5.push(fc,wg);}
    index.push(st,st+1,st+2,st,st+2,st+3);}
  }
- return {position,color,fuv,fac,fac2,fac3,fac4,index};
+ return {position,color,fuv,fac,fac2,fac3,fac4,fac5,index};
 }
 
 // 立面小物件（本地公尺，x 東、z 南、y 高）：每類回傳 [{x,y,z,ry,sx,sy,sz,c}]。
 //   facesStreet(x,z) 判斷牆外是否為道路（招牌只掛臨街面）；project 為經緯度轉本地。
 // skipWall(b,k)：精細立面的牆不放方塊冷氣／鐵窗／招牌；shed(b,style)：屋頂鐵皮加蓋高度（有加蓋時不放舊的方塊鐵皮屋，水塔墊高）
-export function facadeProps(buildings,styles,{project,facesStreet=()=>true,max=30000,overrides=null,skipWall=null,shed:shedOf=null}){
- const ac=[],tank=[],shed=[],sign=[],grille=[];
+export function facadeProps(buildings,styles,{project,facesStreet=()=>true,max=30000,overrides=null,skipWall=null,shed:shedOf=null,faceOf=null}){
+ const ac=[],tank=[],shed=[],sign=[],grille=[],plant=[];
  const SIGN=['#d7262b','#f2c230','#f5f5f0','#2563b8','#1f8a4c','#e86a1c','#c2185b'];
  for(const b of buildings){
-  const s=styleOf(styles,b,overrides),seed=hash(b.id),residential=s.style<=STYLE.TOWER,nid=typeof b.id==='number'?b.id:Math.floor(seed*1e6);
+  const s=styleOf(styles,b,overrides),seed=hash(b.id),residential=s.style<=STYLE.TOWER,nid=typeof b.id==='number'?b.id:Math.floor(seed*1e6),spec=s.faces??faceSpec(null,s.style),wg=s.weather??weatherGrade(null,s.style);
   const top=Math.max(...b.walls.map(w=>w.h)),floorH=Math.max(2.8,Math.min(5,top/Math.max(1,s.levels)));
   for(const [k,{a,b:e,w,h,n}] of b.walls.entries()){
    if(w<3||h<5||skipWall?.(b,k))continue;
@@ -74,11 +101,18 @@ export function facadeProps(buildings,styles,{project,facesStreet=()=>true,max=3
    const at=(u,out)=>[ax+tx*u+nx*out,az+tz*u+nz*out];
    const street=s.shop?facesStreet(...at(w/2,5)):false;
    const bay=s.style===STYLE.OLD?3:3.4,bays=Math.floor(w/bay),floors=Math.floor((h-.9)/floorH);
+   // P2：側牆（少窗／無窗）不放鐵窗、冷氣少；後陽台鐵窗面每格多半有鐵窗、冷氣較密，斑駁 2 以上有陽台盆栽（示意）。
+   const fc=faceOf?faceCode(faceOf(b,k),spec):0,acP=fc===1||fc===2?.06:fc===3?.38:.22;
    if(residential)for(let f=1;f<floors;f++)for(let i=0;i<bays;i++){
     const r=hash(nid*31+k*7+f*13+i);
-    if(r<.22&&ac.length<max){const [x,z]=at((i+.5)*bay+(r<.11?.9:-.9),.33);ac.push({x,y:a[2]+f*floorH+floorH*.18,z,ry,sx:.8,sy:.55,sz:.42,c:r<.06?'#c9c7bf':'#e4e2da'});}
+    if(fc===3){const r2=hash(nid*53+k*11+f*17+i);
+     if(r2<.45&&grille.length<max){const [x,z]=at((i+.5)*bay,.22);grille.push({x,y:a[2]+f*floorH+floorH*.3,z,ry,sx:bay*.66,sy:floorH*.56,sz:.44,c:r2<.35?'#7a5f4a':r2<.6?'#8f9290':'#6d7470'});
+      if(wg>=2&&r2<.25&&plant.length<max){const [px,pz]=at((i+.5)*bay+(r2<.15?-.5:.5),.5);plant.push({x:px,y:a[2]+f*floorH+floorH*.3+floorH*.56,z:pz,ry,sx:.5,sy:.35,sz:.3,c:r2<.1?'#3f6b35':'#557a3a'});}}
+     if(r<acP&&ac.length<max){const [x,z]=at((i+.5)*bay+(r<acP/2?.9:-.9),.85);ac.push({x,y:a[2]+f*floorH+floorH*.62,z,ry,sx:.8,sy:.55,sz:.42,c:'#dcdad2'});}
+     continue;}
+    if(r<acP&&ac.length<max){const [x,z]=at((i+.5)*bay+(r<.11?.9:-.9),.33);ac.push({x,y:a[2]+f*floorH+floorH*.18,z,ry,sx:.8,sy:.55,sz:.42,c:r<.06?'#c9c7bf':'#e4e2da'});}
     // 老公寓鐵窗：凸出牆面的格柵箱
-    if(s.style===STYLE.OLD&&r>.35&&grille.length<max){const [x,z]=at((i+.5)*bay,.22);grille.push({x,y:a[2]+f*floorH+floorH*.58,z,ry,sx:bay*.66,sy:floorH*.56,sz:.44,c:hash(nid+i)<.4?'#7a5f4a':'#a3a69e'});}
+    if(s.style===STYLE.OLD&&fc===0&&r>.35&&grille.length<max){const [x,z]=at((i+.5)*bay,.22);grille.push({x,y:a[2]+f*floorH+floorH*.58,z,ry,sx:bay*.66,sy:floorH*.56,sz:.44,c:hash(nid+i)<.4?'#7a5f4a':'#a3a69e'});}
    }
    if(s.shop&&street&&s.style<=STYLE.OFFICE&&s.signs!==false)for(let i=0;i<Math.max(1,Math.floor(w/7));i++){
     const r=hash(nid*17+k*5+i),[x,z]=at((i+.5)*w/Math.max(1,Math.floor(w/7)),.95);
@@ -95,12 +129,12 @@ export function facadeProps(buildings,styles,{project,facesStreet=()=>true,max=3
    }
   }
  }
- return {ac,tank,shed,sign,grille};
+ return {ac,tank,shed,sign,grille,plant};
 }
 
 // ---- three.js
-const VERT=`attribute vec2 fuv;attribute vec4 fac;attribute vec2 fac2;attribute vec4 fac3;attribute vec4 fac4;varying vec2 vF;varying vec4 vFac;varying vec2 vFac2;varying vec4 vFac3;varying vec4 vFac4;`;
-const FRAG=`varying vec2 vF;varying vec4 vFac;varying vec2 vFac2;varying vec4 vFac3;varying vec4 vFac4;
+const VERT=`attribute vec2 fuv;attribute vec4 fac;attribute vec2 fac2;attribute vec4 fac3;attribute vec4 fac4;attribute vec2 fac5;varying vec2 vF;varying vec4 vFac;varying vec2 vFac2;varying vec4 vFac3;varying vec4 vFac4;varying vec2 vFac5;`;
+const FRAG=`varying vec2 vF;varying vec4 vFac;varying vec2 vFac2;varying vec4 vFac3;varying vec4 vFac4;varying vec2 vFac5;uniform float uFaces;
 float fh1(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
 float box(float x,float a,float b){return step(a,x)*step(x,b);}`;
 // 依外觀分類畫出立面；glassM＝玻璃（夜間可亮），signM＝招牌（自發光），litM＝此窗亮燈
@@ -124,21 +158,31 @@ float glassM=0.,litM=0.,signM=0.;vec3 signC=vec3(0.);
    else if(st<2.5){win=box(bx,.1,.9)*box(fy,.2,.9);}
    else if(st<3.5){win=1.-max(step(bx,.06),step(.86,fy));base=mix(base,vec3(.42,.46,.48),.5);}
    else{win=box(fract(u/7.2),.06,.96)*box(fy,.36,.82);}
+   // P2 側牆：少窗（約三成格位有小窗，示意浴廁窗）或無窗；分戶處落水管。
+   float fk=vFac5.x*uFaces,wg=vFac5.y;
+   if(fk>.5&&st<2.5&&fk<2.5){win=fk<1.5?box(bx,.38,.62)*box(fy,.52,.8)*step(rnd,.3):0.;base=mix(base,vec3(.4,.41,.4),box(u,W-.78,W-.64)*(1.-parapet)*.85);}
+   if(fk>2.5&&st<2.5)win=0.;
    win*=inside;
    if(ground>.5){
     win=0.;
-    if(shop>.5&&W>2.5&&u>.3&&u<W-.3){
+    if(shop>.5&&fk<.5&&W>2.5&&u>.3&&u<W-.3){
      // 騎樓：一樓內退的陰影、店面玻璃、店招帶
      base*=.62;
      float sb=box(fy,.74,.95);float sid=floor(u/max(3.,W/max(1.,floor(W/4.5))));float hue=fh1(vec2(sid,seed*13.));
      signC=hue<.2?vec3(.85,.12,.12):hue<.4?vec3(.95,.76,.15):hue<.55?vec3(.95,.95,.92):hue<.7?vec3(.12,.36,.75):hue<.85?vec3(.1,.55,.3):vec3(.92,.42,.1);
      signM=sb;base=mix(base,signC,sb);
      float sf=box(fy,.06,.7)*box(fract(u/4.5),.04,.96);glassM=sf;litM=sf*step(.25,fh1(vec2(sid,7.)+seed));base=mix(base,vec3(.2,.22,.22),sf*.85);
-    }else if(st<1.5&&W>2.5){
-     // 住家一樓：鐵捲門
+    }else if(st<1.5&&W>2.5&&(fk<.5||fk>2.5)){
+     // 住家一樓：鐵捲門（側牆不畫；背面為後門）
      float door=box(bx,.12,.88)*box(fy,.02,.78);base=mix(base,vec3(.5,.52,.52)*(.9+.1*step(.5,fract(v*6.))),door*.9);
     }
    }
+   // P2 後陽台：每層每格一個鐵窗陽台（內凹陰影、窗、直條鐵窗），下緣鏽水痕（斑駁等級越高越明顯）。
+   if(fk>2.5&&st<2.5){float cage=box(bx,.05,.95)*box(fy,.1,.92)*inside*step(.5,fl);
+    float gl=cage*box(bx,.18,.82)*box(fy,.36,.86);vec3 inner=mix(base*.35,glassC,gl);
+    float bars=cage*max(step(.86,fract(u/.11)),box(fy,.5,.53)+box(fy,.1,.13));vec3 bc=fh1(vec2(bi,seed*3.))<.45?vec3(.45,.34,.26):vec3(.6,.62,.58);
+    base=mix(base,inner,cage);base=mix(base,bc,min(bars,1.)*.8);glassM=max(glassM,gl);litM=max(litM,gl*step(.62,rnd));
+    float rust=box(bx,.1,.9)*box(fy,.0,.1)*step(.5,fl)*(1.-parapet)*smoothstep(.0,.1,.1-fy)*fh1(vec2(floor(u/.25),fl+seed));base*=1.-.12*wg*rust;}
    if(win>.5){
     base=glassC;glassM=1.;litM=step(.58,rnd);
     if(st<.5){float bars=step(.82,fract(u/.12))+step(.9,fract(v/.5));vec3 gc=fh1(vec2(bi,seed))<.4?vec3(.42,.32,.25):vec3(.62,.64,.6);base=mix(base,gc,min(bars,1.)*.85);}
@@ -146,6 +190,11 @@ float glassM=0.,litM=0.,signM=0.;vec3 signC=vec3(0.);
    }
   }else if(st>4.5&&st<5.5){base*=1.-.2*step(.9,fract(u/3.));}
   base=mix(base,base*1.08,parapet);
+  // P2 側／背面斑駁：直向雨痕（女兒牆下與窗下）、牆腳潮濕，強度依斑駁等級 0–3。
+  if(vFac5.x*uFaces>.5&&st<2.5){float col=fh1(vec2(floor(u/.4),seed*17.)),len=.6+col*2.2,fromTop=H-.9-v;
+   float rain=smoothstep(.55,1.,col)*step(0.,fromTop)*(1.-smoothstep(0.,len*fh,fromTop))*.12;
+   float damp=(1.-smoothstep(.2,.9,v))*.1*(.6+.4*fh1(vec2(floor(u/1.3),seed)));
+   base*=1.-(rain+damp)*vFac5.y*.6;}
   // 逐街精修：1 古典石材（拱廊、窄高窗、簷口） 2 玻璃帷幕（豎框、層間帶） 3 穿孔金屬板 4 預鑄混凝土方格；參數見 building-overrides-xinyi.json
   float variant=vFac.w;
   if(variant>.5&&W>1.5){
@@ -199,13 +248,14 @@ export function createFacadeMaterial(T){
  const m=new T.MeshStandardMaterial({vertexColors:true,roughness:.86,side:T.DoubleSide});
  m.emissive=new T.Color('#ffcf8a');m.emissiveIntensity=0;
  m.onBeforeCompile=sh=>{
-  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+VERT).replace('#include <begin_vertex>','#include <begin_vertex>\nvF=fuv;vFac=fac;vFac2=fac2;vFac3=fac3;vFac4=fac4;');
+  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+VERT).replace('#include <begin_vertex>','#include <begin_vertex>\nvF=fuv;vFac=fac;vFac2=fac2;vFac3=fac3;vFac4=fac4;vFac5=fac5;');
   sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\n'+FRAG)
    .replace('#include <color_fragment>','#include <color_fragment>\n'+PATTERN)
    .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.22,glassM);')
    .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance=totalEmissiveRadiance*glassM*litM*(.28+.3*fh1(vec2(floor(vF.x/1.7),floor(vF.y/3.))+vFac.z))+length(totalEmissiveRadiance)*.32*signM*signC;');
  };
- m.customProgramCacheKey=()=>'xinyi-facade-4';
+ m.userData.uFaces={value:1};const ob=m.onBeforeCompile;m.onBeforeCompile=sh=>{sh.uniforms.uFaces=m.userData.uFaces;ob(sh);};
+ m.customProgramCacheKey=()=>'xinyi-facade-5';
  return m;
 }
 export function facadeGeometry(T,batch,toLocal,ground,linearColors){
@@ -217,6 +267,7 @@ export function facadeGeometry(T,batch,toLocal,ground,linearColors){
  g.setAttribute('fac2',new T.Float32BufferAttribute(batch.fac2,2));
  g.setAttribute('fac3',new T.Float32BufferAttribute(batch.fac3,4));
  g.setAttribute('fac4',new T.Float32BufferAttribute(batch.fac4,4));
+ g.setAttribute('fac5',new T.Float32BufferAttribute(batch.fac5??new Array(batch.fac4.length/2).fill(0),2));
  g.setIndex(batch.index);g.computeVertexNormals();g.computeBoundingSphere();return g;
 }
 // 小物件：每類一個 InstancedMesh；招牌夜間自發光（emissiveIntensity 由時段設定）。
@@ -228,7 +279,7 @@ export function addFacadeProps(T,scene,props){
  // 招牌依各自顏色發光（instanceColor 併入 vColor）
  signMat.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n#if defined(USE_COLOR)||defined(USE_INSTANCING_COLOR)\ntotalEmissiveRadiance*=vColor.rgb;\n#endif');};
  const mats={ac:new T.MeshStandardMaterial({roughness:.6}),tank:new T.MeshStandardMaterial({roughness:.3,metalness:.6}),
-  shed:new T.MeshStandardMaterial({roughness:.7,metalness:.3}),sign:signMat,grille:new T.MeshStandardMaterial({roughness:.8,transparent:true,opacity:.82})};
+  shed:new T.MeshStandardMaterial({roughness:.7,metalness:.3}),sign:signMat,grille:new T.MeshStandardMaterial({roughness:.8,transparent:true,opacity:.82}),plant:new T.MeshStandardMaterial({roughness:.9})};
  const m4=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),c=new T.Color(),up=new T.Vector3();
  for(const [kind,list] of Object.entries(props)){
   if(!list.length)continue;

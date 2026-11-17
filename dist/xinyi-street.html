@@ -119,6 +119,9 @@
     <h2>街道生活層（示意）</h2>
     <div class="toggles"><label><input type="checkbox" id="lifeTraffic" checked> 汽車、機車與公車</label><label><input type="checkbox" id="lifePeople" checked> 行人</label><label><input type="checkbox" id="lifeShops" checked> 一樓店面招牌</label><label><input type="checkbox" id="lifeMarkings" checked> 推估車道線（含雙黃線）</label><label><input type="checkbox" id="lifeTrees" checked> 樹木（行道樹與應變中心）</label></div>
     <label><input type="checkbox" id="officialPaint" checked> 官方紅黃線與明確標記中線</label>
+    <h2>建物外牆（第 2 階段，示意）</h2>
+    <label><input type="checkbox" id="facadeFaces" checked> 側牆少窗／無窗、背面鐵窗後陽台與盆栽、側背面雨痕</label>
+    <p class="note">依逐街精修標準 P2：牆面分臨街、與鄰棟相貼（側牆）與後巷（背面）。未精修建物依外觀分類套用通則（證據 C，示意，待照片核對）；已精修建物依其 faces 資料。</p>
     <h2>室內平面（下次派遣生效）</h2>
     <label>平面<select id="indoorLayout"><option value="auto">自動（6 層以上用高樓住宅）</option><option value="roomform">高樓住宅標準層（ROOMFORM pp4）</option><option value="generic">依立面寬度的示意平面</option></select></label>
     <label>起火房間（高樓住宅）<select id="indoorFire"><option value="random">隨機</option><option value="living">客廳</option><option value="master">主臥</option></select></label>
@@ -193,6 +196,6 @@ addEventListener('error',function(e){fail(e.message||'檔案無法讀取：'+(e.
 addEventListener('unhandledrejection',function(e){fail(e.reason&&e.reason.message||e.reason);});
 setTimeout(function(){if(!document.getElementById('loading').hidden){var s=document.getElementById('loadStep');s.textContent+='（載入時間較長，手機或網路較慢時可能需要 1 分鐘以上）';}},30000);})();
 </script>
-<script type="module" src="xinyi-street.js?v=s71-roomform-20261117c"></script>
+<script type="module" src="xinyi-street.js?v=s72-faces-20261117"></script>
 </body>
 </html>
