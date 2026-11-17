@@ -45,11 +45,46 @@ export function makeFloorPlan(rand,{facadeWidth=18,depth=12,floor=3,closed=false
   pos??={x:(r.x0+r.x1)/2,z:(r.z0+r.z1)/2};out.push({id:'I'+(i+1),space:r.id,x:+pos.x.toFixed(2),z:+pos.z.toFixed(2),found:false,state:'inside',heading:rand()*Math.PI*2});}
  return {W,D,floor,closed,spaces,doors,windows,furniture,victims:out,fire:{space:fire.id,x:+fx.toFixed(2),z:1.6},entry:{x:1.1,z:7.75,heading:-Math.PI/2},exit:{x:.35,z:7.7},standpipe:{x:3.25,z:7.75}};
 }
+// 指定平面（例：ROOMFORM pp4 高樓住宅標準層，資料見 assets/roomform-pp4-floor.json）。
+// 房間、牆、門、開放式連通、窗與家具取自資料；門鎖、門開關、起火房間與受困者位置依亂數（示意）。
+// fireRoom：資料 fire 中的房間 id（預設亂數挑一）；closed：起火房間對外窗未破（通風受限）。
+export function makeUnitFloorPlan(rand,data,{floor=3,closed=false,victims=1,fireRoom=null}={}){
+ const spaces=data.spaces.map(s=>({...s})),fireIds=Object.keys(data.fire),fid=fireRoom&&data.fire[fireRoom]?fireRoom:fireIds[Math.floor(rand()*fireIds.length)];
+ const doors=data.doors.map(d=>{const o={...d,state:d.opening?'open':'closed',locked:false,forced:false};if(d.opening)return o;
+  // 住宅大門多上鎖（需破門）；臥室、浴室少數上鎖；起火房間的門保持關閉。
+  if(d.id==='Dentry')o.locked=rand()<.6;else if(d.id!=='D0'&&d.a!==fid&&d.b!==fid){o.locked=rand()<.12;if(!o.locked&&rand()<.5)o.state='open';}
+  else if(d.id==='D0')o.locked=rand()<.3;return o;});
+ const windows=data.windows.map(w=>({...w,state:w.kind==='railing'?'open':'closed',fire:false}));
+ // 起火房間對外開口：該房間的窗（客廳為落地拉門）。
+ const fw=windows.find(w=>w.space===fid&&w.kind!=='railing');if(fw){fw.fire=true;fw.state=closed?'closed':'broken';}
+ const furniture=data.furniture.map(f=>({...f}));
+ const pool=data.victimRooms.filter(id=>id!==fid&&spaces.some(s=>s.id===id)),out=[];
+ for(let i=0;i<victims&&pool.length;i++){const id=pool.splice(Math.floor(rand()*Math.min(pool.length,i===0?3:pool.length)),1)[0],r=spaces.find(s=>s.id===id);
+  let pos=null;for(let tries=0;tries<40&&!pos;tries++){const x=r.x0+.5+rand()*Math.max(0,r.x1-r.x0-1),z=r.z0+.5+rand()*Math.max(0,r.z1-r.z0-1);if(!furniture.some(f=>Math.abs(f.x-x)<f.w/2+.45&&Math.abs(f.z-z)<f.d/2+.6))pos={x,z};}
+  pos??={x:(r.x0+r.x1)/2,z:(r.z0+r.z1)/2};out.push({id:'I'+(i+1),space:id,x:+pos.x.toFixed(2),z:+pos.z.toFixed(2),found:false,state:'inside',heading:rand()*Math.PI*2});}
+ const f=data.fire[fid];
+ return {W:data.W,D:data.D,floor,closed,layout:'roomform',spaces,doors,windows,furniture,walls:data.walls.map(w=>[...w]),victims:out,fireDoor:fireDoorId(doors,fid),
+  fire:{space:fid,x:f.x,z:f.z},entry:{x:1.1,z:7.75,heading:-Math.PI/2},exit:{x:.35,z:7.7},standpipe:{x:3.25,z:7.75}};
+}
+// 起火房間進攻用的門：優先有門扇的門，其次開放式連通；與走道／梯廳相連者優先。
+function fireDoorId(doors,fid){const list=doors.filter(d=>d.a===fid||d.b===fid);const rank=d=>(d.opening?1:0)+(/hall|corridor|dining/.test(d.a===fid?d.b:d.a)?0:.5);return list.sort((a,b)=>rank(a)-rank(b))[0]?.id??null;}
+export const fireDoor=plan=>plan.doors.find(d=>d.id===plan.fireDoor)??plan.doors.find(d=>d.a===plan.fire.space);
+export const doorAxis=d=>d.axis??'x';
+export const doorW=d=>d.w??INTERIOR.doorWidth;
+// 門某一側（spaceId 所在側）距門 dist 公尺的點；along 為沿門方向偏移。
+export function doorPoint(plan,d,spaceId,dist,along=0){const s=plan.spaces.find(s=>s.id===spaceId);
+ if(doorAxis(d)==='x'){const sign=s&&(s.z0+s.z1)/2<d.z?-1:1;return {x:d.x+along,z:d.z+sign*dist};}
+ const sign=s&&(s.x0+s.x1)/2<d.x?-1:1;return {x:d.x+sign*dist,z:d.z+along};}
+// 窗內側 dist 公尺的點（n：朝室內的法線符號；舊平面 z=0 立面朝 +z）。
+export const windowInward=w=>w.n??(w.z===0?1:-1);
+export function windowPoint(w,dist){const n=windowInward(w);return (w.axis??'x')==='x'?{x:w.x,z:w.z+n*dist}:{x:w.x+n*dist,z:w.z};}
+
 export const spaceOf=(plan,x,z)=>plan.spaces.find(s=>x>=s.x0-1e-6&&x<=s.x1+1e-6&&z>=s.z0-1e-6&&z<=s.z1+1e-6)??null;
 export const spaceById=(plan,id)=>plan.spaces.find(s=>s.id===id);
 
 // 牆面線段（含門洞，關閉的門另外列為線段），供碰撞與繪圖。
 export function wallSegments(plan,{withDoors=true}={}){
+ if(plan.walls)return unitWallSegments(plan,{withDoors});
  const {W,D}=plan,segs=[],gaps=z=>plan.doors.filter(d=>Math.abs(d.z-z)<1e-6).map(d=>[d.x-INTERIOR.doorWidth/2,d.x+INTERIOR.doorWidth/2]).sort((a,b)=>a[0]-b[0]);
  const hline=(z,x0,x1)=>{let x=x0;for(const [a,b] of gaps(z)){if(b<=x0||a>=x1)continue;if(a>x)segs.push([x,z,a,z]);x=Math.max(x,b);}if(x<x1)segs.push([x,z,x1,z]);};
  segs.push([0,0,W,0],[0,D,W,D],[0,0,0,D],[W,0,W,D]);
@@ -59,6 +94,13 @@ export function wallSegments(plan,{withDoors=true}={}){
  if(withDoors)for(const d of plan.doors)if(d.state==='closed'||d.state==='ajar')segs.push([d.x-INTERIOR.doorWidth/2,d.z,d.x+INTERIOR.doorWidth/2,d.z]);
  return segs;
 }
+// 指定平面：資料牆段依門洞（任一方向）切開；關閉或微開的門扇另列線段。開放式連通沒有門扇。
+function unitWallSegments(plan,{withDoors=true}={}){const segs=[];
+ for(const [ax,az,bx,bz] of plan.walls){const horiz=Math.abs(az-bz)<1e-6,c=horiz?az:ax,u0=horiz?Math.min(ax,bx):Math.min(az,bz),u1=horiz?Math.max(ax,bx):Math.max(az,bz);
+  const gaps=plan.doors.filter(d=>(doorAxis(d)==='x')===horiz&&Math.abs((horiz?d.z:d.x)-c)<.03).map(d=>{const u=horiz?d.x:d.z,w=doorW(d)/2;return [u-w,u+w];}).filter(([a,b])=>b>u0&&a<u1).sort((a,b)=>a[0]-b[0]);
+  let u=u0;const push=(a,b)=>{if(b-a>.02)segs.push(horiz?[a,c,b,c]:[c,a,c,b]);};for(const [a,b] of gaps){if(a>u)push(u,a);u=Math.max(u,b);}if(u<u1)push(u,u1);}
+ if(withDoors)for(const d of plan.doors)if(!d.opening&&(d.state==='closed'||d.state==='ajar')){const w=doorW(d)/2;segs.push(doorAxis(d)==='x'?[d.x-w,d.z,d.x+w,d.z]:[d.x,d.z-w,d.x,d.z+w]);}
+ return segs;}
 // 圓形人員與線段／家具碰撞：回傳修正後位置。
 export function resolveCircle(plan,x,z,r,segs=wallSegments(plan)){
  let px=x,pz=z;
@@ -70,6 +112,8 @@ export function resolveCircle(plan,x,z,r,segs=wallSegments(plan)){
 
 // ---------- 環境（每個空間：上層溫度 T °C、煙量 smoke 0–1、含氧量 o2、未燃氣體 fuel 0–1） ----------
 const CONDUCT={open:1,ajar:.25,closed:.02,broken:1};
+// 開放式連通（無門扇）：煙照常擴散；熱交換較門洞慢（上層熱煙在大空間內累積，示意），使客廳等開放空間仍可能達到閃燃門檻。
+export const OPEN_HEAT=.004;
 export function makeEnv(plan){const env={};for(const s of plan.spaces)env[s.id]={T:ENV.ambient,smoke:0,o2:.21,fuel:0};env[plan.fire.space].smoke=.35;env[plan.fire.space].T=plan.closed?260:180;if(plan.closed){env[plan.fire.space].o2=.15;env[plan.fire.space].fuel=.25;}return {spaces:env,flashed:false,rollover:false,events:[]};}
 // 一個空間對外開口（窗、樓梯間通往地面的出口）。
 export function outsideVent(plan,id){let v=0;for(const w of plan.windows)if(w.space===id)v+=CONDUCT[w.state]??0;if(id==='stair')v+=.3;return v;}
@@ -97,7 +141,7 @@ export function stepEnv(plan,env,dt,{intensity=0,fanOn=false,cooling=null}={}){
  f.T+=(target-f.T)*Math.min(1,.045*dt);
  // 門的熱與煙交換、含氧混合。
  for(const d of plan.doors){const c=CONDUCT[d.state]??0;if(!c)continue;const a=S[d.a],b=S[d.b],k=c*dt;
-  const ds=(a.smoke-b.smoke)*.10*k,dT=(a.T-b.T)*.05*k,dO=(a.o2-b.o2)*.12*k;a.smoke-=ds;b.smoke+=ds;a.T-=dT;b.T+=dT;a.o2-=dO;b.o2+=dO;}
+  const ds=(a.smoke-b.smoke)*.10*k,dT=(a.T-b.T)*(d.opening?OPEN_HEAT:.05)*k,dO=(a.o2-b.o2)*.12*k;a.smoke-=ds;b.smoke+=ds;a.T-=dT;b.T+=dT;a.o2-=dO;b.o2+=dO;}
  // 對外開口排煙、散熱、補氧；非起火空間溫度緩慢回到常溫。
  for(const s of plan.spaces){const e=S[s.id],v=outsideVent(plan,s.id);e.smoke-=e.smoke*Math.min(1,v*.06*dt);if(s.id!==plan.fire.space){e.T-=(e.T-ENV.ambient)*Math.min(1,(.006+v*.02)*dt);e.o2+=(.21-e.o2)*Math.min(1,(.01+v*.2)*dt);}}
  // 正壓送風：連通空間排煙、降溫、補氧（含起火房間時也會助燃）。
