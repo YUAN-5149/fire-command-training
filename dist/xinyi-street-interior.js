@@ -4,7 +4,7 @@
 import * as T from 'three';
 import {createPatient} from './xinyi-street-aerial.js?v=s25';
 import {INTERIOR,ENV,EXPOSURE,FORCE,STAIR,seeded,makeFloorPlan,spaceOf,spaceById,wallSegments,resolveCircle,makeEnv,stepEnv,backdraftRisk,applyBackdraft,openingOutcome,
- layerHeight,feltTemp,visibility,stepExposure,pathDoors,searchTime,thermalColor,ppvState,stairY,stairTransition,stairSegments,stackExchange,stairRoute,samplePath,pathLength,CALL,canCall,hearing,directionWord} from './xinyi-street-interior-rules.js?v=s25';
+ layerHeight,feltTemp,visibility,stepExposure,pathDoors,searchTime,thermalColor,ppvState,makeUnitFloorPlan,fireDoor,doorAxis,doorW,doorPoint,windowPoint,windowInward,stairY,stairTransition,stairSegments,stackExchange,stairRoute,samplePath,pathLength,CALL,canCall,hearing,directionWord} from './xinyi-street-interior-rules.js?v=roomform-20261117';
 
 const H=INTERIOR.ceiling,FH=INTERIOR.floorHeight,PACK=40;
 function tex(size,draw){const c=document.createElement('canvas');c.width=c.height=size;draw(c.getContext('2d'),size);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;return t;}
@@ -51,19 +51,28 @@ export function createInterior({createPerson}){
    const sm=new T.Mesh(new T.BoxGeometry(w-.02,1,d-.02),new T.MeshBasicMaterial({color:'#262628',transparent:true,opacity:.5,depthWrite:false,side:T.DoubleSide}));sm.position.set(cx,H-.5,cz);root.add(sm);lv.smokeBoxes.set(s.id,sm);}
   const wm=new T.MeshStandardMaterial({map:wallTex,roughness:.9}),near=(x,z)=>pl.spaces.filter(s=>x>=s.x0-.2&&x<=s.x1+.2&&z>=s.z0-.2&&z<=s.z1+.2).map(s=>s.id),wallHeat=ids=>()=>ENV.ambient+(Math.max(...ids.map(id=>lvT(lv,id)))-ENV.ambient)*.45;
   for(const [ax,az,bx,bz] of wallSegments(pl,{withDoors:false})){const len=Math.hypot(bx-ax,bz-az),horiz=Math.abs(bz-az)<1e-6;if(len<.05)continue;const mx=(ax+bx)/2,mz=(az+bz)/2,ids=near(mx,mz);
-   const wins=horiz?pl.windows.filter(w=>Math.abs(w.z-az)<1e-6&&w.x>Math.min(ax,bx)&&w.x<Math.max(ax,bx)):[];
+   // 這段牆上的窗（東西向牆：窗 axis x、z 相同；南北向牆：窗 axis z、x 相同）。
+   const c=horiz?az:ax,u0=horiz?Math.min(ax,bx):Math.min(az,bz),u1=horiz?Math.max(ax,bx):Math.max(az,bz);
+   const wins=pl.windows.filter(w=>((w.axis??'x')==='x')===horiz&&Math.abs((horiz?w.z:w.x)-c)<1e-3&&(horiz?w.x:w.z)>u0&&(horiz?w.x:w.z)<u1);
    // 1 樓樓梯間西側外牆：通往出入口的門洞。
    if(lv.no===1&&!horiz&&ax===0&&Math.min(az,bz)<=pl.exit.z&&Math.max(az,bz)>=pl.exit.z){const z0=Math.min(az,bz),z1=Math.max(az,bz),a=pl.exit.z-.45,b=pl.exit.z+.45;box(.15,H,a-z0,0,H/2,(z0+a)/2,wm,wallHeat(ids));box(.15,H,z1-b,0,H/2,(b+z1)/2,wm,wallHeat(ids));box(.15,H-2.05,.9,0,(H+2.05)/2,pl.exit.z,wm,wallHeat(ids));
     const out=new T.Mesh(new T.PlaneGeometry(.9,2.05),new T.MeshBasicMaterial({color:'#dfe8f0'}));out.rotation.y=Math.PI/2;out.position.set(-.2,1.03,pl.exit.z);root.add(out);const sign=new T.Mesh(new T.BoxGeometry(.05,.18,.5),new T.MeshBasicMaterial({color:'#22c55e'}));sign.position.set(.1,2.35,pl.exit.z);root.add(sign);const t=label('出入口（E 撤出）','#4ade80');t.position.set(.3,2.6,pl.exit.z);root.add(t);continue;}
    if(!wins.length){box(horiz?len:.15,H,horiz?.15:len,mx,H/2,mz,wm,wallHeat(ids));continue;}
-   let x=Math.min(ax,bx);const end=Math.max(ax,bx);for(const w of wins.sort((a,b)=>a.x-b.x)){const a=w.x-INTERIOR.windowWidth/2,b=w.x+INTERIOR.windowWidth/2;if(a>x)box(a-x,H,.15,(x+a)/2,H/2,az,wm,wallHeat(ids));box(INTERIOR.windowWidth,.9,.15,w.x,.45,az,wm,wallHeat(ids));box(INTERIOR.windowWidth,H-2.1,.15,w.x,(H+2.1)/2,az,wm,wallHeat(ids));
-    const glass=new T.Mesh(new T.PlaneGeometry(INTERIOR.windowWidth,1.2),new T.MeshStandardMaterial({color:'#9fb7c9',transparent:true,opacity:.45,roughness:.1,side:T.DoubleSide}));glass.position.set(w.x,1.5,az);add(glass,wallHeat([w.space]));
-    const sky=new T.Mesh(new T.PlaneGeometry(INTERIOR.windowWidth,1.2),new T.MeshBasicMaterial({color:'#b9c7d6'}));sky.position.set(w.x,1.5,az+(az===0?-.3:.3));root.add(sky);lv.windowMeshes.set(w.id,{glass,sky});x=b;}
-   if(x<end)box(end-x,H,.15,(x+end)/2,H/2,az,wm,wallHeat(ids));}
-  for(const d of pl.doors){box(INTERIOR.doorWidth,H-2.05,.15,d.x,(H+2.05)/2,d.z,wm,wallHeat([d.a,d.b]));
-   const hinge=new T.Group();hinge.position.set(d.x-INTERIOR.doorWidth/2,0,d.z);root.add(hinge);const leaf=new T.Mesh(new T.BoxGeometry(INTERIOR.doorWidth-.04,2.03,.05),mat(d.id==='D0'?'#6b7a82':'#8a5a3a'));leaf.position.set(INTERIOR.doorWidth/2,1.015,0);hinge.add(leaf);
+   const piece=(p0,p1,y,h)=>{if(p1-p0<.01)return;horiz?box(p1-p0,h,.15,(p0+p1)/2,y,c,wm,wallHeat(ids)):box(.15,h,p1-p0,c,y,(p0+p1)/2,wm,wallHeat(ids));};
+   let u=u0;for(const w of wins.sort((p,q)=>(horiz?p.x-q.x:p.z-q.z))){const wu=horiz?w.x:w.z,ww=Math.min(w.w??INTERIOR.windowWidth,u1-u0),p0=Math.max(u0,wu-ww/2),p1=Math.min(u1,wu+ww/2);piece(u,p0,H/2,H);
+    // 窗台／上框：一般窗 0.9 m 窗台；落地拉門無窗台；陽台欄杆 1.1 m、上方開放。
+    const sill=w.kind==='slider'?0:w.kind==='railing'?1.1:.9,head=w.kind==='railing'?H:2.1;piece(p0,p1,sill/2,sill);if(head<H)piece(p0,p1,(H+head)/2,H-head);
+    const n=windowInward(w),wx=horiz?(p0+p1)/2:c,wz=horiz?c:(p0+p1)/2,gh=head-sill;
+    if(w.kind!=='railing'){const glass=new T.Mesh(new T.PlaneGeometry(p1-p0,gh),new T.MeshStandardMaterial({color:'#9fb7c9',transparent:true,opacity:.45,roughness:.1,side:T.DoubleSide}));glass.position.set(wx,sill+gh/2,wz);if(!horiz)glass.rotation.y=Math.PI/2;add(glass,wallHeat([w.space]));
+     const sky=new T.Mesh(new T.PlaneGeometry(p1-p0,gh),new T.MeshBasicMaterial({color:'#b9c7d6'}));sky.position.set(horiz?wx:wx-n*.3,sill+gh/2,horiz?wz-n*.3:wz);if(!horiz)sky.rotation.y=Math.PI/2;sky.material.side=T.DoubleSide;root.add(sky);lv.windowMeshes.set(w.id,{glass,sky});}
+    else{const sky=new T.Mesh(new T.PlaneGeometry(p1-p0,H-sill),new T.MeshBasicMaterial({color:'#b9c7d6',side:T.DoubleSide}));sky.position.set(horiz?wx:wx-n*1.2,sill+(H-sill)/2,horiz?wz-n*1.2:wz);if(!horiz)sky.rotation.y=Math.PI/2;root.add(sky);}
+    u=p1;}
+   piece(u,u1,H/2,H);}
+  for(const d of pl.doors){if(d.opening)continue;const ax=doorAxis(d)==='x',dw=doorW(d);ax?box(dw,H-2.05,.15,d.x,(H+2.05)/2,d.z,wm,wallHeat([d.a,d.b])):box(.15,H-2.05,dw,d.x,(H+2.05)/2,d.z,wm,wallHeat([d.a,d.b]));
+   // 門扇鉸鏈：東西向牆上的門沿 +x 展開；南北向牆上的門沿 +z 展開（群組旋轉 −90°）。
+   const hinge=new T.Group();hinge.position.set(ax?d.x-dw/2:d.x,0,ax?d.z:d.z-dw/2);hinge.userData.base=ax?0:-Math.PI/2;hinge.rotation.y=hinge.userData.base;root.add(hinge);const leaf=new T.Mesh(new T.BoxGeometry(dw-.04,2.03,.05),mat(d.id==='D0'?'#6b7a82':d.id==='Dentry'?'#5a4636':'#8a5a3a'));leaf.position.set(dw/2,1.015,0);hinge.add(leaf);
    leaf.userData.heat=()=>ENV.ambient+(Math.max(lvT(lv,d.a),lvT(lv,d.b))-ENV.ambient)*.6;leaf.userData.mat=leaf.material;meshes.push(leaf);
-   const knob=new T.Mesh(new T.SphereGeometry(.035,8,6),new T.MeshStandardMaterial({color:'#c9b46a',metalness:.6}));knob.position.set(INTERIOR.doorWidth-.12,1,.05);leaf.add(knob);lv.doorMeshes.set(d.id,{hinge,leaf});}
+   const knob=new T.Mesh(new T.SphereGeometry(.035,8,6),new T.MeshStandardMaterial({color:'#c9b46a',metalness:.6}));knob.position.set(dw-.16,1,.05);leaf.add(knob);lv.doorMeshes.set(d.id,{hinge,leaf});}
   for(const f of pl.furniture)box(f.w,f.h,f.d,f.x,f.h/2,f.z,mat('#5d5148'),()=>ENV.ambient+(lvT(lv,f.space)-ENV.ambient)*.25);
   // 樓梯：中間隔牆；有上一層時建第一段、平台、第二段（每段 8 階，示意尺寸）。
   const sm=mat('#9ea3a0'),cold=()=>ENV.ambient+(lvT(lv,'stair')-ENV.ambient)*.3;
@@ -82,14 +91,16 @@ export function createInterior({createPerson}){
    lv.fx={flames,roll,light,fl:[...Array(160)].map(()=>({t:Math.random(),u:Math.random()-.5,v:Math.random()-.5})),rl:[...Array(200)].map(()=>({t:Math.random(),u:Math.random(),v:Math.random()}))};}
   syncDoors(lv);
  }
- function syncDoors(lv=L){for(const d of lv.plan.doors){const m=lv.doorMeshes.get(d.id);if(!m)continue;m.hinge.rotation.y=d.state==='open'?1.45:d.state==='ajar'?.3:0;m.leaf.rotation.z=d.forced?.06:0;}
+ function syncDoors(lv=L){for(const d of lv.plan.doors){const m=lv.doorMeshes.get(d.id);if(!m)continue;m.hinge.rotation.y=(m.hinge.userData.base??0)+(d.state==='open'?1.45:d.state==='ajar'?.3:0);m.leaf.rotation.z=d.forced?.06:0;}
   for(const w of lv.plan.windows){const m=lv.windowMeshes.get(w.id);if(m)m.glass.visible=w.state==='closed';}lv.segs=wallSegments(lv.plan);}
  function clearAll(){for(const t of aiTeams??[])world.remove(t.g);if(typeof aiTeams!=='undefined')aiTeams.length=0;for(const t of supports)world.remove(t.g);supports=[];supportQueue=[];for(const e of evacuees)world.remove(e.fig.root);evacuees=[];for(const m of meshes)m.geometry?.dispose();for(const lv of levels.values())world.remove(lv.root);levels.clear();meshes=[];for(const c of crew)world.remove(c.g);crew=[];L=plan=env=null;}
 
  // ---------- 任務設定 ----------
- function setup(site,{seed=Date.now(),closed=false,victimsByFloor={},floors=[1,site.floor],vitalsFor=()=>({})}={}){
+ function setup(site,{seed=Date.now(),closed=false,victimsByFloor={},floors=[1,site.floor],vitalsFor=()=>({}),layout=null,fireRoom=null}={}){
   clearAll();fireFloor=site.floor;const rand=seeded(seed),width=site.wall?Math.hypot(site.wall[2]-site.wall[0],site.wall[3]-site.wall[1]):18;let vid=0;
-  for(const no of floors){const fire=no===fireFloor,pl=makeFloorPlan(rand,{facadeWidth:width,floor:no,closed:fire&&closed,victims:victimsByFloor[no]??0});
+  // 指定平面（高樓住宅標準層）時，各樓層同一格局、同一起火房間位置（延燒沿外牆往上）。
+  const room=layout?(fireRoom&&layout.fire[fireRoom]?fireRoom:Object.keys(layout.fire)[Math.floor(rand()*Object.keys(layout.fire).length)]):null;
+  for(const no of floors){const fire=no===fireFloor,opt={floor:no,closed:fire&&closed,victims:victimsByFloor[no]??0},pl=layout?makeUnitFloorPlan(rand,layout,{...opt,fireRoom:room}):makeFloorPlan(rand,{facadeWidth:width,...opt});
    if(!fire)for(const w of pl.windows)if(w.fire)w.state='closed';
    for(const v of pl.victims){v.id='I'+(++vid);v.floor=no;v.sex=rand()<.5?'male':'female';v.weight=Math.round(v.sex==='male'?60+rand()*30:48+rand()*27);Object.assign(v,vitalsFor(v));}
    const e=makeEnv(pl);if(!fire){const f=e.spaces[pl.fire.space];f.T=ENV.ambient;f.smoke=0;f.o2=.21;f.fuel=0;}
@@ -151,19 +162,19 @@ export function createInterior({createPerson}){
   else if(out==='backdraft')backdraft(L.no,target,new T.Vector3(d.x,1.6,d.z));
   else if(to!=='closed'&&target===plan.fire.space&&L.intensity>0&&!log.some(l=>l.kind==='fireRoomOpen'&&l.floor===L.no))note('fireRoomOpen',`開啟 ${L.no} 樓起火房間門`,{floor:L.no});}
  function interact(){if(!api.active)return;if(!onFloor()){api.hint?.('在樓梯上：走到樓梯口再操作');return;}
-  const exitD=Math.hypot(me.x-plan.exit.x,me.z-plan.exit.z),nd=nearest(plan.doors,doorDist,1.4);
+  const exitD=Math.hypot(me.x-plan.exit.x,me.z-plan.exit.z),nd=nearest(plan.doors.filter(d=>!d.opening),doorDist,1.4);
   if(L.no===[...levels.keys()][0]&&exitD<1.1&&!(nd&&doorDist(nd)<exitD)){api.onExit?.();return;}
   const v=nearest(plan.victims.filter(v=>v.state==='inside'),v=>Math.hypot(me.x-v.x,me.z-v.z),1.4);if(v){v.found=true;rescueFound(v);return;}
-  const d=nearest(plan.doors,doorDist,1.4),w=nearest(plan.windows,winDist,1.5);
+  const d=nearest(plan.doors.filter(d=>!d.opening),doorDist,1.4),w=nearest(plan.windows.filter(w=>w.kind!=='railing'),winDist,1.5);
   if(d&&(!w||doorDist(d)<=winDist(w))){if(d.locked&&!d.forced){api.hint?.(me.items.halligan?'門上鎖：按住 F 以破壞器材破門':'門上鎖：需要破壞器材（在消防車旁按 U 選裝備），或指令隊員搜索時由隊員破門');return;}
    if(d.state==='closed'){openDoor(d,'open');api.hint?.('門已開啟（E 關門；X 微開）');}else{d.state='closed';syncDoors();if(me.pending?.door===d.id&&me.pending.lv===L.no){me.pending=null;note('backdraftAvoided','關門阻斷進氣，回燃徵兆解除（示意）',{floor:L.no});api.hint?.('已關門，回燃徵兆解除；可先以水霧冷卻再開門');}else api.hint?.('門已關閉');}return;}
   if(w){if(w.state==='closed'){const out=openingOutcome(env.spaces[w.space],'open');w.state='open';syncDoors();note('vent',`開窗排煙：${L.no} 樓${spaceById(plan,w.space).name}`,{floor:L.no,window:w.id});if(out==='backdraft')backdraft(L.no,w.space,new T.Vector3(w.x,1.5,w.z));else api.hint?.('已開窗（排煙口）');}
    else if(w.state==='open'){w.state='closed';syncDoors();api.hint?.('已關窗');}else api.hint?.('窗戶已破');return;}
   api.hint?.(L.no===[...levels.keys()][0]?'附近沒有可操作的門窗（1 樓樓梯間西側為出入口）':'附近沒有可操作的門窗');}
- function ajar(){if(!api.active||!onFloor())return;const d=nearest(plan.doors,doorDist,1.4);if(!d){api.hint?.('走到門前按 X 微開門（觀察門後狀況）');return;}if(d.locked&&!d.forced){api.hint?.('門上鎖，無法微開');return;}
+ function ajar(){if(!api.active||!onFloor())return;const d=nearest(plan.doors.filter(d=>!d.opening),doorDist,1.4);if(!d){api.hint?.('走到門前按 X 微開門（觀察門後狀況）');return;}if(d.locked&&!d.forced){api.hint?.('門上鎖，無法微開');return;}
   if(d.state==='closed'){openDoor(d,'ajar');if(!me.pending)api.hint?.('門已微開：觀察煙況，可對門縫以水霧冷卻；再按 X 全開、E 關門');}else if(d.state==='ajar'){openDoor(d,'open');api.hint?.('門已全開');}}
  function useItem(hold){if(!api.active||!onFloor())return;
-  const d=nearest(plan.doors,doorDist,1.4),spd=Math.hypot(me.x-plan.standpipe.x,me.z-plan.standpipe.z);
+  const d=nearest(plan.doors.filter(d=>!d.opening),doorDist,1.4),spd=Math.hypot(me.x-plan.standpipe.x,me.z-plan.standpipe.z);
   if(d&&d.locked&&!d.forced&&doorDist(d)<spd){if(!me.items.halligan){api.hint?.('沒有攜帶破壞器材');return;}if(hold)me.forcing??={door:d,t:0,lv:L.no};return;}
   if(!hold)return;
   // 連結送水管：在樓梯間送水口接水帶背包的水線（示意 40 m；由消防車加壓送水，用水量計入水箱）。
@@ -178,13 +189,13 @@ export function createInterior({createPerson}){
  // ---------- 隊員 ----------
  function waypoints(from,toSpace,goal){return routeOn(plan,from,toSpace,goal);}
  function routeOn(pl,from,toSpace,goal){const s=spaceOf(pl,from.x,from.z)?.id??'corridor',r=pathDoors(pl,s,toSpace);if(!r.doors)return {blocked:r.blocked};const pts=[];let cur=s;
-  for(const d of r.doors){const nxt=d.a===cur?d.b:d.a,sp=spaceById(pl,cur),dir=(sp.z0+sp.z1)/2<d.z?1:-1;pts.push({x:d.x,z:d.z-dir*.6},{x:d.x,z:d.z+dir*.6});cur=nxt;}
+  for(const d of r.doors){const nxt=d.a===cur?d.b:d.a;pts.push(doorPoint(pl,d,cur,.6),doorPoint(pl,d,nxt,.6));cur=nxt;}
   // 樓梯間內避開梯段：先走到樓梯口。
   if(s==='stair'&&from.z>STAIR.zLow-.2)pts.unshift({x:from.x,z:7.8});pts.push(goal);return {pts};}
  function goTo(c,space,goal,then){const w=waypoints(c,space,goal);
   // 路徑上有上鎖的門：先走到門前破門（隊員自帶破壞器材，示意），再繼續。
-  if(w.blocked){const d=w.blocked,from=spaceOf(plan,c.x,c.z)?.id??'corridor',side=[d.a,d.b].find(id=>pathDoors(plan,from,id).doors)??from,sp=spaceById(plan,side),dir=(sp.z0+sp.z1)/2<d.z?-1:1;
-   c.state='force';c.task={...(c.task??{}),door:d,t:0,then:()=>goTo(c,space,goal,then)};c.path=waypoints(c,side,{x:d.x+(c.i?.35:-.35),z:d.z+dir*.6}).pts??[];return;}
+  if(w.blocked){const d=w.blocked,from=spaceOf(plan,c.x,c.z)?.id??'corridor',side=[d.a,d.b].find(id=>pathDoors(plan,from,id).doors)??from;
+   c.state='force';c.task={...(c.task??{}),door:d,t:0,then:()=>goTo(c,space,goal,then)};c.path=waypoints(c,side,doorPoint(plan,d,side,.6,c.i?.35:-.35)).pts??[];return;}
   c.path=w.pts;c.after=then;c.state='move';}
  function stepCrew(c,dt,speed){const g=c.path[0];if(!g)return true;const dx=g.x-c.x,dz=g.z-c.z,l=Math.hypot(dx,dz);if(l<.12){c.path.shift();return !c.path.length;}c.heading=Math.atan2(-dx,-dz);const k=Math.min(l,speed*dt);c.x+=dx/l*k;c.z+=dz/l*k;c.walk+=dt*speed*3;return false;}
  const ready=()=>crew.filter(c=>!c.out&&c.lv===L.no&&!c.task?.victim);
@@ -201,14 +212,14 @@ export function createInterior({createPerson}){
    for(const c of team){c.task={kind:'search',room:room.id,t:0};goTo(c,room.id,{x:(room.x0+room.x1)/2+(c.i?.6:-.6),z:(room.z0+room.z1)/2},()=>{c.state='search';c.task.t=0;});}
    api.hint?.(`隊員：搜索 ${L.no} 樓${room.name}`+(called?'（往呼救聲方向）':''));note('command',`指令隊員搜索 ${L.no} 樓${room.name}`,{floor:L.no});}
   if(n===3){const sp=spaceOf(plan,me.x,me.z),cands=plan.windows.filter(w=>w.state==='closed');const w=nearest(cands,w=>(w.space===sp?.id?0:20)+Math.hypot(w.x-me.x,w.z-me.z),1e9);if(!w){api.hint?.('沒有可開啟的窗戶');return;}
-   const c=ready().find(c=>!c.task);if(!c){api.hint?.('隊員忙碌中');return;}c.task={kind:'vent',window:w.id};goTo(c,w.space,{x:w.x,z:w.z+(w.z===0?.7:-.7)},()=>{const e=env.spaces[w.space];if(backdraftRisk(e)){api.hint?.(`隊員回報：${spaceById(plan,w.space).name}有回燃徵兆，未開窗`);note('crewRefuse','隊員因回燃徵兆未開窗',{floor:L.no});}else{w.state='open';syncDoors();note('vent',`隊員開窗排煙：${L.no} 樓${spaceById(plan,w.space).name}`,{floor:L.no,window:w.id,by:'crew'});api.hint?.(`隊員已開啟${spaceById(plan,w.space).name}窗戶`);}c.state='follow';c.task=null;});
+   const c=ready().find(c=>!c.task);if(!c){api.hint?.('隊員忙碌中');return;}c.task={kind:'vent',window:w.id};goTo(c,w.space,windowPoint(w,.7),()=>{const e=env.spaces[w.space];if(backdraftRisk(e)){api.hint?.(`隊員回報：${spaceById(plan,w.space).name}有回燃徵兆，未開窗`);note('crewRefuse','隊員因回燃徵兆未開窗',{floor:L.no});}else{w.state='open';syncDoors();note('vent',`隊員開窗排煙：${L.no} 樓${spaceById(plan,w.space).name}`,{floor:L.no,window:w.id,by:'crew'});api.hint?.(`隊員已開啟${spaceById(plan,w.space).name}窗戶`);}c.state='follow';c.task=null;});
    api.hint?.(`隊員：開啟${spaceById(plan,w.space).name}窗戶排煙`);}
   if(n===4){for(const c of idle){if(c.task?.victim)continue;c.state='follow';c.task=null;c.path=[];c.out=true;c.g.visible=false;}crewWater.visible=false;api.hint?.('隊員：撤離（沿樓梯下樓，示意）');note('command','指令隊員撤離');}
   if(n===5){if(!me.hoseIn){api.hint?.('隊員需要水線：先自消防車拉入水線，或攜帶水帶背包在送水口接水線');return;}if(!(L.intensity>0)){api.hint?.(`${L.no} 樓沒有燃燒中的火點`);return;}
    const c=ready().find(c=>c.i===0&&!c.task)??ready().find(c=>!c.task);if(!c){api.hint?.('隊員忙碌中');return;}
-   const d=plan.doors.find(d=>d.a===plan.fire.space),dir=d.z===5?1:-1;c.task={kind:'spray',door:d.id};
-   goTo(c,'corridor',{x:d.x,z:d.z+dir*.8},()=>{if(d.state!=='open'){if(backdraftRisk(env.spaces[plan.fire.space])){api.hint?.('隊員回報：起火房間有回燃徵兆，先以水霧冷卻門後空間再進攻');note('crewRefuse','隊員因回燃徵兆未開門',{floor:L.no});c.state='follow';c.task=null;return;}d.state='open';syncDoors();}
-    c.path=[{x:d.x,z:d.z-dir*.5}];c.state='spray';c.task.t=0;});
+   const d=fireDoor(plan),fs=plan.fire.space,os=d.a===fs?d.b:d.a;c.task={kind:'spray',door:d.id};
+   goTo(c,os,doorPoint(plan,d,os,.8),()=>{if(d.state!=='open'){if(backdraftRisk(env.spaces[plan.fire.space])){api.hint?.('隊員回報：起火房間有回燃徵兆，先以水霧冷卻門後空間再進攻');note('crewRefuse','隊員因回燃徵兆未開門',{floor:L.no});c.state='follow';c.task=null;return;}d.state='open';syncDoors();}
+    c.path=[doorPoint(plan,d,fs,.5)];c.state='spray';c.task.t=0;});
    api.hint?.(`隊員：架設水線，自 ${L.no} 樓起火房間門口進攻（示意）`);note('command',`指令隊員射水（${L.no} 樓）`,{floor:L.no});}}
  // 找到受困者：可行走者自行沿樓梯避難（中隊長指引），其餘由隊員抬到樓梯間交支援小組。
  // 交接：受困者放在該層樓梯間，排入支援小組佇列。
@@ -217,7 +228,7 @@ export function createInterior({createPerson}){
  function rescueFound(v){if(v.state!=='inside')return;if(v.bubble)v.bubble.visible=false;if(v.condition==='well')evacuate(v);else assignCarry(v);}
  function toWorld(fig,lvNo){const p=fig.root.position;world.attach(fig.root);return p;}
  function evacuate(v){const lv=levels.get(v.floor),fig=lv.victimFigs.get(v.id),r=pathDoors(lv.plan,v.space,'stair');for(const d of r.doors??[])if(d.state!=='open'){d.state='open';}syncDoors(lv);
-  let pts=[];let cur=v.space;for(const d of r.doors??[]){const sp=spaceById(lv.plan,cur),dir=(sp.z0+sp.z1)/2<d.z?1:-1;pts.push({x:d.x,z:d.z-dir*.6},{x:d.x,z:d.z+dir*.6});cur=d.a===cur?d.b:d.a;}
+  let pts=[];let cur=v.space;for(const d of r.doors??[]){const nxt=d.a===cur?d.b:d.a;pts.push(doorPoint(lv.plan,d,cur,.6),doorPoint(lv.plan,d,nxt,.6));cur=nxt;}
   const b=base(v.floor),path=[{x:v.x,z:v.z,y:b},...pts.map(p=>({...p,y:b})),{x:1.2,z:7.9,y:b},...stairRoute(v.floor,1).slice(1),...[...EXIT_IN].reverse()];
   toWorld(fig);fig.root.position.set(v.x,b,v.z);v.state='evacuating';evacuees.push({v,fig,path,len:pathLength(path),d:0,walk:0});note('evacuate',`受困者 ${v.id}（${v.floor} 樓，可行走）沿樓梯自行避難`,{floor:v.floor,victim:v.id});api.hint?.(`受困者 ${v.id} 可行走：指引其沿樓梯下樓避難`);}
  function finishRescue(v,text){v.state='rescued';const fig=levels.get(v.floor)?.victimFigs.get(v.id);if(fig)fig.root.visible=false;note('rescued',text??`受困者 ${v.id} 已救出至 1 樓出入口`,{floor:v.floor,victim:v.id});api.onRescue?.(v);}
@@ -347,8 +358,8 @@ export function createInterior({createPerson}){
   for(const sp of plan.spaces){const e=env.spaces[sp.id],t=Math.min(1,(e.T-20)/500);ctx.fillStyle=`rgb(${40+t*150|0},${44+e.smoke*20|0},${50-t*20|0})`;ctx.fillRect(X(sp.x0),Z(sp.z0),(sp.x1-sp.x0)*s,(sp.z1-sp.z0)*s);}
   ctx.strokeStyle='#c9d1d9';ctx.lineWidth=2;for(const [ax,az,bx,bz] of wallSegments(plan,{withDoors:false})){ctx.beginPath();ctx.moveTo(X(ax),Z(az));ctx.lineTo(X(bx),Z(bz));ctx.stroke();}
   ctx.strokeStyle='#6e7681';ctx.lineWidth=1;for(let i=0;i<=8;i++){const z=STAIR.zLow+i*STAIR.run/8;if(L.up){ctx.beginPath();ctx.moveTo(X(1.85),Z(z));ctx.lineTo(X(3.45),Z(z));ctx.stroke();}if(L.down||L.up){ctx.beginPath();ctx.moveTo(X(.05),Z(z));ctx.lineTo(X(1.65),Z(z));ctx.stroke();}}
-  for(const d of plan.doors){ctx.strokeStyle=d.forced?'#f0883e':d.state==='open'?'#3fb950':d.state==='ajar'?'#e3b341':'#8b949e';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(X(d.x-.45),Z(d.z));ctx.lineTo(X(d.x+.45),Z(d.z));ctx.stroke();}
-  for(const w of plan.windows){ctx.strokeStyle=w.state==='closed'?'#58a6ff':'#a5d6ff';ctx.setLineDash(w.state==='closed'?[]:[3,2]);ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(X(w.x-.7),Z(w.z));ctx.lineTo(X(w.x+.7),Z(w.z));ctx.stroke();ctx.setLineDash([]);}
+  for(const d of plan.doors){ctx.strokeStyle=d.forced?'#f0883e':d.state==='open'?'#3fb950':d.state==='ajar'?'#e3b341':'#8b949e';ctx.lineWidth=3;if(d.opening)continue;const hw=doorW(d)/2;ctx.beginPath();if(doorAxis(d)==='x'){ctx.moveTo(X(d.x-hw),Z(d.z));ctx.lineTo(X(d.x+hw),Z(d.z));}else{ctx.moveTo(X(d.x),Z(d.z-hw));ctx.lineTo(X(d.x),Z(d.z+hw));}ctx.stroke();}
+  for(const w of plan.windows){ctx.strokeStyle=w.state==='closed'?'#58a6ff':'#a5d6ff';ctx.setLineDash(w.state==='closed'?[]:[3,2]);ctx.lineWidth=3;const ww=(w.w??INTERIOR.windowWidth)/2;ctx.beginPath();if((w.axis??'x')==='x'){ctx.moveTo(X(w.x-ww),Z(w.z));ctx.lineTo(X(w.x+ww),Z(w.z));}else{ctx.moveTo(X(w.x),Z(w.z-ww));ctx.lineTo(X(w.x),Z(w.z+ww));}ctx.stroke();ctx.setLineDash([]);}
   ctx.fillStyle='#c4161c';ctx.fillRect(X(plan.standpipe.x)-3,Z(plan.standpipe.z)-3,6,6);
   if(L.intensity>0){ctx.fillStyle='#ff5a1f';ctx.beginPath();ctx.arc(X(plan.fire.x),Z(plan.fire.z),5,0,7);ctx.fill();}
   for(const v of plan.victims)if(v.found&&v.state!=='rescued'){ctx.fillStyle='#f85149';ctx.fillRect(X(v.x)-3,Z(v.z)-3,6,6);}
@@ -371,14 +382,14 @@ export function createInterior({createPerson}){
  const teamPos=t=>t.state==='climb'||t.state==='leave'||t.state==='walk'?samplePath(t.path,t.d):{x:t.x,z:t.z,y:base(t.floor)};
  // 樓層內移動：以該層平面的房間路徑產生世界座標折線；遇上鎖的門先破門（7 秒）。
  function legTo(t,toSpace,goal,next){const pl=levels.get(t.floor).plan,here=teamPos(t),w=routeOn(pl,here,toSpace,goal),b=base(t.floor);
-  if(w.blocked){const d=w.blocked,from=spaceOf(pl,here.x,here.z)?.id??'corridor',side=[d.a,d.b].find(id=>pathDoors(pl,from,id).doors)??from,sp=spaceById(pl,side),dir=(sp.z0+sp.z1)/2<d.z?-1:1,ww=routeOn(pl,here,side,{x:d.x,z:d.z+dir*.6});
+  if(w.blocked){const d=w.blocked,from=spaceOf(pl,here.x,here.z)?.id??'corridor',side=[d.a,d.b].find(id=>pathDoors(pl,from,id).doors)??from,ww=routeOn(pl,here,side,doorPoint(pl,d,side,.6));
    t.path=[{x:here.x,z:here.z,y:b},...(ww.pts??[]).map(p=>({...p,y:b}))];t.len=pathLength(t.path);t.d=0;t.state='walk';t.after=()=>{t.state='force';t.t=0;t.door=d;t.resume=()=>legTo(t,toSpace,goal,next);};return;}
   for(const d of pathDoors(pl,spaceOf(pl,here.x,here.z)?.id??'corridor',toSpace).doors??[])if(d.state==='closed'&&!backdraftRisk(levels.get(t.floor).env.spaces[d.a])&&!backdraftRisk(levels.get(t.floor).env.spaces[d.b])){d.state='open';}syncDoors(levels.get(t.floor));
   t.path=[{x:here.x,z:here.z,y:b},...w.pts.map(p=>({...p,y:b}))];t.len=pathLength(t.path);t.d=0;t.state='walk';t.after=next;}
  function teamNext(t){const lv=levels.get(t.floor),pl=lv.plan;
   if(t.task==='attack'){if(!(lv.intensity>0)){note('teamDone',`${t.name}回報：${t.floor} 樓火點已撲滅`,{floor:t.floor,team:t.id});leaveTeam(t,'任務完成');return;}
    if(!t.connected){t.state='walk';legTo(t,'stair',{x:pl.standpipe.x-.4,z:pl.standpipe.z},()=>{t.state='connect';t.t=0;});return;}
-   const d=pl.doors.find(d=>d.a===pl.fire.space),dir=d.z===5?1:-1;t.door=d;legTo(t,'corridor',{x:d.x,z:d.z+dir*.9},()=>{t.state='door';t.t=0;});return;}
+   const d=fireDoor(pl),os=d.a===pl.fire.space?d.b:d.a;t.door=d;legTo(t,os,doorPoint(pl,d,os,.9),()=>{t.state='door';t.t=0;});return;}
   // 搜索：最近的未搜索房間（溫度 ≥ 300 °C 略過並回報）。
   const done=new Set(log.filter(l=>l.kind==='searched'&&l.floor===t.floor).map(l=>l.space)),here=teamPos(t);
   const rooms=pl.spaces.filter(s=>s.kind==='room'&&!done.has(s.id)&&!t.searched.has(s.id)).sort((a,b)=>Math.hypot((a.x0+a.x1)/2-here.x,(a.z0+a.z1)/2-here.z)-Math.hypot((b.x0+b.x1)/2-here.x,(b.z0+b.z1)/2-here.z));
@@ -396,7 +407,7 @@ export function createInterior({createPerson}){
   else if(t.state==='door'){const d=t.door,fe=lv.env.spaces[pl.fire.space];
    // 門後有回燃徵兆：微開門以水霧冷卻，降到門檻以下才開門（示意）。
    if(d.state!=='open'){if(backdraftRisk(fe)){if(d.state!=='ajar'){d.state='ajar';syncDoors(lv);note('teamCool',`${t.name}：${t.floor} 樓起火房間門後有回燃徵兆，微開門冷卻`,{floor:t.floor,team:t.id});}crewCool.push({lv:t.floor,space:pl.fire.space,rate:1.3});spray={cool:true};}else{d.state='open';syncDoors(lv);}}
-   else{const dir=d.z===5?1:-1;t.x=d.x;t.z=d.z-dir*.4;if(!(lv.intensity>0)){teamNext(t);}
+   else{const q=doorPoint(pl,d,pl.fire.space,.4);t.x=q.x;t.z=q.z;if(!(lv.intensity>0)){teamNext(t);}
     else if(fe.T>=(t.mode==='cool'?240:320)){crewCool.push({lv:t.floor,space:pl.fire.space,rate:1.2});spray={cool:true};if(t.mode!=='cool'){t.mode='cool';note('crewCool',`${t.name}以水霧脈衝冷卻 ${t.floor} 樓上層熱煙`,{floor:t.floor,team:t.id});}}
     else{crewSprays.push({lv:t.floor,space:pl.fire.space,team:t.id});spray={cool:false};if(t.mode!=='attack'){t.mode='attack';note('crewAttack',`${t.name}直線水柱直攻 ${t.floor} 樓火點`,{floor:t.floor,team:t.id});}}}}
   else if(t.state==='search'){t.t+=dt;const room=spaceById(pl,t.room),v=pl.victims.find(v=>v.space===room.id&&v.state==='inside');
