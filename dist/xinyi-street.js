@@ -42,7 +42,7 @@ import {unproject} from './xinyi-street-world.js?v=garage-20261023';
 import {buildDistrictBatch} from './geo-district.js';
 import {addLanesToScene} from './xinyi-lanes.js?v=roads-20261023';
 import {addFurnitureToScene} from './xinyi-furniture.js?v=7';
-import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,applyFills,styleOf} from './xinyi-facades.js?v=9';
+import {buildFacadeBatch,createFacadeMaterial,facadeGeometry,facadeProps,addFacadeProps,overrideIndex,applyFills,styleOf,classifyWalls} from './xinyi-facades.js?v=10b';
 import {detailWalls,shedHeight,facadeCells,buildRoofSheds,addShophouses} from './xinyi-shophouse.js?v=10';
 import {kitPlacements,createFacadeKits} from './facade-kits.js?v=4';
 import {loadLandmarks,isLandmarkVolume,localToLonLat,footprintBuilding,addLandmarksToThree} from './landmarks-real.js?v=2';
@@ -100,7 +100,7 @@ const ground=buildHeightField(district.buildings,district.bbox);
 ground.at=stationSurface(ground,project,landmarks.find(a=>a.key==='hq'));
 const walkSurface=createWalkSurface(ground);
 const colliders=buildColliders(stationCollisionBuildings(district.buildings,landmarks.find(a=>a.key==='hq')),ground);
-let detailMats,farMat,facadeSigns=null,shophouse=null;
+let detailMats,farMat,facadeSigns=null,shophouse=null,facadePlants=null;
 // 建物：精修範圍（中心約 250 m）用 buildXinyiDetail，其餘用 buildDistrictBatch，與 GIS 頁預設相同。
 // 被精細地標取代的官方量體保留作地面高程與碰撞，畫面改用精細模型（landmarks-real.js）。
 // 逐街精修（building-overrides-xinyi.json）：有精修資料的量體一律用逐棟立面，即使位於中心精修範圍內。
@@ -116,12 +116,14 @@ let detailMats,farMat,facadeSigns=null,shophouse=null;
    if(ws.length){shopItems.push({b,style:st.style,shop:st.shop,colour:st.colour,floorH,walls:ws});skip.set(b.id,new Set(ws));}
    const h=shedHeight(b,st.style);if(h)shedItems.push({b,h});}
   const skipWall=(b,k)=>skip.get(b.id)?.has(k)??false;
-  const fb=buildFacadeBatch(basic,styles.buildings,overrides,{skipWall});farMat=createFacadeMaterial(T);const far=new T.Mesh(facadeGeometry(T,fb,toLocal,ground,linearColors),farMat);far.castShadow=false;far.receiveShadow=true;far.name='xinyi facades';scene.add(far);
-  facadeSigns=addFacadeProps(T,scene,facadeProps(basic,styles.buildings,{project,overrides,skipWall,shed:shedHeight,facesStreet:(x,z)=>!!nearestStreet(streets.features,x,z,9)})).signMat;
+  // 第 2 階段（逐街精修 P2）：牆面分臨街／側牆／背面，側牆少窗或無窗、背面鐵窗後陽台（依 faceSpec，未精修者為證據 C 示意）。
+  const faceOf=classifyWalls(basic,{project,facesStreet:(x,z)=>!!nearestStreet(streets.features,x,z,9)});
+  const fb=buildFacadeBatch(basic,styles.buildings,overrides,{skipWall,faceOf});farMat=createFacadeMaterial(T);const far=new T.Mesh(facadeGeometry(T,fb,toLocal,ground,linearColors),farMat);far.castShadow=false;far.receiveShadow=true;far.name='xinyi facades';scene.add(far);
+  const fp=addFacadeProps(T,scene,facadeProps(basic,styles.buildings,{project,overrides,skipWall,shed:shedHeight,faceOf,facesStreet:(x,z)=>!!nearestStreet(streets.features,x,z,9)}));facadeSigns=fp.signMat;facadePlants=fp.group.getObjectByName('facade plant');
   // 精細立面逐格延後建構；每格先放只含精細牆的簡易立面（不含屋頂），精細網格建好後隱藏
   const cells=facadeCells(shopItems,{project});
   for(const c of cells){const bs=c.items.map(it=>({...it.b,roofs:[]}));
-   const g=buildFacadeBatch(bs,styles.buildings,overrides,{skipWall:(b,k)=>!skipWall(b,k)});
+   const g=buildFacadeBatch(bs,styles.buildings,overrides,{skipWall:(b,k)=>!skipWall(b,k),faceOf});
    c.proxy=new T.Mesh(facadeGeometry(T,g,toLocal,ground,linearColors),farMat);c.proxy.castShadow=false;c.proxy.receiveShadow=true;c.proxy.name='street facade proxy '+c.key;scene.add(c.proxy);}
   shophouse=addShophouses({T,scene,cells,roofs:buildRoofSheds(shedItems,{project}),project});
   // 老舊立面外掛構件（冷氣室外機、排水管、電錶箱；blender/build_weathered_parts.py 由 BuildingGeneratorThreeJS 組件包取出，CC BY 4.0 uday），背景載入
@@ -1062,6 +1064,8 @@ $('zebraReview').onchange=()=>{settings.zebraReview=$('zebraReview').checked;zeb
 $('zebraStatus').textContent='黑白斑馬線：'+zebraCrossings.counts.mapped+' 段有 OSM 斑馬線標記；另 '+zebraCrossings.counts.review+' 段已有穿越道位置，條紋樣式待核對。寬度、條紋與間距仍為示意。';
 $('indoorLayout').value=settings.indoorLayout??'auto';$('indoorLayout').onchange=()=>{settings.indoorLayout=$('indoorLayout').value;saveSettings();};
 $('indoorFire').value=settings.indoorFire??'random';$('indoorFire').onchange=()=>{settings.indoorFire=$('indoorFire').value;saveSettings();};
+$('facadeFaces').checked=settings.facadeFaces!==false;const applyFaces=()=>{if(farMat?.userData.uFaces)farMat.userData.uFaces.value=$('facadeFaces').checked?1:0;if(facadePlants)facadePlants.visible=$('facadeFaces').checked;};applyFaces();
+$('facadeFaces').onchange=()=>{settings.facadeFaces=$('facadeFaces').checked;applyFaces();saveSettings();};
 $('roadTexture').checked=settings.roadTexture!==false;roadSurface?.setTextures($('roadTexture').checked);
 $('roadTexture').onchange=()=>{settings.roadTexture=$('roadTexture').checked;roadSurface?.setTextures(settings.roadTexture);saveSettings();};
 $('motoBoxes').checked=settings.motoBoxes!==false;if(roadSurface)roadSurface.group.visible=$('motoBoxes').checked;
